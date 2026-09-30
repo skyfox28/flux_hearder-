@@ -10,7 +10,7 @@ Gardez ensemble `index.html` et le dossier `lib/`. Le référentiel articles (Fi
 | Onglet | Source | Mode |
 |---|---|---|
 | Préparation | Extraction SAP **VL06O** (`VL06O.XLSX`) | glisser-déposer : l'import remplace la photo précédente |
-| Expéditions | **Base affrètement** (Access) | copier-coller des lignes (avec ou sans en-têtes) |
+| Expéditions | **Base affrètement** (Access) + livraisons VL06O non affrétées | copier-coller des lignes (avec ou sans en-têtes) |
 | Intercos | VL06O + affrètement (envois) et planning SST (retours) | automatique : priorité 9, ou mots-clés Plateforme 38 / Compans / McCormick |
 | Rapatriements | Classeurs `AAAA_Sxx_<Entrepôt>.xlsx` (FM, Mutual, Tempo One…) | glisser-déposer, plusieurs fichiers à la fois |
 | Réceptions SST | `Planning_Reception_SST_Monteux3.xlsb` (onglets « PlanningReception AAAA ») | glisser-déposer, ou saisie manuelle d'un RDV |
@@ -63,3 +63,13 @@ Un chiffre de la matrice ouvre le détail du jour ; le bouton « Toute la semain
 ## Transporteurs
 
 La correspondance code → nom de la base affrètement est intégrée (3 STEF PARIS ATHIS-MONS … 440 EXPORT DDE). Elle peut être surchargée dans Paramètres.
+
+## Expéditions : base affrètement + VL06O
+
+Le collage accepte l'export complet de la base affrètement, avec ou sans en-têtes :
+`affret · Prep · Code Depot · Liv · Date enlevement · code transporteur · Nom transporteur · CodeClient · nom · ville · rue · rue 4 · cp · NbPalettes_Ent · NbCouches_Ent · NbColis_Detail · NbCartons_PK · poids taxable · Pds brut · blocs · Palettes · commentaires`.
+L'ancien format (`Date Enl · Livraison · …`) reste accepté. Le nom du transporteur de l'export est retenu, et l'adresse s'affiche au survol de la ville.
+
+Les livraisons de la VL06O **absentes** de la base affrètement sont ajoutées à la liste, sans doublon : une livraison affrétée n'est jamais reprise depuis la VL06O.
+- Elles sont datées à leur date de chargement et marquées « VL06O · non affrété ».
+- Leurs palettes et leurs blocs ne sont connus qu'une fois l'affrètement collé ; en attendant, l'app affiche leurs Pal SILO.

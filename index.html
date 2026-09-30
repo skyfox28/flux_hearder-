@@ -588,22 +588,30 @@ function parseVL06O(wb) {
 }
 
 // Base affrètement (copier-coller Access)
+// Deux mises en forme acceptées : l'export complet (affret, Prep, Code Depot, Liv, Date enlevement,
+// code transporteur, Nom transporteur, CodeClient, nom, ville, rue, rue 4, cp, …) et l'ancien (Date Enl, Livraison, …)
 const AF_SPEC = {
-  date: ['Date Enl', 'Date enlèvement', 'Date'], liv: ['Livraison'], client: ['Client'], prep: ['Prep'], transp: ['Transp', 'Transporteur'],
-  nom: ['nom', 'Nom'], ville: ['ville'], cp: ['cp', 'Code postal'], poids: ['Poids brut'], poidsTax: ['poids taxable'],
-  blocs: ['blocs'], pal: ['Palettes'], palEnt: ['NbPalettes_Ent'], couches: ['NbCouches_Ent'], cartDet: ['NbCartons_Detail'], cartPk: ['NbCartons_PK'],
+  date: ['Date enlevement', 'Date enlèvement', 'Date Enl', 'Date'], liv: ['Livraison', 'Liv'], client: ['CodeClient', 'Client'], prep: ['Prep'],
+  affret: ['affret'], depot: ['Code Depot', 'Dépôt'], transp: ['code transporteur', 'Transp', 'Code transp'], transpNom: ['Nom transporteur', 'Nom_Transp'],
+  nom: ['nom'], ville: ['ville'], rue: ['rue'], rue4: ['rue 4'], cp: ['cp', 'Code postal'], poids: ['Pds brut', 'Poids brut'], poidsTax: ['poids taxable'],
+  blocs: ['blocs'], pal: ['Palettes'], palEnt: ['NbPalettes_Ent'], couches: ['NbCouches_Ent'], cartDet: ['NbColis_Detail', 'NbCartons_Detail'], cartPk: ['NbCartons_PK'],
   comm: ['commentaires', 'commentaire'],
 };
+// ordre des colonnes quand le collage n'a pas d'en-tête
+const AF_ORDER_NEW = { affret: 0, prep: 1, depot: 2, liv: 3, date: 4, transp: 5, transpNom: 6, client: 7, nom: 8, ville: 9, rue: 10, rue4: 11, cp: 12, palEnt: 13, couches: 14, cartDet: 15, cartPk: 16, poidsTax: 17, poids: 18, blocs: 19, pal: 20, comm: 21 };
+const AF_ORDER_OLD = { date: 0, liv: 1, client: 2, prep: 3, transp: 4, nom: 5, ville: 6, cp: 7, poids: 8, poidsTax: 9, blocs: 10, pal: 11, palEnt: 12, couches: 13, cartDet: 14, cartPk: 15, comm: 16 };
+const accessBool = v => /^(-1|1|oui|vrai|true|x)$/i.test(str(v));
 function parseAffret(text) {
   const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
   if (!lines.length) throw new Error('Rien à importer.');
   const cells = lines.map(l => l.split('\t'));
-  let h = cells.findIndex(r => r.some(c => norm(c) === 'livraison'));
+  let h = cells.findIndex(r => r.some(c => ['livraison', 'liv'].includes(norm(c))) && r.some(c => /date/i.test(c)));
   let M;
   if (h >= 0) M = headerMap(cells[h], AF_SPEC);
-  else { // pas d'en-tête : ordre standard de la base
-    h = -1; M = { date: 0, liv: 1, client: 2, prep: 3, transp: 4, nom: 5, ville: 6, cp: 7, poids: 8, poidsTax: 9, blocs: 10, pal: 11, palEnt: 12, couches: 13, cartDet: 14, cartPk: 15, comm: 16 };
+  else { // pas d'en-tête : on reconnaît le format au nombre de colonnes
+    h = -1; M = Math.max(...cells.map(r => r.length)) >= 20 ? AF_ORDER_NEW : AF_ORDER_OLD;
   }
+  if (M.liv == null || M.date == null) throw new Error('Colonnes « Liv » / « Livraison » et date d’enlèvement introuvables.');
   const out = [];
   for (const r of cells.slice(h + 1)) {
     const g = k => M[k] == null ? '' : (r[M[k]] ?? '');
@@ -611,10 +619,11 @@ function parseAffret(text) {
     const date = toIso(str(g('date')));
     if (!/^\d{6,}$/.test(liv) || !date) continue;   // ignore la ligne de totaux
     const comm = str(g('comm'));
-    const rdv = (comm.match(/(?:rv|rdv|rendez[- ]vous|livraison|a)\s*(?:a\s*)?(\d{1,2})\s*[h:]\s*(\d{2})?/i) || comm.match(/\b(\d{1,2})[h:](\d{2})\b/i));
+    const rdv = comm.match(/(?:rv|rb|rdv|rendez[- ]vous|livraison)\s*(?:(?:a|à|de|entre)\s*)?(\d{1,2})\s*[h:]\s*(\d{2})?/i) || comm.match(/\b(\d{1,2})[h:](\d{2})\b/i) || comm.match(/\b(\d{1,2})\s*h\b/i);
     const cam = comm.match(/CAMION\s*(\d+)/i);
     out.push({
-      date, liv, client: str(g('client')), prep: str(g('prep')), transp: str(g('transp')), nom: str(g('nom')), ville: str(g('ville')), cp: str(g('cp')),
+      date, liv, client: str(g('client')), prep: str(g('prep')), prepOk: accessBool(g('prep')), affret: accessBool(g('affret')), depot: str(g('depot')),
+      transp: str(g('transp')), transpNom: str(g('transpNom')), nom: str(g('nom')), ville: str(g('ville')), rue: [str(g('rue')), str(g('rue4'))].filter(Boolean).join(' · '), cp: str(g('cp')),
       poids: num(g('poids')), poidsTax: num(g('poidsTax')), blocs: num(g('blocs')), pal: num(g('pal')), palEnt: num(g('palEnt')),
       couches: num(g('couches')), cartDet: num(g('cartDet')), cartPk: num(g('cartPk')), comm,
       rdv: rdv ? `${pad(+rdv[1])}:${rdv[2] || '00'}` : '', camion: cam ? cam[1] : '',
@@ -891,6 +900,7 @@ function viewDash() {
     const p = prep.filter(l => l.dc === d), pa = agg(p);
     const a = aff.filter(r => r.date === d), ri = rin.filter(l => l.date === d), ro = rout.filter(l => l.date === d), s = sst.filter(r => r.date === d);
     return {
+      livNA: vlOnlyRows(x => x === d).length,
       d, palRap: sum(ri, l => l.pal), camRap: ri.length, palSst: sum(s, r => r.pal), camSst: sum(s, r => r.cam || 1), palIntercoBack: sum(s.filter(r => isInterco(r.sst)), r => r.pal),
       palIn: sum(ri, l => l.pal) + sum(s, r => r.pal), palOut: sum(a, r => r.pal), blocs: sum(a, r => r.blocs), livOut: a.length,
       poids: sum(a, r => r.poids), palExt: sum(ro, l => l.pal),
@@ -919,7 +929,7 @@ function viewDash() {
     </div>
     <div class="group-title" style="margin-top:18px">Sorties</div>
     <div class="kpis">
-      ${kpi('Palettes expédiées', n0(palOut), 'pal', `${n0(aff.length)} livraisons · ${tons(sum(aff, r => r.poids))} t`, 'var(--out)', 'out')}
+      ${kpi('Palettes expédiées', n0(palOut), 'pal', `${n0(aff.length)} livraisons affrétées · ${tons(sum(aff, r => r.poids))} t${vlOnlyRows().length ? ` · +${vlOnlyRows().length} VL06O non affrétées` : ''}`, 'var(--out)', 'out')}
       ${kpi('Blocs sol', n0(sum(aff, r => r.blocs)), '', `${uniq(aff.map(r => r.transp)).length} transporteurs`, '', 'blocs')}
       ${(() => { const ir = intercoRows(); return kpi('Intercos envoyés', n0(sum(ir, r => r.pal ?? r.palSilo)), 'pal', `${ir.length} livraisons`, '', 'interco'); })()}
     </div>
@@ -946,11 +956,11 @@ function viewDash() {
     <div class="alerts">${alerts || `<div class="alert info">${icon('info')}<div>Rien à signaler pour cette semaine.</div></div>`}</div>
   </section>`;
 }
-const MATRIX_DETAIL = { palRap: 'rapin', camRap: 'rapin', palSst: 'sst', camSst: 'sst', palIntercoBack: 'sst', palIn: 'in', livOut: 'out', palOut: 'out', blocs: 'blocs', palInterco: 'interco', poids: 'poids', palExt: 'ext', livPrep: 'livprep', codes: 'livprep', hrs: 'charge', hrsFait: 'avanc' };
+const MATRIX_DETAIL = { palRap: 'rapin', camRap: 'rapin', palSst: 'sst', camSst: 'sst', palIntercoBack: 'sst', palIn: 'in', livOut: 'out', livNA: 'out', palOut: 'out', blocs: 'blocs', palInterco: 'interco', poids: 'poids', palExt: 'ext', livPrep: 'livprep', codes: 'livprep', hrs: 'charge', hrsFait: 'avanc' };
 function dayMatrix(pd) {
   const rowsDef = [
     ['Rapatriements (pal)', 'palRap', n0], ['Camions rapatriement', 'camRap', n0], ['Réceptions SST (pal)', 'palSst', n0], ['Camions SST', 'camSst', n0], ['dont retours interco (pal)', 'palIntercoBack', n0],
-    ['Total entrées (pal)', 'palIn', n0, true], ['Livraisons expédiées', 'livOut', n0], ['Palettes expédiées', 'palOut', n0, true],
+    ['Total entrées (pal)', 'palIn', n0, true], ['Livraisons affrétées', 'livOut', n0], ['Livraisons VL06O non affrétées', 'livNA', n0], ['Palettes expédiées', 'palOut', n0, true],
     ['Blocs sol', 'blocs', n0], ['dont envois interco (pal)', 'palInterco', n0], ['Poids expédié (t)', 'poids', tons],
     ['Transferts vers externes (pal)', 'palExt', n0], ['Livraisons à préparer', 'livPrep', n0], ['Codes (lignes)', 'codes', n0],
     ['Heures préparation', 'hrs', n1, true], ['dont faites', 'hrsFait', n1],
@@ -1153,44 +1163,54 @@ const TRANSP_DEFAULT = {
   46: 'LOMATRANS - NE PAS UTILISER', 48: 'DB SCHENKER', 102: 'PROMODAL', 105: 'ALAINE', 107: 'TAB RAIL ROAD', 200: 'DISPAM',
   202: 'PEYROT - NE PAS UTILISER', 204: 'SMTRT', 207: 'SLT', 210: 'GEODIS', 211: 'Intersites', 440: 'EXPORT DDE',
 };
-const transpName = c => S.settings.transporteurs[c] || TRANSP_DEFAULT[String(c).trim()] || (c === '' || c == null ? '—' : `Transp. ${c}`);
+const transpName = c => S.settings.transporteurs[c] || (S.affret.tnames || {})[c] || TRANSP_DEFAULT[String(c).trim()] || (c === '' || c == null ? 'Non affrété' : `Transp. ${c}`);
+// Livraisons VL06O (date de chargement) absentes de la base affrètement : ajoutées sans doublon
+function vlOnlyRows(filter = inWeek) {
+  const out = [];
+  for (const l of livIndex().values()) {
+    if (!l.dc || !filter(l.dc) || S.affret.rows[l.liv]) continue;
+    out.push({ src: 'vl06o', date: l.dc, liv: l.liv, nom: l.nom, ville: l.ville, cp: '', depot: '', rue: '', transp: '', transpNom: '', client: l.rec || '',
+      pal: null, blocs: null, palEnt: null, couches: null, cartPk: null, cartDet: null, poids: null, poidsTax: null, rdv: '', camion: '', comm: '' });
+  }
+  return out;
+}
+const expRows = (filter = inWeek) => [...Object.values(S.affret.rows).filter(r => filter(r.date)).map(r => Object.assign({ src: 'affret' }, r)), ...vlOnlyRows(filter)];
+const srcBadge = r => r.src === 'vl06o' ? badge('VL06O · non affrété', 'b-warn') : '';
 function viewOut() {
   const { days } = weekData();
   const idx = livIndex();
   const f = S.ui.af;
-  let rows = Object.values(S.affret.rows).filter(r => inWeek(r.date));
-  const transps = uniq(rows.map(r => r.transp)).sort((a, b) => num(a) - num(b));
+  let rows = expRows();
+  const transps = uniq(rows.map(r => r.transp)).sort((a, b) => (a === '') - (b === '') || num(a) - num(b));
   const q = (f.q || '').trim().toUpperCase();
   const filt = rows.filter(r =>
     (!f.days || !f.days.length || f.days.includes(r.date)) && (!f.tr || !f.tr.length || f.tr.includes(r.transp)) &&
-    (!f.st || !f.st.length || f.st.includes(idx.has(r.liv) ? idx.get(r.liv).prep : 'X')) &&
+    (!f.st || !f.st.length || f.st.includes(idx.has(r.liv) ? idx.get(r.liv).prep : 'X')) && (!f.src || !f.src.length || f.src.includes(r.src)) &&
     (!q || r.liv.includes(q) || r.nom.toUpperCase().includes(q) || r.ville.toUpperCase().includes(q) || r.comm.toUpperCase().includes(q)));
   const pasteCard = `
   <section class="card glass">
     <details class="paste" ${Object.keys(S.affret.rows).length ? '' : 'open'}>
       <summary>${icon('paste')} Coller l’export de la base affrètement <span class="meta" style="font-weight:400">— ${n0(Object.keys(S.affret.rows).length)} livraisons en mémoire</span></summary>
-      <p class="hint" style="margin-top:10px">Copiez les lignes depuis Access (avec ou sans en-têtes) et collez-les ci-dessous. Les livraisons déjà connues sont mises à jour, la ligne de totaux est ignorée.</p>
-      <textarea class="inp" id="affPaste" placeholder="Date Enl&#9;Livraison&#9;Client&#9;Prep&#9;Transp&#9;nom&#9;ville&#9;cp&#9;Poids brut&#9;…"></textarea>
+      <p class="hint" style="margin-top:10px">Copiez les lignes depuis Access (avec ou sans en-têtes, format <kbd>affret · Prep · Code Depot · Liv · Date enlevement · code transporteur · Nom transporteur …</kbd> ou l’ancien format) et collez-les ci-dessous. Les livraisons déjà connues sont mises à jour, la ligne de totaux est ignorée.</p>
+      <textarea class="inp" id="affPaste" placeholder="affret&#9;Prep&#9;Code Depot&#9;Liv&#9;Date enlevement&#9;code transporteur&#9;Nom transporteur&#9;CodeClient&#9;nom&#9;ville&#9;…"></textarea>
       <div class="row" style="margin-top:10px"><button class="btn primary" data-act="aff-import">${icon('upload')} Importer</button>
       <label class="row meta"><input type="checkbox" id="affReplace"> remplacer les jours présents dans le collage</label></div>
     </details>
   </section>`;
-  if (!rows.length) return pasteCard + `<section class="card glass"><div class="empty"><b>Aucune expédition cette semaine</b>Collez l’export de la base affrètement ci-dessus.</div></section>`;
+  if (!rows.length) return pasteCard + `<section class="card glass"><div class="empty"><b>Aucune expédition cette semaine</b>Collez l’export de la base affrètement ci-dessus ou importez la VL06O.</div></section>`;
 
   // matrice transporteur × jour
   const dshow = days.filter((d, i) => i < 6 || rows.some(r => r.date === d));
   const mtx = `<div class="tbl-wrap matrix"><table class="t"><thead><tr><th>Transporteur</th>${dshow.map(d => `<th class="num dayhead">${DAYS[dayIdx(d)]}<small>${fdate(d)}</small></th>`).join('')}<th class="num">Semaine</th></tr></thead><tbody>
-    ${transps.map(t => { const rs = rows.filter(r => r.transp === t); return `<tr><td>${esc(transpName(t))}</td>${dshow.map(d => { const x = rs.filter(r => r.date === d); return `<td class="num">${x.length ? `<b>${n0(sum(x, r => r.pal))}</b> <span class="muted">pal · ${n0(sum(x, r => r.blocs))} bl</span>` : '<span class="muted">·</span>'}</td>`; }).join('')}<td class="num"><b>${n0(sum(rs, r => r.pal))}</b> <span class="muted">pal · ${n0(sum(rs, r => r.blocs))} bl</span></td></tr>`; }).join('')}
+    ${transps.map(t => { const rs = rows.filter(r => r.transp === t); const cellOf = x => t === '' ? `<b>${x.length}</b> <span class="muted">liv. · ${n0(sum(x, r => idx.get(r.liv)?.palSilo))} pal SILO</span>` : `<b>${n0(sum(x, r => r.pal))}</b> <span class="muted">pal · ${n0(sum(x, r => r.blocs))} bl</span>`; return `<tr><td>${t === '' ? badge('Non affrété (VL06O)', 'b-warn') : esc(transpName(t))}</td>${dshow.map(d => { const x = rs.filter(r => r.date === d); return `<td class="num">${x.length ? cellOf(x) : '<span class="muted">·</span>'}</td>`; }).join('')}<td class="num">${cellOf(rs)}</td></tr>`; }).join('')}
     <tr class="tot"><td>Total</td>${dshow.map(d => { const x = rows.filter(r => r.date === d); return `<td class="num">${x.length ? `${n0(sum(x, r => r.pal))} pal · ${n0(sum(x, r => r.blocs))} bl` : '·'}</td>`; }).join('')}<td class="num">${n0(sum(rows, r => r.pal))} pal · ${n0(sum(rows, r => r.blocs))} bl</td></tr>
   </tbody></table></div>`;
 
   const cols = [
-    { k: 'date', label: 'Enlèvement', fmt: fdateL }, { k: 'transp', label: 'Transp.', fmt: v => transpName(v), sv: r => num(r.transp) },
-    { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Destinataire', cls: 'wrap', html: r => `${esc(r.nom)}${isInterco(r.nom, idx.get(r.liv)?.prio) ? ' <span class="badge b-info b-nodot">Interco</span>' : ''}` },
-    { k: 'ville', label: 'Ville' }, { k: 'cp', label: 'Dépt', fmt: v => String(v).slice(0, 2) },
-    { k: 'pal', label: 'Pal', num: true, fmt: n0 }, { k: 'blocs', label: 'Blocs', num: true, fmt: n0 }, { k: 'palEnt', label: 'Pal ent.', num: true, fmt: n0 },
-    { k: 'couches', label: 'Couches', num: true, fmt: n0 }, { k: 'cartPk', label: 'Cartons', num: true, fmt: n0 },
-    { k: 'poids', label: 'Poids kg', num: true, fmt: n0 },
+    { k: 'date', label: 'Enlèvement', fmt: fdateL }, { k: 'transp', label: 'Transp.', fmt: v => transpName(v), sv: r => r.transp === '' ? 1e9 : num(r.transp) },
+    { k: 'liv', label: 'Livraison', html: r => `${esc(r.liv)}${r.src === 'vl06o' ? '<br>' + srcBadge(r) : ''}` }, { k: 'nom', label: 'Destinataire', cls: 'wrap', html: r => `${esc(r.nom)}${isInterco(r.nom, idx.get(r.liv)?.prio) ? ' <span class="badge b-info b-nodot">Interco</span>' : ''}` },
+    { k: 'ville', label: 'Ville', html: r => r.rue ? `<span data-tip="${esc(`<b>${esc(r.nom)}</b>${esc(r.rue)}<br>${esc(r.cp)} ${esc(r.ville)}`)}">${esc(r.ville)}</span>` : esc(r.ville) }, { k: 'cp', label: 'Dépt', fmt: v => String(v).slice(0, 2) }, { k: 'depot', label: 'Dépôt' },
+    ...['pal', 'blocs', 'palEnt', 'couches', 'cartPk', 'poids'].map((k, i) => ({ k, label: ['Pal', 'Blocs', 'Pal ent.', 'Couches', 'Cartons', 'Poids kg'][i], num: true, sv: r => r[k] ?? -1, html: r => r[k] == null ? '<span class="muted">–</span>' : n0(r[k]) })),
     { k: 'psilo', label: 'Pal SILO', num: true, sv: r => idx.get(r.liv)?.palSilo ?? -1, html: r => idx.has(r.liv) ? n0(idx.get(r.liv).palSilo) : '<span class="muted">–</span>' },
     { k: 'cpick', label: 'Colis pick', num: true, sv: r => idx.get(r.liv)?.colisPick ?? -1, html: r => idx.has(r.liv) ? n0(idx.get(r.liv).colisPick) : '<span class="muted">–</span>' },
     { k: 'hprep', label: 'H prépa', num: true, sv: r => idx.has(r.liv) ? idx.get(r.liv).hrSilo + idx.get(r.liv).hrPick : -1, html: r => idx.has(r.liv) ? hr(idx.get(r.liv).hrSilo + idx.get(r.liv).hrPick) : '<span class="muted">–</span>' },
@@ -1200,9 +1220,10 @@ function viewOut() {
   ];
   const filters = `<div class="filters">
     <div class="fgroup"><label>Jour</label>${dshow.filter(d => rows.some(r => r.date === d)).map(d => `<button class="chip ${(f.days || []).includes(d) ? 'on' : ''}" data-chip="af|days|${d}">${fdateL(d)}</button>`).join('')}</div>
-    <div class="fgroup"><label>Transporteur</label>${transps.map(t => `<button class="chip ${(f.tr || []).includes(t) ? 'on' : ''}" data-chip="af|tr|${esc(t)}">${esc(transpName(t))}</button>`).join('')}</div>
+    <div class="fgroup"><label>Transporteur</label>${transps.map(t => `<button class="chip ${(f.tr || []).includes(t) ? 'on' : ''}" data-chip="af|tr|${esc(t)}">${t === '' ? 'Non affrété' : esc(transpName(t))}</button>`).join('')}</div>
   </div><div class="filters">
     <div class="fgroup"><label>Prépa</label>${[['C', 'Terminée'], ['B', 'En cours'], ['A', 'Non commencée'], ['X', 'Hors VL06O']].map(([k, l]) => `<button class="chip ${(f.st || []).includes(k) ? 'on' : ''}" data-chip="af|st|${k}">${l}</button>`).join('')}</div>
+    <div class="fgroup"><label>Source</label><button class="chip ${(f.src || []).includes('affret') ? 'on' : ''}" data-chip="af|src|affret">Affrétées</button><button class="chip ${(f.src || []).includes('vl06o') ? 'on' : ''}" data-chip="af|src|vl06o">VL06O non affrétées</button></div>
     <div class="spacer"></div><input class="search" type="search" placeholder="Livraison, destinataire, ville…" value="${esc(f.q || '')}" data-q="af" aria-label="Rechercher">
   </div>`;
   const T = { pal: sum(filt, r => r.pal), blocs: sum(filt, r => r.blocs), palEnt: sum(filt, r => r.palEnt), couches: sum(filt, r => r.couches), cartPk: sum(filt, r => r.cartPk), poids: sum(filt, r => r.poids) };
@@ -1210,7 +1231,7 @@ function viewOut() {
   return pasteCard + `
   <section class="card glass">
     <div class="kpis" style="margin-bottom:16px">
-      <div class="kpi" data-detail="out" role="button" tabindex="0"><div class="lab"><i style="background:var(--out)"></i>Palettes</div><div class="val">${n0(T.pal)}</div><div class="det">${n0(filt.length)} livraisons</div></div>
+      <div class="kpi" data-detail="out" role="button" tabindex="0"><div class="lab"><i style="background:var(--out)"></i>Palettes</div><div class="val">${n0(T.pal)}</div><div class="det">${n0(filt.filter(r => r.src === 'affret').length)} livraisons affrétées${filt.some(r => r.src === 'vl06o') ? ` · <b>+${filt.filter(r => r.src === 'vl06o').length}</b> VL06O non affrétées (${n0(sum(filt.filter(r => r.src === 'vl06o'), r => idx.get(r.liv)?.palSilo))} pal SILO)` : ''}</div></div>
       <div class="kpi" data-detail="blocs" role="button" tabindex="0"><div class="lab">Blocs sol</div><div class="val">${n0(T.blocs)}</div><div class="det">${n0(T.palEnt)} pal entières · ${n0(T.couches)} couches</div></div>
       <div class="kpi" data-detail="poids" role="button" tabindex="0"><div class="lab">Poids brut</div><div class="val">${tons(T.poids)}<small>t</small></div><div class="det">taxable ${tons(sum(filt, r => r.poidsTax))} t</div></div>
       <div class="kpi" data-detail="ready" role="button" tabindex="0"><div class="lab">Prêtes (prépa terminée)</div><div class="val">${n0(ready)}<small>/ ${n0(filt.length)}</small></div><div class="bar"><span style="width:${filt.length ? Math.round(ready / filt.length * 100) : 0}%"></span></div></div>
@@ -1218,7 +1239,7 @@ function viewOut() {
     <h2>Palettes et blocs par transporteur</h2><p class="hint">« bl » = blocs sol. Les noms de transporteurs se renseignent dans Paramètres.</p>
     ${mtx}
   </section>
-  <section class="card glass"><div class="card-head"><div><h2>Livraisons à expédier</h2><p class="hint">Statut de préparation rapproché de la VL06O par numéro de livraison.</p></div>
+  <section class="card glass"><div class="card-head"><div><h2>Livraisons à expédier</h2><p class="hint">Base affrètement + livraisons VL06O pas encore affrétées (date de chargement), sans doublon : une livraison présente dans l’affrètement n’est jamais reprise depuis la VL06O. Statut de préparation rapproché par numéro de livraison.</p></div>
     <button class="btn sm danger" data-act="aff-clear-week">${icon('trash')} Vider la semaine</button></div>
     ${filters}${table('aff', cols, filt, { total: T })}
   </section>`;
@@ -1484,7 +1505,8 @@ document.addEventListener('click', async e => {
       const rows = parseAffret($('#affPaste').value);
       if (!rows.length) return toast('Aucune ligne reconnue : vérifiez que la colonne « Livraison » et la date sont présentes.');
       if ($('#affReplace').checked) { const ds = new Set(rows.map(r => r.date)); for (const [k, r] of Object.entries(S.affret.rows)) if (ds.has(r.date)) delete S.affret.rows[k]; }
-      let nw = 0; for (const r of rows) { if (!S.affret.rows[r.liv]) nw++; S.affret.rows[r.liv] = r; }
+      let nw = 0; S.affret.tnames = S.affret.tnames || {};
+      for (const r of rows) { if (!S.affret.rows[r.liv]) nw++; S.affret.rows[r.liv] = r; if (r.transp && r.transpNom) S.affret.tnames[r.transp] = r.transpNom; }
       await save('affret');
       const w = isoWeek(rows[0].date); S.ui.week = w;
       toast(`<b>${rows.length} livraisons importées</b> (${nw} nouvelles) — ${uniq(rows.map(r => fdate(r.date))).join(', ')}`);
@@ -1616,6 +1638,7 @@ function affTable(id, rows) {
     { k: 'date', label: 'Enlèvement', fmt: fdateL }, { k: 'transp', label: 'Transporteur', fmt: v => transpName(v) }, { k: 'liv', label: 'Livraison' },
     { k: 'nom', label: 'Destinataire', cls: 'wrap' }, { k: 'ville', label: 'Ville' }, { k: 'pal', label: 'Pal', num: true, fmt: n0 }, { k: 'blocs', label: 'Blocs', num: true, fmt: n0 },
     { k: 'poids', label: 'Poids kg', num: true, fmt: n0 }, { k: 'rdv', label: 'RDV' },
+    { k: 'psilo', label: 'Pal SILO', num: true, sv: r => idx.get(r.liv)?.palSilo ?? -1, html: r => idx.has(r.liv) ? n0(idx.get(r.liv).palSilo) : '–' },
     { k: 'st', label: 'Prépa', sv: r => idx.get(r.liv)?.prep || 'X', html: r => prepBadge(idx.get(r.liv)?.prep) },
   ], rows, { total: { pal: sum(rows, r => r.pal), blocs: sum(rows, r => r.blocs), poids: sum(rows, r => r.poids) } }) : none('Aucune livraison');
 }
@@ -1693,12 +1716,12 @@ const DETAILS = {
     return { title: 'Pointage des réceptions', sub: scopeLbl(d), body: mini([['Pointés', n0(rows.filter(r => r.recu).length), `/ ${rows.length}`], ['Passés non pointés', n0(late.length)], ['À venir', n0(rows.filter(r => !r.recu && r.date > t).length)]]) + h3('Créneaux passés non pointés') + sstTable('dPL', late) + h3('Tous les RDV') + sstTable('dPA', rows) };
   },
   out(d) {
-    const aff = wk(d).aff;
+    const aff = wk(d).aff; const na = vlOnlyRows(x => inWeek(x) && (!d || x === d));
     return { title: 'Palettes expédiées', sub: scopeLbl(d) + ' · base affrètement (date d’enlèvement)', body:
-      mini([['Palettes', n0(sum(aff, r => r.pal))], ['Livraisons', n0(aff.length)], ['Blocs sol', n0(sum(aff, r => r.blocs))], ['Poids brut', tons(sum(aff, r => r.poids)), 't']]) +
+      mini([['Palettes', n0(sum(aff, r => r.pal))], ['Livraisons affrétées', n0(aff.length)], ['VL06O non affrétées', n0(na.length)], ['Blocs sol', n0(sum(aff, r => r.blocs))], ['Poids brut', tons(sum(aff, r => r.poids)), 't']]) +
       (d ? '' : h3('Par jour') + byDay('dOD', aff, r => r.date, [{ label: 'Livraisons', f: x => x.length }, { label: 'Palettes', f: x => sum(x, r => r.pal) }, { label: 'Blocs', f: x => sum(x, r => r.blocs) }, { label: 'Poids t', f: x => sum(x, r => r.poids), fmt: tons }])) +
       h3('Par transporteur') + groupTable('dOT', aff, r => r.transp, 'Transporteur', [{ label: 'Livraisons', f: x => x.length }, { label: 'Palettes', f: x => sum(x, r => r.pal) }, { label: 'Blocs', f: x => sum(x, r => r.blocs) }], transpName) +
-      h3('Livraisons') + affTable('dOL', aff) };
+      h3('Livraisons affrétées') + affTable('dOL', aff) + h3('Livraisons VL06O non encore affrétées', 'Date de chargement VL06O ; palettes et transporteur connus une fois l’affrètement collé.') + affTable('dONA', na) };
   },
   blocs(d) {
     const aff = wk(d).aff;
@@ -1773,7 +1796,7 @@ document.addEventListener('keydown', e => {
 const TITLES = {
   dash: ['Tableau de bord', 'Vision hebdomadaire des flux entrants, sortants et de la préparation'],
   prep: ['Activité préparation', 'Avancement par date de chargement, livraison et code'],
-  out: ['Expéditions', 'Base affrètement : livraisons, palettes et blocs sol par transporteur'],
+  out: ['Expéditions', 'Base affrètement + livraisons VL06O pas encore affrétées, par transporteur'],
   interco: ['Intercos', 'Envois et retours avec Plateforme 38, Compans, McCormick…'],
   rapat: ['Rapatriements', 'Flux avec les entrepôts externes'],
   sst: ['Réceptions sous-traitants', 'Planning de réception'],
