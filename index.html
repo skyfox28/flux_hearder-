@@ -886,7 +886,7 @@ function viewDash() {
     <div class="kpis">
       ${kpi('Palettes expédiées', n0(palOut), 'pal', `${n0(aff.length)} livraisons · ${tons(sum(aff, r => r.poids))} t`, 'var(--out)')}
       ${kpi('Blocs sol', n0(sum(aff, r => r.blocs)), '', `${uniq(aff.map(r => r.transp)).length} transporteurs`)}
-      ${(() => { const ir = intercoRows(); return kpi('Intercos envoyés', n0(sum(ir, r => r.pal ?? r.palSilo)), 'pal', `${ir.length} livraisons · retours ${n0(sum(sst.filter(r => isInterco(r.sst)), r => r.pal))} pal`); })()}
+      ${(() => { const ir = intercoRows(); return kpi('Intercos envoyés', n0(sum(ir, r => r.pal ?? r.palSilo)), 'pal', `${ir.length} livraisons`); })()}
     </div>
     <div class="group-title" style="margin-top:18px">Préparation (VL06O, date de chargement)</div>
     <div class="kpis">
@@ -1197,11 +1197,14 @@ function viewInterco() {
   const cards = dests.map(d => {
     const rs = rows.filter(r => r.dest === d), bk = back.filter(r => r.dest === d); const done = rs.filter(r => r.prep === 'C').length;
     const pOut = sum(rs, palOf), pIn = sum(bk, r => r.pal);
-    return `<div class="kpi"><div class="lab">${esc(d)}${bk.length && rs.length ? ' <span class="badge b-info b-nodot">aller-retour</span>' : ''}</div>
-      <div class="val"><span title="Palettes envoyées">↗ ${n0(pOut)}</span>${bk.length ? ` <span style="color:var(--text-3);font-weight:500">/</span> <span title="Palettes reçues en retour">↙ ${n0(pIn)}</span>` : ''}<small>pal</small></div>
-      <div class="det">Envoi : ${rs.length} livraison(s) · ${n0(sum(rs, r => r.colis))} colis · ${n1(sum(rs, r => r.hrs))} h prépa</div>
-      ${bk.length ? `<div class="det">Retour : ${bk.length} RDV · ${n0(sum(bk, r => r.cam || 1))} camion(s) · ${bk.filter(r => r.recu).length} pointé(s)</div>` : ''}
-      ${rs.length ? `<div class="bar"><span style="width:${Math.round(done / rs.length * 100)}%"></span></div><div class="det">${done}/${rs.length} envois prêts</div>` : ''}</div>`;
+    return `<div class="kpi"><div class="lab">${esc(d)}</div>
+      <div class="det" style="margin-top:6px">Envoyé cette semaine</div>
+      <div class="val" style="margin-top:0">${n0(pOut)}<small>pal</small></div>
+      <div class="det">${rs.length} livraison(s) · ${n0(sum(rs, r => r.colis))} colis · ${n1(sum(rs, r => r.hrs))} h prépa</div>
+      ${rs.length ? `<div class="bar"><span style="width:${Math.round(done / rs.length * 100)}%"></span></div><div class="det">${done}/${rs.length} envois prêts</div>` : ''}
+      ${bk.length ? `<div class="det" style="margin-top:10px;padding-top:8px;border-top:1px solid var(--glass-border)">Reçu cette semaine (retours d’autres envois)</div>
+      <div class="val" style="margin-top:0;font-size:20px">${n0(pIn)}<small>pal</small></div>
+      <div class="det">${bk.length} RDV · ${n0(sum(bk, r => r.cam || 1))} camion(s) · ${bk.filter(r => r.recu).length} pointé(s)</div>` : ''}</div>`;
   }).join('');
   // aller / retour par jour
   const { days } = weekData();
@@ -1228,9 +1231,9 @@ function viewInterco() {
     { k: 'prep', label: 'Prépa', html: r => prepBadge(r.prep) }, { k: 'ot', label: 'OT', html: r => r.ot ? badge(...OT_LABEL[r.ot]) : '' },
   ];
   return `<section class="card glass"><h2>Intercos de la semaine</h2>
-    <p class="hint">Envois : livraisons de priorité 9 (circuit Interco) ou dont le réceptionnaire contient ${S.settings.intercoKeys.map(k => `<kbd>${esc(k)}</kbd>`).join(' ')} (modifiable dans Paramètres) ; palettes = base affrètement si disponible, sinon pal SILO. Retours : RDV du planning SST venant de ces mêmes plateformes (ex. Plateforme 38 qui retravaille les produits et les renvoie).</p>
+    <p class="hint">Envois : livraisons de priorité 9 (circuit Interco) ou dont le réceptionnaire contient ${S.settings.intercoKeys.map(k => `<kbd>${esc(k)}</kbd>`).join(' ')} (modifiable dans Paramètres) ; palettes = base affrètement si disponible, sinon pal SILO. Retours : RDV du planning SST venant de ces mêmes plateformes (ex. Plateforme 38 qui retravaille les produits et les renvoie, avec son propre délai).</p>
     ${dests.length ? `<div class="kpis" style="margin-bottom:16px">${cards}</div>
-      <h2>Aller / retour par jour</h2><p class="hint">↗ palettes envoyées · ↙ palettes reçues en retour.</p>${flow}
+      <h2>Envois et retours par jour</h2><p class="hint">Deux flux indépendants : un camion envoyé un jour ne revient pas forcément la même semaine, aucun rapprochement n’est fait entre envois et retours.</p>${flow}
       <h2>Envois</h2>${rows.length ? table('interco', cols, rows, { total: { pal: sum(rows, r => r.pal), palSilo: sum(rows, r => r.palSilo), colisPick: sum(rows, r => r.colisPick), colis: sum(rows, r => r.colis), hrs: sum(rows, r => r.hrs), poids: sum(rows, r => r.poids) } }) : '<div class="empty">Aucun envoi interco cette semaine.</div>'}
       <h2 style="margin-top:18px">Retours</h2>${back.length ? table('intercoBack', colsBack, back, { total: { pal: sum(back, r => r.pal), cam: sum(back, r => r.cam) } }) : '<div class="empty">Aucun retour planifié cette semaine (planning SST).</div>'}`
     : '<div class="empty"><b>Aucun interco cette semaine</b>Importez la VL06O, la base affrètement ou le planning SST.</div>'}

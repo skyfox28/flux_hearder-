@@ -53,4 +53,4 @@ Certaines plateformes sont dans les deux flux : Plateforme 38, par exemple, reç
 - Les **envois** sont les livraisons VL06O ou affrètement de priorité 9, ou dont le réceptionnaire contient un mot-clé interco.
 - Les **retours** sont les RDV du planning SST dont le sous-traitant contient ce même mot-clé. La comparaison ignore les espaces : « Plateforme38 » = « PLATEFORME 38 ».
 
-L'onglet Intercos affiche pour chaque plateforme les palettes envoyées ↗ et reçues ↙, jour par jour.
+Les deux flux sont suivis **séparément**, sans rapprochement : un camion envoyé un jour ne revient pas forcément la même semaine. L'onglet Intercos affiche pour chaque plateforme ce qui est envoyé et ce qui est reçu sur la semaine affichée, jour par jour.
