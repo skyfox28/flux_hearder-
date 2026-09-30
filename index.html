@@ -137,6 +137,8 @@ main{min-width:0;display:flex;flex-direction:column;gap:18px}
 header.top{display:flex;align-items:center;gap:14px;padding:14px 18px;flex-wrap:wrap}
 header.top h1{font-size:20px;margin:0;font-weight:700;letter-spacing:-.01em}
 .sources{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.sync-chip.warn{color:var(--warn-ink);border-color:color-mix(in srgb,var(--warn) 55%,var(--glass-border))} .sync-chip.ok{color:var(--good-ink)} .sync-chip.crit{color:var(--crit-ink)}
+.sync-files{font-size:12px;color:var(--text-2);margin:8px 0 0;padding-left:18px}
 .src{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600;color:var(--text-2);background:var(--chip);border:1px solid var(--glass-border)}
 .src:hover{color:var(--text-1)} .src:focus-visible{outline:2px solid var(--accent)}
 .src i{width:7px;height:7px;border-radius:50%;background:var(--text-3);opacity:.5}
@@ -382,6 +384,7 @@ body.modal-open{overflow:hidden}
         <button class="iconbtn" id="wNext" aria-label="Semaine suivante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></button>
       </div>
       <button class="btn sm" id="wToday">Cette semaine</button>
+      <button class="btn sm sync-chip" id="syncChip" hidden></button>
       <button class="btn sm danger" data-detail="purge" title="Purger les données de l’app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg> Purger</button>
       <button class="iconbtn" id="themeBtn" aria-label="Changer de thème" title="Thème clair / sombre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
     </header>
@@ -401,9 +404,10 @@ body.modal-open{overflow:hidden}
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.18.0';
+const APP_VERSION = '1.19.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.19.0', '30/09/2026', 'Sauvegarde partagée automatique dans le dossier WeDeliver « Flux_hebdo\\Sauvegarde » : chargement de la plus récente à l’ouverture, copie horodatée après chaque modification et à la fermeture, la plus récente l’emporte entre utilisateurs.'],
   ['1.18.0', '30/09/2026', 'Quai d’expédition dans son propre overlay : courbe d’occupation heure par heure sur tous les jours, plages saturées, détail du calcul par livraison.'],
   ['1.17.1', '30/09/2026', 'Quai d’expédition compté en blocs (places au sol) : blocs de l’affrètement, sinon estimation par le ratio blocs/palettes observé.'],
   ['1.17.0', '30/09/2026', 'Saturation du quai d’expédition (450 pal par défaut) : occupation simulée heure par heure, plages saturées, détail du calcul par livraison.'],
@@ -563,7 +567,7 @@ const S = {
   sst: { rows: [] },
   ui: { tab: 'dash', week: null, prepView: 'plan', pf: {}, af: {}, rf: {}, sort: {} },
 };
-const save = k => DB.set(k, S[k]);
+const save = k => { if (typeof syncDirty === 'function' && SYNC_KEYS.includes(k)) syncDirty(); return DB.set(k, S[k]); };
 const ref = () => S.ref || window.REF_DEFAULT || { articles: {}, mlgt: {}, magasins: {} };
 // Codes article comparés sans les zéros de tête (SAP exporte parfois 000000000000278710)
 const artNorm = a => { a = String(a ?? '').trim(); return /^\d+$/.test(a) ? a.replace(/^0+(?=\d)/, '') : a.toUpperCase(); };
@@ -1711,8 +1715,8 @@ function viewSettings() {
     <div class="drop" data-drop="ref">${icon('upload')}<div><b>Déposez un référentiel</b> ou <button class="btn sm" data-pick="ref">choisir</button></div></div>
     ${S.ref ? `<div class="row" style="margin-top:10px"><button class="btn sm" data-act="ref-reset">Revenir au référentiel par défaut</button></div>` : ''}
   </section>
-  <section class="card glass"><h2>À propos</h2><p class="hint" style="margin:0">Flux Hebdo Dépôt — version <button class="linkbtn" data-detail="version">${APP_VERSION}</button> — développé par <b>${APP_AUTHOR}</b>. Application 100 % locale : aucune donnée ne quitte ce navigateur.</p></section>
-  <section class="card glass"><h2>Sauvegarde</h2><p class="hint">Toutes les données sont stockées dans ce navigateur. Exportez une sauvegarde pour les transférer sur un autre poste.</p>
+  <section class="card glass"><h2>À propos</h2><p class="hint" style="margin:0">Flux Hebdo Dépôt — version <button class="linkbtn" data-detail="version">${APP_VERSION}</button> — développé par <b>${APP_AUTHOR}</b>. Application 100 % locale : les données restent dans ce navigateur et, si vous l’activez, dans le dossier de sauvegarde partagé.</p></section>
+  <section class="card glass"><h2>Sauvegarde</h2><p class="hint">Les données sont stockées dans ce navigateur. Elles peuvent aussi être enregistrées automatiquement dans le dossier partagé (ci-dessous), ou exportées à la main.</p>
     <div class="row">
       <button class="btn" data-act="backup">${icon('dl')} Exporter une sauvegarde</button>
       <button class="btn" data-pick="restore">${icon('upload')} Restaurer</button>
@@ -1720,6 +1724,7 @@ function viewSettings() {
       <div class="spacer"></div>
       <button class="btn danger" data-detail="purge">${icon('trash')} Purger les données…</button>
     </div>
+    ${syncCard()}
   </section>`;
 }
 document.addEventListener('change', e => {
@@ -1792,7 +1797,7 @@ document.addEventListener('click', async e => {
   if (a === 'likp-clear' && confirm('Effacer les heures de chargement LIKP ?')) { S.likp = null; await save('likp'); render(); }
   if (a === 'hist-reset' && confirm('Effacer les mesures de rendement réel ?')) { S.prepHist = S.prep ? { recs: [], last: { at: snapTs(), open: openMap() } } : null; await save('prepHist'); render(); }
   if (a === 'backup') {
-    const blob = new Blob([JSON.stringify({ app: 'flux-hebdo', v: 1, version: APP_VERSION, at: new Date().toISOString(), settings: S.settings, ref: S.ref, prep: S.prep, prepHist: S.prepHist, likp: S.likp, affret: S.affret, rapat: S.rapat, sst: S.sst })], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(backupPayload())], { type: 'application/json' });
     download(blob, `flux-hebdo-sauvegarde-${today()}.json`);
   }
   if (a === 'export-week') exportWeek();
@@ -1822,8 +1827,7 @@ async function handleFiles(kind, files) {
   try {
     if (kind === 'restore') {
       const j = JSON.parse(await files[0].text()); if (j.app !== 'flux-hebdo') throw new Error('Fichier de sauvegarde non reconnu');
-      Object.assign(S, { settings: Object.assign(structuredClone(DEFAULT_SETTINGS), j.settings), ref: j.ref || null, prep: j.prep || null, prepHist: j.prepHist || null, likp: j.likp || null, affret: j.affret || { rows: {} }, rapat: j.rapat || { loads: {} }, sst: j.sst || { rows: [] } });
-      await Promise.all(['settings', 'ref', 'prep', 'affret', 'rapat', 'sst', 'prepHist', 'likp'].map(save)); toast('Sauvegarde restaurée'); return render();
+      await applyBackup(j); toast('Sauvegarde restaurée'); return render();
     }
     toast('Lecture en cours…', 1500);
     if (kind === 'vl06o') {
@@ -2803,8 +2807,169 @@ function render() {
   try { localStorage.setItem('flux-ui', JSON.stringify(stored)); } catch (e) {}
 }
 
+// ============================================================
+//   SAUVEGARDE PARTAGÉE : dossier OneDrive / SharePoint synchronisé
+//   - le dossier est choisi une fois (API File System Access, Edge / Chrome) ; l'accès est mémorisé
+//   - à l'ouverture : la sauvegarde la plus récente du dossier est chargée si elle est plus récente que les données du navigateur
+//   - après chaque modification (quelques secondes) et à la fermeture : une copie horodatée est écrite
+//   - plusieurs utilisateurs : la sauvegarde la plus récente l'emporte ; on garde les SYNC_KEEP dernières copies
+// ============================================================
+const SYNC_KEYS = ['settings', 'ref', 'prep', 'affret', 'rapat', 'sst', 'prepHist', 'likp'];
+const SYNC_PATH = 'MC CORMICK & COMPANY INC\\WeDeliver - Documents\\101_Sandbox GP\\Flux_hebdo\\Sauvegarde';
+const SYNC_KEEP = 30, SYNC_DELAY = 4000;
+const SY = { dir: null, perm: 'none', busy: false, timer: null, files: [], err: '', muted: false, lastPull: 0 };
+const syncSupported = () => typeof window.showDirectoryPicker === 'function';
+const syncMeta = () => { try { return JSON.parse(localStorage.getItem('flux-sync') || '{}'); } catch (e) { return {}; } };
+const setSyncMeta = m => { try { localStorage.setItem('flux-sync', JSON.stringify(Object.assign(syncMeta(), m))); } catch (e) {} };
+function backupPayload() {
+  return { app: 'flux-hebdo', v: 1, version: APP_VERSION, at: new Date().toISOString(), by: syncMeta().user || '', settings: S.settings, ref: S.ref, prep: S.prep, prepHist: S.prepHist, likp: S.likp, affret: S.affret, rapat: S.rapat, sst: S.sst };
+}
+async function applyBackup(j) {
+  Object.assign(S, { settings: Object.assign(structuredClone(DEFAULT_SETTINGS), j.settings), ref: j.ref || null, prep: j.prep || null, prepHist: j.prepHist || null, likp: j.likp || null, affret: j.affret || { rows: {} }, rapat: j.rapat || { loads: {} }, sst: j.sst || { rows: [] } });
+  await Promise.all(SYNC_KEYS.map(save));
+}
+const pad2 = n => String(n).padStart(2, '0');
+function syncFileName(ts, user) {
+  const d = new Date(ts), u = (user || 'poste').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9-]+/g, '-').replace(/^-|-$/g, '').slice(0, 30) || 'poste';
+  return `Flux_Hebdo_${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}_${pad2(d.getHours())}h${pad2(d.getMinutes())}m${pad2(d.getSeconds())}_${u}.json`;
+}
+function syncParse(name) {
+  const m = /^Flux_Hebdo_(\d{4})-(\d\d)-(\d\d)_(\d\d)h(\d\d)m(\d\d)_(.+)\.json$/.exec(name); if (!m) return null;
+  return { name, ts: new Date(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +m[6]).getTime(), by: m[7] };
+}
+async function syncList() {
+  const out = []; for await (const [name, h] of SY.dir.entries()) { if (h.kind !== 'file') continue; const f = syncParse(name); if (f) out.push(f); }
+  return (SY.files = out.sort((a, b) => b.ts - a.ts));
+}
+async function syncPerm(ask) {
+  if (!SY.dir) return (SY.perm = 'none');
+  try { const o = { mode: 'readwrite' }; SY.perm = (SY.dir.queryPermission ? await SY.dir.queryPermission(o) : 'granted');
+    if (SY.perm !== 'granted' && ask && SY.dir.requestPermission) SY.perm = await SY.dir.requestPermission(o); } catch (e) { SY.perm = 'prompt'; }
+  return SY.perm;
+}
+function syncDirty() {
+  if (SY.muted) return;
+  setSyncMeta({ dirty: Date.now() });
+  clearTimeout(SY.timer); if (SY.perm === 'granted') SY.timer = setTimeout(() => syncPush(), SYNC_DELAY);
+  syncChip();
+}
+// écrit une copie horodatée dans le dossier (la plus récente l'emporte)
+async function syncPush(manual) {
+  if (SY.perm !== 'granted') return false;
+  if (SY.busy) { clearTimeout(SY.timer); SY.timer = setTimeout(() => syncPush(manual), 1000); return false; }
+  SY.busy = true; clearTimeout(SY.timer); syncChip();
+  try {
+    const m = syncMeta(), ts = Date.now(), name = syncFileName(ts, m.user);
+    const fh = await SY.dir.getFileHandle(name, { create: true }); const w = await fh.createWritable();
+    await w.write(JSON.stringify(backupPayload())); await w.close();
+    if ((syncMeta().dirty || 0) <= ts) setSyncMeta({ dirty: 0 }); setSyncMeta({ base: Math.floor(ts / 1000) * 1000, last: { name, at: ts, act: 'save' } });
+    const files = await syncList();
+    for (const f of files.slice(SYNC_KEEP)) { try { await SY.dir.removeEntry(f.name); } catch (e) {} }
+    if (files.length > SYNC_KEEP) SY.files = files.slice(0, SYNC_KEEP);
+    SY.err = ''; if (manual) toast(`<b>Sauvegarde enregistrée</b><br>${esc(name)}`);
+    return true;
+  } catch (e) { console.error(e); SY.err = e.message; toast(`⚠ Sauvegarde dans le dossier impossible : ${esc(e.message)}`, 6000); return false; }
+  finally { SY.busy = false; syncChip(); if (S.ui.tab === 'set') render(); }
+}
+// charge la sauvegarde la plus récente du dossier si elle est plus récente que les données du navigateur
+async function syncPull(why, force) {
+  if (SY.perm !== 'granted') return;
+  try {
+    SY.lastPull = Date.now(); const files = await syncList(), top = files[0], m = syncMeta();
+    if (!top) { if (m.dirty || force === 'push') await syncPush(); return syncChip(); }
+    const newer = top.ts > (m.base || 0) + 999;
+    if (force === 'load' || (newer && !(m.dirty > top.ts))) {
+      const j = JSON.parse(await (await (await SY.dir.getFileHandle(top.name)).getFile()).text()); if (j.app !== 'flux-hebdo') throw new Error(`${top.name} : fichier non reconnu`);
+      SY.muted = true; try { await applyBackup(j); } finally { SY.muted = false; }
+      setSyncMeta({ base: top.ts, dirty: 0, last: { name: top.name, at: Date.now(), act: 'load' } });
+      toast(`<b>Sauvegarde chargée</b> (${why})<br>${esc(top.by)} · ${esc(fdt(top.ts))}`, 5000); render();
+    } else if (m.dirty) await syncPush();   // modifications locales plus récentes que le dossier
+    SY.err = '';
+  } catch (e) { console.error(e); SY.err = e.message; toast(`⚠ Lecture du dossier de sauvegarde impossible : ${esc(e.message)}`, 6000); }
+  syncChip(); if (S.ui.tab === 'set') render();
+}
+async function syncConnect() {
+  if (!syncSupported()) return toast('Votre navigateur ne permet pas d’accéder à un dossier : ouvrez index.html dans Edge ou Chrome.', 6000);
+  let dir; try { dir = await window.showDirectoryPicker({ id: 'flux-hebdo-sauvegarde', mode: 'readwrite', startIn: 'documents' }); }
+  catch (e) { if (e.name !== 'AbortError') toast(`⚠ Accès au dossier refusé : ${esc(e.message)}`, 6000); return; }
+  if (dir.name.toLowerCase() !== 'sauvegarde' && !confirm(`Le dossier choisi s’appelle « ${dir.name} » et non « Sauvegarde ».\nChemin attendu :\n${SYNC_PATH}\n\nL’utiliser quand même ?`)) return;
+  await syncUse(dir);
+}
+async function syncUse(dir) {
+  SY.dir = dir; await DB.set('syncDir', dir); await syncPerm(true);
+  if (!syncMeta().user) { const u = prompt('Votre nom (il apparaîtra dans le nom des fichiers de sauvegarde) :', ''); if (u) setSyncMeta({ user: u.trim() }); }
+  if (SY.perm !== 'granted') return syncChip();
+  const files = await syncList(), hasLocal = !!(S.prep || Object.keys(S.affret.rows).length || Object.keys(S.rapat.loads).length || S.sst.rows.length);
+  setSyncMeta({ base: 0 });
+  if (files.length && hasLocal) {
+    const top = files[0];
+    if (confirm(`Le dossier contient déjà une sauvegarde (${top.by}, ${fdt(top.ts)}).\n\nOK : charger cette sauvegarde (remplace les données de ce navigateur).\nAnnuler : garder les données de ce navigateur et les enregistrer dans le dossier.`)) await syncPull('dossier connecté', 'load');
+    else { setSyncMeta({ dirty: Date.now() }); await syncPush(true); }
+  } else if (files.length) await syncPull('dossier connecté', 'load');
+  else await syncPush(true);
+  render();
+}
+async function syncDisconnect() {
+  if (!confirm('Ne plus utiliser le dossier de sauvegarde sur ce poste ? (les fichiers du dossier sont conservés)')) return;
+  SY.dir = null; SY.perm = 'none'; SY.files = []; await DB.set('syncDir', null); setSyncMeta({ base: 0, last: null }); syncChip(); render();
+}
+function syncChip() {
+  const b = $('#syncChip'); if (!b) return;
+  if (!syncSupported() && !SY.dir) { b.hidden = true; return; }
+  b.hidden = false; const m = syncMeta();
+  const hhmm = ts => new Date(ts).toTimeString().slice(0, 5);
+  const [cls, txt, tip] = !SY.dir ? ['warn', 'Sauvegarde : choisir le dossier', `Aucun dossier de sauvegarde partagé sur ce poste. Chemin prévu : ${SYNC_PATH}`]
+    : SY.perm !== 'granted' ? ['warn', 'Sauvegarde : reconnecter', 'Le navigateur demande de confirmer l’accès au dossier de sauvegarde : cliquez pour autoriser, la dernière sauvegarde sera chargée.']
+    : SY.busy ? ['', 'Enregistrement…', '']
+    : SY.err ? ['crit', 'Sauvegarde : erreur', SY.err]
+    : m.dirty ? ['warn', 'Modifications non enregistrées', 'Enregistrement automatique dans quelques secondes.']
+    : ['ok', m.last ? `${m.last.act === 'load' ? 'Chargée' : 'Enregistrée'} ${hhmm(m.last.at)}` : 'Sauvegarde connectée', m.last ? m.last.name : ''];
+  b.className = `btn sm sync-chip ${cls}`; b.title = tip;
+  b.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.2 9.1 4 4 0 0 0 6.5 19z"/></svg> ${esc(txt)}`;
+}
+function syncCard() {
+  const m = syncMeta();
+  if (!syncSupported()) return `<div class="alert warn" style="margin-top:12px">${icon('warn')}<div><b>Sauvegarde partagée indisponible dans ce navigateur.</b> Ouvrez <code>index.html</code> dans <b>Edge</b> ou <b>Chrome</b> (pas dans un aperçu intégré) pour enregistrer automatiquement dans le dossier <code>${esc(SYNC_PATH)}</code>.</div></div>`;
+  return `<h3 class="mh">Sauvegarde partagée automatique</h3>
+    <p class="hint">Dossier : <code>${esc(SYNC_PATH)}</code> (dossier SharePoint synchronisé par OneDrive). À chaque ouverture, l’app charge la sauvegarde la plus récente du dossier ; après chaque modification et à la fermeture, elle y écrit une copie horodatée. Avec plusieurs utilisateurs, la plus récente l’emporte. Les ${SYNC_KEEP} dernières copies sont conservées.</p>
+    <div class="row" style="flex-wrap:wrap;gap:8px">
+      ${SY.dir ? `<span class="badge ${SY.perm === 'granted' ? 'b-good' : 'b-warn'}">${SY.perm === 'granted' ? 'Connecté' : 'Accès à reconfirmer'} : ${esc(SY.dir.name)}</span>` : '<span class="badge b-warn">Aucun dossier choisi</span>'}
+      <label class="row" style="gap:6px">Votre nom <input class="inp" style="width:160px" data-syncuser value="${esc(m.user || '')}" placeholder="ex. G. Poivey"></label>
+      <div class="spacer"></div>
+      ${SY.dir && SY.perm !== 'granted' ? `<button class="btn primary" data-act="sync-reconnect">Reconnecter</button>` : ''}
+      <button class="btn" data-act="sync-connect">${SY.dir ? 'Changer de dossier…' : 'Choisir le dossier Sauvegarde…'}</button>
+      ${SY.dir && SY.perm === 'granted' ? `<button class="btn" data-act="sync-save">Enregistrer maintenant</button><button class="btn" data-act="sync-load">Recharger la plus récente</button><button class="btn sm" data-act="sync-off">Déconnecter</button>` : ''}
+    </div>
+    ${SY.files.length ? `<ul class="sync-files">${SY.files.slice(0, 5).map((f, i) => `<li>${i ? '' : '<b>'}${esc(fdt(f.ts))} · ${esc(f.by)}${i ? '' : '</b> (la plus récente)'}</li>`).join('')}</ul>` : ''}`;
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('#syncChip, [data-act^="sync-"]'); if (!b) return;
+  const a = b.id === 'syncChip' ? (!SY.dir ? 'sync-goto' : SY.perm !== 'granted' ? 'sync-reconnect' : 'sync-save') : b.dataset.act;
+  if (a === 'sync-goto') { S.ui.tab = 'set'; S.ui.modal = null; render(); document.querySelector('[data-act="sync-connect"]')?.scrollIntoView({ block: 'center' }); }
+  if (a === 'sync-connect') await syncConnect();
+  if (a === 'sync-reconnect') { await syncPerm(true); if (SY.perm === 'granted') await syncPull('dossier reconnecté'); syncChip(); render(); }
+  if (a === 'sync-save') await syncPush(true);
+  if (a === 'sync-load' && confirm('Remplacer les données de ce navigateur par la sauvegarde la plus récente du dossier ?')) await syncPull('rechargement', 'load');
+  if (a === 'sync-off') await syncDisconnect();
+});
+document.addEventListener('change', e => { if (e.target.matches('[data-syncuser]')) { setSyncMeta({ user: e.target.value.trim() }); toast('Nom enregistré'); } });
+// fermeture / changement d'onglet : enregistrer tout de suite ; retour sur l'onglet : vérifier si un collègue a sauvegardé
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') { if (syncMeta().dirty && SY.perm === 'granted') syncPush(); }
+  else if (SY.perm === 'granted' && !SY.busy && Date.now() - SY.lastPull > 30000) syncPull('mise à jour d’un collègue');
+});
+window.addEventListener('beforeunload', e => { if (SY.perm === 'granted' && (SY.busy || syncMeta().dirty)) { syncPush(); e.preventDefault(); e.returnValue = ''; } });
+async function syncInit() {
+  if (!syncSupported()) return syncChip();
+  try { SY.dir = (await DB.get('syncDir')) || null; } catch (e) { SY.dir = null; }
+  await syncPerm(false); syncChip();
+  if (SY.perm === 'granted') await syncPull('ouverture');
+  else if (SY.dir) toast('Cliquez sur <b>« Sauvegarde : reconnecter »</b> en haut pour charger la dernière sauvegarde partagée.', 7000);
+}
+
 // ---------- Démarrage ----------
 (async function init() {
+  SY.muted = true;   // migrations de démarrage : ne pas compter comme modification locale
   try { const th = localStorage.getItem('flux-theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
   try { const u = JSON.parse(localStorage.getItem('flux-ui') || '{}'); if (u.tab && TITLES[u.tab]) S.ui.tab = u.tab; if (u.prepView) S.ui.prepView = u.prepView; } catch (e) {}
   S.ui.week = isoWeek(today());
@@ -2815,6 +2980,7 @@ function render() {
   if (!(S.settings.settingsV >= 3)) { if (!(S.settings.equipesSilo || []).some(e => hm(e.debut) >= 19)) S.settings.equipesSilo = [...(S.settings.equipesSilo || []), { nom: 'Nuit', debut: '20:00', fin: '03:30', prep: 1 }]; S.settings.settingsV = 3; save('settings'); }   // v1.15 : équipe SILO de nuit
   if (refd) S.ref = refd; if (prep) S.prep = prep; if (affret) S.affret = affret; if (rapat) S.rapat = rapat; if (sst) S.sst = sst;
   render();
+  SY.muted = false; syncInit();
   if (!window.XLSX) toast('⚠ SheetJS n’a pas pu être chargé : gardez le dossier lib/ à côté de index.html.', 8000);
 })();
 </script>

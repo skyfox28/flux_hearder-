@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.18.0** · Développé par **Galaad Poivey**
+Version **1.19.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre `index.html` dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -203,6 +203,18 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
 - **Pastilles dans le menu :** livraisons en retard prévu pour Préparation, RDV passés non pointés pour Réceptions SST.
 - **Points d'attention** affichés juste après les indicateurs, seulement s'il y en a.
 - **Tableaux zébrés** pour faciliter la lecture.
+
+## Sauvegarde partagée automatique
+
+Dossier prévu : `MC CORMICK & COMPANY INC\WeDeliver - Documents\101_Sandbox GP\Flux_hebdo\Sauvegarde`. C'est le dossier SharePoint synchronisé en local par OneDrive.
+
+- **Mise en place, une fois par poste :** ouvrez `index.html` dans **Edge ou Chrome**, puis Paramètres → « Choisir le dossier Sauvegarde… » (ou cliquez sur le bouton nuage en haut). Sélectionnez le dossier `Sauvegarde` et indiquez votre nom. Un navigateur ne peut pas ouvrir un chemin tout seul : l'accès au dossier est donné une fois, puis mémorisé.
+- **À chaque ouverture :** l'app lit le dossier et charge la sauvegarde **la plus récente** si elle est plus récente que les données du navigateur. Si le navigateur redemande l'autorisation, un clic sur « Sauvegarde : reconnecter » suffit ; Chrome/Edge proposent aussi « Autoriser à chaque visite ».
+- **Après chaque modification** (import, collage, réglage), l'app enregistre une copie horodatée au bout de 4 secondes, puis de nouveau quand on ferme ou quitte l'onglet. S'il reste des modifications non enregistrées à la fermeture, le navigateur demande confirmation, le temps d'écrire le fichier.
+- **Plusieurs utilisateurs :** chaque copie a son propre nom, `Flux_Hebdo_AAAA-MM-JJ_HHhMMmSS_<nom>.json`, donc OneDrive ne crée pas de conflit. La sauvegarde la plus récente l'emporte : à l'ouverture et au retour sur l'onglet, l'app charge celle d'un collègue si elle est plus récente que la vôtre. Les modifications ne sont pas fusionnées : deux personnes qui modifient en même temps, c'est la dernière enregistrée qui compte.
+- Les **30 dernières copies** sont conservées ; les plus anciennes sont supprimées automatiquement.
+- Boutons dans Paramètres : Enregistrer maintenant, Recharger la plus récente, Changer de dossier, Déconnecter. Les 5 dernières copies sont listées.
+- Non disponible dans Firefox ni dans l'aperçu en ligne (la page intégrée n'a pas accès aux dossiers). L'export / restauration manuel reste disponible partout.
 
 ## Saturation du quai d'expédition
 
