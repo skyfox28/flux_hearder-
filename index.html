@@ -438,6 +438,8 @@ const DEFAULT_SETTINGS = {
   equipes: [{ nom: 'Matin', debut: '05:00', fin: '12:30', prep: 2 }, { nom: 'Après-midi', debut: '12:30', fin: '20:00', prep: 2 }],
   joursTrav: [1, 1, 1, 1, 1, 0, 0],
   intercoKeys: ['PLATEFORME 38', 'COMPANS', 'MCCORMICK'],
+  // livraisons qui ne partent pas de Monteux3 (ex. COLRUYT, code dépôt 540 : départ direct de Compans)
+  siteExt: 'Compans', depotsExt: ['540'], clientsExt: ['COLRUYT'],
   transporteurs: {},
   site: 'Monteux3',
 };
@@ -541,7 +543,16 @@ function livIndex() {
 const PREP_LABEL = { A: ['Non commencée', 'b-crit'], B: ['En cours', 'b-warn'], C: ['Terminée', 'b-good'] };
 const OT_LABEL = { A: ['OT non créés', 'b-crit'], B: ['OT partiels', 'b-warn'], C: ['OT créés', 'b-good'] };
 const badge = (lab, cls) => `<span class="badge ${cls}">${esc(lab)}</span>`;
-const prepBadge = s => s ? badge(...PREP_LABEL[s]) : badge('Hors VL06O', 'b-neutral');
+// Livraison affrétée absente de la VL06O = déjà expédiée (sauf départs directs d'un autre site)
+const prepBadge = s => s ? badge(...PREP_LABEL[s]) : (S.prep ? badge('Expédiée', 'b-good') : badge('Hors VL06O', 'b-neutral'));
+const isExtShip = r => (S.settings.depotsExt || []).includes(str(r.depot)) || (S.settings.clientsExt || []).some(k => k && compact(r.nom).includes(compact(k)));
+function affStatus(r) {
+  if (isExtShip(r)) return 'EXT';
+  const l = livIndex().get(r.liv);
+  return l ? l.prep : (S.prep ? 'EXP' : 'X');
+}
+const stLabel = st => ({ C: PREP_LABEL.C, B: PREP_LABEL.B, A: PREP_LABEL.A, EXP: ['Expédiée', 'b-good'], EXT: [`Départ ${S.settings.siteExt}`, 'b-info'], X: ['Hors VL06O', 'b-neutral'] })[st];
+const stBadgeAff = r => badge(...stLabel(affStatus(r)));
 
 const compact = v => String(v || '').toUpperCase().replace(/\s+/g, '');
 function isInterco(nom, prio) {
@@ -890,7 +901,7 @@ $('#themeBtn').onclick = () => {
 function weekData() {
   const days = weekDays();
   const prep = prepLines().filter(l => inWeek(l.dc));
-  const aff = Object.values(S.affret.rows).filter(r => inWeek(r.date));
+  const aff = Object.values(S.affret.rows).filter(r => inWeek(r.date) && !isExtShip(r));   // départs directs d'un autre site exclus
   const rap = Object.values(S.rapat.loads).filter(l => inWeek(l.date));
   const sst = S.sst.rows.filter(r => inWeek(r.date));
   return { days, prep, aff, rap, sst };
@@ -990,11 +1001,10 @@ function buildAlerts(aff, prep) {
   const idx = livIndex(); const out = [];
   const t = today(), tomorrow = addDays(t, dayIdx(t) === 4 ? 3 : 1);
   if (S.prep) {
-    const prepDates = new Set(prepLines().map(l => l.dc));
     const late = aff.filter(r => r.date <= tomorrow && idx.has(r.liv) && idx.get(r.liv).prep !== 'C');
     if (late.length) out.push(['crit', `<b>${late.length} livraison(s) à enlever d’ici ${fdateL(tomorrow)} non terminées en préparation</b><div class="x">${late.slice(0, 12).map(r => `${r.liv} ${esc(r.nom)} (${PREP_LABEL[idx.get(r.liv).prep][0]})`).join(' · ')}${late.length > 12 ? ' …' : ''}</div>`]);
-    const missing = aff.filter(r => !idx.has(r.liv) && prepDates.has(r.date));
-    if (missing.length) out.push(['warn', `<b>${missing.length} livraison(s) de l’affrètement absentes de la VL06O</b><div class="x">Déjà sorties ou hors extraction : ${missing.slice(0, 12).map(r => r.liv).join(' · ')}${missing.length > 12 ? ' …' : ''}</div>`]);
+    const missing = aff.filter(r => !idx.has(r.liv));
+    if (missing.length) out.push(['info', `<b>${missing.length} livraison(s) affrétée(s) absentes de la VL06O : considérées comme expédiées</b><div class="x">${missing.slice(0, 12).map(r => r.liv).join(' · ')}${missing.length > 12 ? ' …' : ''}</div>`]);
     const noRef = prep.filter(l => l.noRef);
     if (noRef.length) out.push(['warn', `<b>${noRef.length} ligne(s) VL06O sans fiche article (UQ/PAL)</b><div class="x">Non comptées en SILO/picking, comme dans le fichier Excel. Articles : ${uniq(noRef.map(l => l.art)).slice(0, 15).join(', ')}</div>`]);
     const affLivs = new Set(Object.keys(S.affret.rows));
@@ -1192,18 +1202,20 @@ function vlOnlyRows(filter = inWeek) {
   }
   return out;
 }
-const expRows = (filter = inWeek) => [...Object.values(S.affret.rows).filter(r => filter(r.date)).map(r => Object.assign({ src: 'affret' }, r)), ...vlOnlyRows(filter)];
+const expRows = (filter = inWeek) => [...Object.values(S.affret.rows).filter(r => filter(r.date)).map(r => Object.assign({ src: isExtShip(r) ? 'ext' : 'affret' }, r)), ...vlOnlyRows(filter)];
 const srcBadge = r => r.src === 'vl06o' ? badge('VL06O · non affrété', 'b-warn') : '';
 function viewOut() {
   const { days } = weekData();
   const idx = livIndex();
   const f = S.ui.af;
-  let rows = expRows();
+  const allRows = expRows();
+  const extRows = allRows.filter(r => r.src === 'ext');
+  let rows = allRows.filter(r => r.src !== 'ext');   // flux Monteux3 uniquement
   const transps = uniq(rows.map(r => r.transp)).sort((a, b) => (a === '') - (b === '') || num(a) - num(b));
   const q = (f.q || '').trim().toUpperCase();
   const filt = rows.filter(r =>
     (!f.days || !f.days.length || f.days.includes(r.date)) && (!f.tr || !f.tr.length || f.tr.includes(r.transp)) &&
-    (!f.st || !f.st.length || f.st.includes(idx.has(r.liv) ? idx.get(r.liv).prep : 'X')) && (!f.src || !f.src.length || f.src.includes(r.src)) &&
+    (!f.st || !f.st.length || f.st.includes(affStatus(r))) && (!f.src || !f.src.length || f.src.includes(r.src)) &&
     (!q || r.liv.includes(q) || r.nom.toUpperCase().includes(q) || r.ville.toUpperCase().includes(q) || r.comm.toUpperCase().includes(q)));
   const pasteCard = `
   <section class="card glass">
@@ -1233,31 +1245,32 @@ function viewOut() {
     { k: 'cpick', label: 'Colis pick', num: true, sv: r => idx.get(r.liv)?.colisPick ?? -1, html: r => idx.has(r.liv) ? n0(idx.get(r.liv).colisPick) : '<span class="muted">–</span>' },
     { k: 'hprep', label: 'H prépa', num: true, sv: r => idx.has(r.liv) ? idx.get(r.liv).hrSilo + idx.get(r.liv).hrPick : -1, html: r => idx.has(r.liv) ? hr(idx.get(r.liv).hrSilo + idx.get(r.liv).hrPick) : '<span class="muted">–</span>' },
     { k: 'rdv', label: 'RDV' }, { k: 'camion', label: 'Camion' },
-    { k: 'prepst', label: 'Prépa', sv: r => idx.get(r.liv)?.prep || 'X', html: r => prepBadge(idx.get(r.liv)?.prep) },
+    { k: 'prepst', label: 'Statut', sv: r => affStatus(r), html: stBadgeAff },
     { k: 'comm', label: 'Commentaire', cls: 'wrap muted' },
   ];
   const filters = `<div class="filters">
     <div class="fgroup"><label>Jour</label>${dshow.filter(d => rows.some(r => r.date === d)).map(d => `<button class="chip ${(f.days || []).includes(d) ? 'on' : ''}" data-chip="af|days|${d}">${fdateL(d)}</button>`).join('')}</div>
     <div class="fgroup"><label>Transporteur</label>${transps.map(t => `<button class="chip ${(f.tr || []).includes(t) ? 'on' : ''}" data-chip="af|tr|${esc(t)}">${t === '' ? 'Non affrété' : esc(transpName(t))}</button>`).join('')}</div>
   </div><div class="filters">
-    <div class="fgroup"><label>Prépa</label>${[['C', 'Terminée'], ['B', 'En cours'], ['A', 'Non commencée'], ['X', 'Hors VL06O']].map(([k, l]) => `<button class="chip ${(f.st || []).includes(k) ? 'on' : ''}" data-chip="af|st|${k}">${l}</button>`).join('')}</div>
+    <div class="fgroup"><label>Prépa</label>${[['C', 'Terminée'], ['B', 'En cours'], ['A', 'Non commencée'], ['EXP', 'Expédiée']].map(([k, l]) => `<button class="chip ${(f.st || []).includes(k) ? 'on' : ''}" data-chip="af|st|${k}">${l}</button>`).join('')}</div>
     <div class="fgroup"><label>Source</label><button class="chip ${(f.src || []).includes('affret') ? 'on' : ''}" data-chip="af|src|affret">Affrétées</button><button class="chip ${(f.src || []).includes('vl06o') ? 'on' : ''}" data-chip="af|src|vl06o">VL06O non affrétées</button></div>
     <div class="spacer"></div><input class="search" type="search" placeholder="Livraison, destinataire, ville…" value="${esc(f.q || '')}" data-q="af" aria-label="Rechercher">
   </div>`;
   const T = { pal: sum(filt, r => r.pal), blocs: sum(filt, r => r.blocs), palEnt: sum(filt, r => r.palEnt), couches: sum(filt, r => r.couches), cartPk: sum(filt, r => r.cartPk), poids: sum(filt, r => r.poids) };
-  const ready = filt.filter(r => idx.get(r.liv)?.prep === 'C').length;
+  const ready = filt.filter(r => ['C', 'EXP'].includes(affStatus(r))).length;
   return pasteCard + `
   <section class="card glass">
     <div class="kpis" style="margin-bottom:16px">
       <div class="kpi" data-detail="out" role="button" tabindex="0"><div class="lab"><i style="background:var(--out)"></i>Palettes</div><div class="val">${n0(T.pal)}</div><div class="det">${n0(filt.filter(r => r.src === 'affret').length)} livraisons affrétées${filt.some(r => r.src === 'vl06o') ? ` · <b>+${filt.filter(r => r.src === 'vl06o').length}</b> VL06O non affrétées (${n0(sum(filt.filter(r => r.src === 'vl06o'), r => idx.get(r.liv)?.palSilo))} pal SILO)` : ''}</div></div>
       <div class="kpi" data-detail="blocs" role="button" tabindex="0"><div class="lab">Blocs sol</div><div class="val">${n0(T.blocs)}</div><div class="det">${n0(T.palEnt)} pal entières · ${n0(T.couches)} couches</div></div>
       <div class="kpi" data-detail="poids" role="button" tabindex="0"><div class="lab">Poids brut</div><div class="val">${tons(T.poids)}<small>t</small></div><div class="det">taxable ${tons(sum(filt, r => r.poidsTax))} t</div></div>
-      <div class="kpi" data-detail="ready" role="button" tabindex="0"><div class="lab">Prêtes (prépa terminée)</div><div class="val">${n0(ready)}<small>/ ${n0(filt.length)}</small></div><div class="bar"><span style="width:${filt.length ? Math.round(ready / filt.length * 100) : 0}%"></span></div></div>
+      <div class="kpi" data-detail="ready" role="button" tabindex="0"><div class="lab">Prêtes ou expédiées</div><div class="val">${n0(ready)}<small>/ ${n0(filt.length)}</small></div><div class="bar"><span style="width:${filt.length ? Math.round(ready / filt.length * 100) : 0}%"></span></div></div>
     </div>
     <h2>Palettes et blocs par transporteur</h2><p class="hint">« bl » = blocs sol. Les noms de transporteurs se renseignent dans Paramètres.</p>
     ${mtx}
   </section>
-  <section class="card glass"><div class="card-head"><div><h2>Livraisons à expédier</h2><p class="hint">Base affrètement + livraisons VL06O pas encore affrétées (date de chargement), sans doublon : une livraison présente dans l’affrètement n’est jamais reprise depuis la VL06O. Statut de préparation rapproché par numéro de livraison.</p></div>
+  ${extRows.length ? `<section class="card glass"><h2>Départs directs ${esc(S.settings.siteExt)} (hors Monteux3)</h2><p class="hint">Livraisons de la base affrètement au code dépôt ${(S.settings.depotsExt || []).map(esc).join(', ')} ou pour ${(S.settings.clientsExt || []).map(esc).join(', ')} : elles partent de ${esc(S.settings.siteExt)}, pas de Monteux3. Elles ne sont pas dans la VL06O et sont exclues des totaux du dépôt (réglable dans Paramètres).</p>${affTable('affExt', extRows)}</section>` : ''}
+  <section class="card glass"><div class="card-head"><div><h2>Livraisons à expédier</h2><p class="hint">Base affrètement + livraisons VL06O pas encore affrétées (date de chargement), sans doublon : une livraison présente dans l’affrètement n’est jamais reprise depuis la VL06O. Statut rapproché par numéro de livraison : une livraison affrétée absente de la VL06O est considérée comme <b>expédiée</b>.</p></div>
     <button class="btn sm danger" data-act="aff-clear-week">${icon('trash')} Vider la semaine</button></div>
     ${filters}${table('aff', cols, filt, { total: T })}
   </section>`;
@@ -1478,6 +1491,13 @@ function viewSettings() {
     <div class="grid" style="gap:10px">${(st.equipes || []).map((e, i) => `<div class="form"><label>Équipe<input class="inp" data-team="${i}|nom" value="${esc(e.nom)}"></label><label>Début<input class="inp" type="time" data-team="${i}|debut" value="${esc(e.debut)}"></label><label>Fin<input class="inp" type="time" data-team="${i}|fin" value="${esc(e.fin)}"></label><label>Préparateurs<input class="inp" type="number" min="0" data-team="${i}|prep" value="${esc(e.prep)}"></label><label>Durée<input class="inp" disabled value="${n1(teamDur(e))} h → ${n1(num(e.prep) * teamDur(e))} h"></label><button class="btn sm danger" data-act="team-del" data-i="${i}">${icon('trash')}</button></div>`).join('')}</div>
     <div class="row" style="margin-top:10px"><button class="btn sm" data-act="team-add">+ Ajouter une équipe</button><span class="meta">Jours travaillés :</span>${DAYS.map((d, i) => `<label class="row meta" style="gap:4px"><input type="checkbox" data-jour="${i}" ${(st.joursTrav || [])[i] ? 'checked' : ''}>${d.slice(0, 3)}.</label>`).join('')}</div>
   </section>
+  <section class="card glass"><h2>Départs hors Monteux3</h2><p class="hint">Livraisons de la base affrètement qui partent d’un autre site (ex. COLRUYT depuis Compans) : elles sont listées à part et exclues des totaux du dépôt.</p>
+    <div class="set-grid">
+      <label>Site de départ<input class="inp" data-set="siteExt" value="${esc(st.siteExt)}"></label>
+      <label>Codes dépôt concernés (un par ligne)<textarea class="inp" style="min-height:70px;font-family:inherit" data-setlist="depotsExt">${esc((st.depotsExt || []).join('\n'))}</textarea></label>
+      <label>Clients concernés (mots-clés du nom)<textarea class="inp" style="min-height:70px;font-family:inherit" data-setlist="clientsExt">${esc((st.clientsExt || []).join('\n'))}</textarea></label>
+    </div>
+  </section>
   <section class="card glass"><h2>Intercos</h2><p class="hint">Mots-clés recherchés dans le nom du réceptionnaire (un par ligne). La priorité de livraison 9 est toujours considérée comme interco.</p>
     <textarea class="inp" style="min-height:90px;font-family:inherit" data-setlist="intercoKeys">${esc(st.intercoKeys.join('\n'))}</textarea>
   </section>
@@ -1506,7 +1526,7 @@ function viewSettings() {
 }
 document.addEventListener('change', e => {
   const t = e.target;
-  if (t.dataset.set) { const k = t.dataset.set; S.settings[k] = k === 'site' ? t.value : (num(t.value) || DEFAULT_SETTINGS[k]); save('settings'); render(); }
+  if (t.dataset.set) { const k = t.dataset.set; S.settings[k] = (k === 'site' || k === 'siteExt') ? t.value : (num(t.value) || DEFAULT_SETTINGS[k]); save('settings'); render(); }
   if (t.dataset.setlist) { S.settings[t.dataset.setlist] = t.value.split('\n').map(s => s.trim()).filter(Boolean); save('settings'); render(); }
   if (t.dataset.team) { const [i, k] = t.dataset.team.split('|'); S.settings.equipes[+i][k] = k === 'prep' ? num(t.value) : t.value; save('settings'); render(); }
   if (t.dataset.jour != null && t.type === 'checkbox') { S.settings.joursTrav = (S.settings.joursTrav || [1, 1, 1, 1, 1, 0, 0]).slice(); S.settings.joursTrav[+t.dataset.jour] = t.checked ? 1 : 0; save('settings'); render(); }
@@ -1570,7 +1590,7 @@ function exportWeek() {
   const { prep, aff, rap, sst } = weekData(); const wb = XLSX.utils.book_new();
   const add = (name, rows) => XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows.length ? rows : [{ info: 'aucune donnée' }]), name);
   add('Préparation', prep.map(l => ({ 'Date chargement': l.dc, Livraison: l.liv, Réceptionnaire: l.nom, Circuit: l.circuit, Article: l.art, Désignation: l.des, SGP: l.sgp, VP: l.vp, SWM: l.swm, 'UQ/PAL': l.uqpal, 'Pal SILO': l.palSilo, 'Hr SILO': +l.hrSilo.toFixed(4), 'Colis Picking': l.colisPick, 'Hr Pick': +l.hrPick.toFixed(4), 'Total Colis': l.pk, Picking: l.picking })));
-  add('Expéditions', aff.map(r => ({ 'Date Enl': r.date, Livraison: r.liv, Transporteur: transpName(r.transp), Destinataire: r.nom, Ville: r.ville, CP: r.cp, Palettes: r.pal, Blocs: r.blocs, 'Poids brut': r.poids, RDV: r.rdv, Prépa: PREP_LABEL[livIndex().get(r.liv)?.prep]?.[0] || 'Hors VL06O', Commentaire: r.comm })));
+  add('Expéditions', aff.map(r => ({ 'Date Enl': r.date, Livraison: r.liv, Transporteur: transpName(r.transp), Destinataire: r.nom, Ville: r.ville, CP: r.cp, Palettes: r.pal, Blocs: r.blocs, 'Poids brut': r.poids, RDV: r.rdv, Statut: stLabel(affStatus(r))[0], Commentaire: r.comm })));
   add('Rapatriements', rap.map(l => ({ Date: l.date, Entrepôt: l.entrepot, Type: KIND[l.kind], Sens: l.sens === 'in' ? 'Entrée' : 'Sortie', 'N° DT': l.ref, Remorque: l.remorque, Palettes: l.pal, 'Poids kg': Math.round(l.poids), Articles: l.nbArt })));
   add('Réceptions SST', sst.map(r => ({ Date: r.date, Heure: r.heure, 'Sous-traitant': r.sst, Référence: r.ref, Palettes: r.pal, Quai: r.quai, Réceptionné: r.recu ? 'oui' : 'non' })));
   XLSX.writeFile(wb, `Flux_${S.ui.week.y}_S${pad(S.ui.week.w)}.xlsx`);
@@ -1665,7 +1685,7 @@ function affTable(id, rows) {
     { k: 'nom', label: 'Destinataire', cls: 'wrap' }, { k: 'ville', label: 'Ville' }, { k: 'pal', label: 'Pal', num: true, fmt: n0 }, { k: 'blocs', label: 'Blocs', num: true, fmt: n0 },
     { k: 'poids', label: 'Poids kg', num: true, fmt: n0 }, { k: 'rdv', label: 'RDV' },
     { k: 'psilo', label: 'Pal SILO', num: true, sv: r => idx.get(r.liv)?.palSilo ?? -1, html: r => idx.has(r.liv) ? n0(idx.get(r.liv).palSilo) : '–' },
-    { k: 'st', label: 'Prépa', sv: r => idx.get(r.liv)?.prep || 'X', html: r => prepBadge(idx.get(r.liv)?.prep) },
+    { k: 'st', label: 'Statut', sv: r => r.src === 'vl06o' ? (idx.get(r.liv)?.prep || 'X') : affStatus(r), html: r => r.src === 'vl06o' ? prepBadge(idx.get(r.liv)?.prep) : stBadgeAff(r) },
   ], rows, { total: { pal: sum(rows, r => r.pal), blocs: sum(rows, r => r.blocs), poids: sum(rows, r => r.poids) } }) : none('Aucune livraison');
 }
 function livTable(id, livs) {
@@ -1771,10 +1791,10 @@ const DETAILS = {
   },
   ready(d) {
     const idx = livIndex(); const aff = wk(d).aff;
-    const grp = st => aff.filter(r => (idx.get(r.liv)?.prep || 'X') === st);
+    const grp = st => aff.filter(r => affStatus(r) === st);
     return { title: 'Livraisons prêtes à expédier', sub: scopeLbl(d) + ' · statut de préparation VL06O rapproché par n° de livraison', body:
-      mini([['Terminées', n0(grp('C').length)], ['En cours', n0(grp('B').length)], ['Non commencées', n0(grp('A').length)], ['Hors VL06O', n0(grp('X').length), '', 'déjà sorties ou hors extraction']]) +
-      h3('À surveiller', 'Non commencées ou en cours.') + affTable('dRdy', [...grp('A'), ...grp('B')]) + h3('Hors VL06O') + affTable('dRdX', grp('X')) };
+      mini([['Prépa terminée', n0(grp('C').length)], ['En cours', n0(grp('B').length)], ['Non commencées', n0(grp('A').length)], ['Expédiées', n0(grp('EXP').length), '', 'absentes de la VL06O']]) +
+      h3('À surveiller', 'Non commencées ou en cours.') + affTable('dRdy', [...grp('A'), ...grp('B')]) + h3('Expédiées', 'Affrétées mais absentes de la VL06O : considérées comme parties.') + affTable('dRdX', grp('EXP')) };
   },
   interco(d, dest) {
     const rows = intercoRows().filter(r => (!d || r.date === d) && (!dest || r.dest === dest));

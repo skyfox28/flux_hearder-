@@ -87,3 +87,9 @@ Pour chaque jour de chargement, l'app affiche :
 - la **durée avec l'équipe** = heures ÷ 4 préparateurs.
 
 Le SILO (palettes complètes, 18 pal/h) est suivi à part.
+
+## Livraisons expédiées et départs hors Monteux3
+
+- Une livraison de la base affrètement **absente de la VL06O** est considérée comme **expédiée** : elle est marquée « Expédiée » et comptée dans « Prêtes ou expédiées ».
+- Les livraisons au **code dépôt 540** ou pour **COLRUYT** partent directement de **Compans**, pas de Monteux3. Elles ne sont pas dans la VL06O, et c'est normal. Elles sont listées à part (« Départs directs Compans ») et exclues des totaux du dépôt.
+- Le site, les codes dépôt et les clients concernés se règlent dans Paramètres.
