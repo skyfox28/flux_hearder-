@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.9.0** · Développé par **Galaad Poivey**
+Version **1.10.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre `index.html` dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -125,3 +125,14 @@ Chaque chiffre ouvre son propre détail, et le bouton « ← Retour » ramène a
 ## Versions
 
 Le numéro de version (`APP_VERSION` dans `index.html`) augmente à chaque modification de l'app. L'historique complet est consultable en cliquant sur le numéro de version, en bas de l'écran ou dans Paramètres.
+
+## Capacités (quai, SILO, picking)
+
+- **Quai :** 2 250 palettes par semaine en entrée et 3 000 en sortie, réparties sur les jours travaillés (450 et 600 palettes par jour).
+  - Entrées = rapatriements + réceptions SST.
+  - Sorties = expéditions affrétées + transferts vers les externes.
+  - L'app affiche le taux par jour et par semaine, sur le graphique « Flux palettes » (lignes pointillées) et dans le tableau de bord.
+- **SILO et picking : taux de charge calculés séparément.**
+  - SILO : heures SILO ÷ capacité des équipes SILO. Par défaut, 1 cariste de 5h00 à 12h30 et 1 de 12h30 à 20h00, soit 15 h/jour ou 270 palettes à 18 pal/h.
+  - Picking : heures de picking ÷ capacité des préparateurs (30 h/jour).
+- Toutes ces capacités se règlent dans Paramètres.
