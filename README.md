@@ -3,7 +3,7 @@
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre `index.html` dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
 
-Gardez ensemble `index.html`, `referentiels.js` et le dossier `lib/`.
+Gardez ensemble `index.html` et le dossier `lib/`. Le référentiel articles (Fichier Article, MLGT, magasins) est intégré à `index.html`.
 
 ## Sources alimentées
 
@@ -21,7 +21,7 @@ Gardez ensemble `index.html`, `referentiels.js` et le dossier `lib/`.
 Elle reprend la requête Power Query et les formules du classeur *Analyse_Activité_Préparation* :
 
 - les postes VL06O à `Number of Packages = 0` sont exclus ;
-- **UQ/PAL** vient du Fichier Article (filtré sur UQA = PAL, hors ROH et ZNVM) ;
+- **UQ/PAL** vient du Fichier Article (filtré sur UQA = PAL, hors ROH et ZNVM). Les codes articles sont comparés sans leurs zéros de tête (`000000000000278710` = `278710`). Un poste sans fiche article n'est compté ni en SILO ni en picking, comme dans le fichier Excel ; l'app le signale ;
 - **Pal SILO** = arrondi inférieur de (colis ÷ UQ/PAL), **Colis SILO** = Pal SILO × UQ/PAL, **Colis picking** = colis − Colis SILO ;
 - **Circuit** selon la priorité de livraison : 1 Entrepôt, 2 GMS, 3 Export, 4 Allotie, 6 MDD, 9 Interco ;
 - **Hr SILO** = Pal SILO ÷ 18 ; **Hr Pick** = colis picking ÷ cadence (Export 750, MDD 1300, autres circuits 400). Les cadences se modifient dans Paramètres ;
@@ -54,3 +54,12 @@ Certaines plateformes sont dans les deux flux : Plateforme 38, par exemple, reç
 - Les **retours** sont les RDV du planning SST dont le sous-traitant contient ce même mot-clé. La comparaison ignore les espaces : « Plateforme38 » = « PLATEFORME 38 ».
 
 Les deux flux sont suivis **séparément**, sans rapprochement : un camion envoyé un jour ne revient pas forcément la même semaine. L'onglet Intercos affiche pour chaque plateforme ce qui est envoyé et ce qui est reçu sur la semaine affichée, jour par jour.
+
+## Indicateurs cliquables
+
+Chaque indicateur (tuiles et chiffres du tableau « Semaine jour par jour ») ouvre un détail en surimpression : répartition par jour, par transporteur, par entrepôt ou par circuit, et la liste des livraisons, camions ou RDV concernés.
+Un chiffre de la matrice ouvre le détail du jour ; le bouton « Toute la semaine » élargit à la semaine. Pour fermer : `Échap`, la croix, ou un clic à côté.
+
+## Transporteurs
+
+La correspondance code → nom de la base affrètement est intégrée (3 STEF PARIS ATHIS-MONS … 440 EXPORT DDE). Elle peut être surchargée dans Paramètres.
