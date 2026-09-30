@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.11.0** · Développé par **Galaad Poivey**
+Version **1.12.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre `index.html` dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -147,3 +147,19 @@ Le numéro de version (`APP_VERSION` dans `index.html`) augmente à chaque modif
 - **Verdict :** « passe » si le reste cumulé tient dans la capacité, sinon « ne passe pas » avec les heures manquantes. L'app donne aussi une heure de fin estimée, et calcule tout séparément pour le SILO et le picking.
 - **Limite réelle :** sur les graphiques, un trait rouge pointillé par jour = heures déjà faites + capacité encore disponible. Si le haut de la barre dépasse le trait, la journée ne passe pas.
 - **Rendement réel :** entre deux imports successifs (par exemple le matin et l'après-midi), l'app mesure les heures théoriques réalisées. Ce sont les postes passés au statut C ou sortis de la VL06O. Elle les divise par les heures d'équipe écoulées. Ce rendement ajuste la capacité restante et s'affine à chaque actualisation ; l'ajustement peut être désactivé dans Paramètres.
+
+## Créneaux de chargement (table LIKP)
+
+Dans l'onglet Préparation, section « Heures de chargement (table LIKP) », on colle l'extraction LIKP ou on dépose le fichier Excel.
+- **Collage sans en-têtes :** l'app repère le n° de livraison, puis la première date suivie d'une heure non nulle (`01.10.2026 · 06:00:00`).
+- **Fichier avec en-têtes :** les colonnes `VBELN / Livraison`, `LDDAT / Date de chargement`, `LDUHR / Heure de chargement` sont reconnues ; à défaut, `KODAT / KOUHR`.
+- Les imports successifs se complètent.
+
+L'heure LIKP est le **début d'un créneau de chargement de 2 h** (8h → 8h–10h).
+
+**Effet sur la projection « réel » :**
+- chaque livraison a pour échéance le début de son créneau moins 30 minutes ;
+- le reste à faire est ordonné par échéance, livraison par livraison ;
+- l'app donne pour chacune sa fin de préparation estimée et son éventuel retard, dans le tableau « Livraisons en retard prévu ».
+
+La durée du créneau, le calage (début ou fin du créneau) et la marge se règlent dans Paramètres. Sans heure LIKP, la règle du jour s'applique (veille ou jour même).
