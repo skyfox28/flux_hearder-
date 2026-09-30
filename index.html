@@ -274,6 +274,13 @@ kbd{font-family:inherit;font-size:11px;padding:1px 6px;border-radius:6px;backgro
 .kpi[data-detail]:hover .lab::after,.kpi[data-detail]:focus-visible .lab::after{opacity:1}
 td.clk{cursor:pointer}
 td.clk:hover{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.purge-scope{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:14px;background:var(--glass-soft);border:1px solid var(--glass-border)}
+.purge-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.purge-opt{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:14px;background:var(--glass-soft);border:1px solid var(--glass-border);cursor:pointer}
+.purge-opt input{margin-top:3px}
+.purge-opt > div{flex:1}
+.purge-opt .det{font-size:12px;color:var(--text-3)}
+.purge-opt:has(input:disabled){opacity:.55;cursor:default}
 .modal{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-start;justify-content:center;padding:4vh 16px}
 .mback{position:absolute;inset:0;background:rgba(10,15,30,.4);-webkit-backdrop-filter:blur(6px) saturate(120%);backdrop-filter:blur(6px) saturate(120%);animation:fadeIn .15s ease}
 .mpanel{position:relative;width:min(1180px,100%);max-height:92vh;display:flex;flex-direction:column;background:color-mix(in srgb,var(--bg-1) 90%,transparent);animation:popIn .18s ease}
@@ -317,6 +324,7 @@ body.modal-open{overflow:hidden}
         <button class="iconbtn" id="wNext" aria-label="Semaine suivante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></button>
       </div>
       <button class="btn sm" id="wToday">Cette semaine</button>
+      <button class="btn sm danger" data-detail="purge" title="Purger les données de l’app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg> Purger</button>
       <button class="iconbtn" id="themeBtn" aria-label="Changer de thème" title="Thème clair / sombre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
     </header>
     <div id="view" class="grid"></div>
@@ -1520,7 +1528,7 @@ function viewSettings() {
       <button class="btn" data-pick="restore">${icon('upload')} Restaurer</button>
       <button class="btn" data-act="export-week">${icon('dl')} Exporter la semaine (Excel)</button>
       <div class="spacer"></div>
-      <button class="btn danger" data-act="wipe">${icon('trash')} Tout effacer</button>
+      <button class="btn danger" data-detail="purge">${icon('trash')} Purger les données…</button>
     </div>
   </section>`;
 }
@@ -1573,15 +1581,12 @@ document.addEventListener('click', async e => {
     await save('sst'); render();
   }
   if (a === 'ref-reset' && confirm('Revenir au référentiel par défaut ?')) { S.ref = null; await save('ref'); render(); }
+  if (a === 'purge-run') return purgeRun();
   if (a === 'backup') {
     const blob = new Blob([JSON.stringify({ app: 'flux-hebdo', v: 1, at: new Date().toISOString(), settings: S.settings, ref: S.ref, prep: S.prep, affret: S.affret, rapat: S.rapat, sst: S.sst })], { type: 'application/json' });
     download(blob, `flux-hebdo-sauvegarde-${today()}.json`);
   }
   if (a === 'export-week') exportWeek();
-  if (a === 'wipe' && confirm('Effacer toutes les données (VL06O, affrètement, rapatriements, SST) ?')) {
-    S.prep = null; S.affret = { rows: {} }; S.rapat = { loads: {} }; S.sst = { rows: [] };
-    await Promise.all(['prep', 'affret', 'rapat', 'sst'].map(save)); render();
-  }
 });
 document.addEventListener('click', e => { const p = e.target.closest('[data-prepview]'); if (p) { S.ui.prepView = p.dataset.prepview; render(); } });
 function download(blob, name) { const u = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 2000); }
@@ -1729,7 +1734,71 @@ function prepDetail(lines, mode, scope) {
     return { title: mode === 'avanc' ? 'Avancement de la préparation' : 'Reste à faire', sub: scope + ' · « Fait » = statut global de prélèvement C', body: mini([['Faites', n1(hrsOf(F)), 'h', `${n0(F.length)} codes`], ['À faire', n1(hrsOf(T)), 'h', `${n0(T.length)} codes`], ['Avancement', pct(hrsOf(lines) ? hrsOf(F) / hrsOf(lines) : NaN)], ['Livraisons non terminées', n0(open.length)]]) + (days ? h3('Par jour de chargement') + days : '') + h3('Livraisons non terminées', 'Non commencées ou partiellement préparées.') + livTable('dOpen', open.sort((a, b) => (a.dc || '').localeCompare(b.dc || '') || a.prep.localeCompare(b.prep))) };
   }
 }
+// ---------- Purge des données ----------
+function purgeCounts(before) {
+  const old = d => !before || (d && d < before);
+  return {
+    prep: S.prep ? S.prep.rows.length : 0,
+    affret: Object.values(S.affret.rows).filter(r => old(r.date)).length,
+    rapat: Object.values(S.rapat.loads).filter(l => old(l.date)).length,
+    sst: S.sst.rows.filter(r => old(r.date)).length,
+  };
+}
+function purgeView() {
+  const mon = mondayOf(S.ui.week.y, S.ui.week.w);
+  const all = purgeCounts(null), old = purgeCounts(mon);
+  const opt = (k, lab, n, nOld, det) => `<label class="purge-opt"><input type="checkbox" data-purge="${k}" ${n ? 'checked' : ''} ${n ? '' : 'disabled'}><div><b>${lab}</b><div class="det">${det}</div></div><span class="meta" data-pn="${k}" data-all="${n}" data-old="${nOld ?? n}">${n0(n)}</span></label>`;
+  return { title: 'Purger les données', sub: 'Les données sont stockées dans ce navigateur. Pensez à exporter une sauvegarde avant (Paramètres).', body: `
+    <div class="purge-scope">
+      <label class="row"><input type="radio" name="pscope" value="all" checked> <b>Tout supprimer</b></label>
+      <label class="row"><input type="radio" name="pscope" value="old"> <b>Seulement avant la semaine ${S.ui.week.w}</b> <span class="meta">(avant le ${fdate(mon)}/${mon.slice(0, 4)} — garde la semaine affichée et les suivantes)</span></label>
+    </div>
+    <h3 class="mh">Données importées</h3>
+    <div class="purge-list">
+      ${opt('prep', 'Extraction VL06O', all.prep, null, S.prep ? `${esc(S.prep.file)} · photo complète (toujours supprimée en entier)` : 'non importée')}
+      ${opt('affret', 'Base affrètement', all.affret, old.affret, 'livraisons collées')}
+      ${opt('rapat', 'Rapatriements', all.rapat, old.rapat, 'camions des fichiers FM, Mutual, Tempo One…')}
+      ${opt('sst', 'Réceptions sous-traitants', all.sst, old.sst, 'planning SST et pointages')}
+    </div>
+    <h3 class="mh">Configuration</h3>
+    <div class="purge-list">
+      <label class="purge-opt"><input type="checkbox" data-purge="ref" ${S.ref ? '' : 'disabled'}><div><b>Référentiel importé</b><div class="det">${S.ref ? 'revient au référentiel intégré' : 'référentiel intégré utilisé'}</div></div></label>
+      <label class="purge-opt"><input type="checkbox" data-purge="settings"><div><b>Paramètres</b><div class="det">cadences, équipes, transporteurs, intercos, départs hors site</div></div></label>
+    </div>
+    <div class="row" style="margin-top:18px;justify-content:flex-end">
+      <button class="btn" data-close>Annuler</button>
+      <button class="btn primary" data-act="purge-run" style="background:linear-gradient(180deg,#e25555,#c53030)">Purger la sélection</button>
+    </div>` };
+}
+document.addEventListener('change', e => {
+  if (e.target.name !== 'pscope') return;
+  const old = e.target.value === 'old';
+  document.querySelectorAll('[data-pn]').forEach(n => { n.textContent = n0(+(old ? n.dataset.old : n.dataset.all)); });
+  const pv = document.querySelector('[data-purge="prep"]'); if (pv && !pv.disabled) pv.checked = !old;   // la VL06O est une photo : ne pas la vider sans le vouloir
+});
+async function purgeRun() {
+  const sel = k => document.querySelector(`[data-purge="${k}"]`)?.checked;
+  const old = document.querySelector('input[name="pscope"]:checked')?.value === 'old';
+  const before = old ? mondayOf(S.ui.week.y, S.ui.week.w) : null;
+  const keep = d => before && d && d >= before;
+  const keys = ['prep', 'affret', 'rapat', 'sst', 'ref', 'settings'].filter(sel);
+  if (!keys.length) return toast('Rien de sélectionné.');
+  const n = purgeCounts(before);
+  const recap = keys.map(k => ({ prep: `VL06O (${n0(n.prep)} postes)`, affret: `affrètement (${n0(n.affret)})`, rapat: `rapatriements (${n0(n.rapat)})`, sst: `réceptions SST (${n0(n.sst)})`, ref: 'référentiel importé', settings: 'paramètres' })[k]).join(', ');
+  if (!confirm(`Supprimer définitivement ${before ? 'avant le ' + fdate(before) + ' : ' : ''}${recap} ?`)) return;
+  if (sel('prep')) S.prep = null;
+  if (sel('affret')) { for (const [k, r] of Object.entries(S.affret.rows)) if (!keep(r.date)) delete S.affret.rows[k]; if (!before) S.affret = { rows: {} }; }
+  if (sel('rapat')) for (const [k, l] of Object.entries(S.rapat.loads)) if (!keep(l.date)) delete S.rapat.loads[k];
+  if (sel('sst')) S.sst.rows = S.sst.rows.filter(r => keep(r.date));
+  if (sel('ref')) S.ref = null;
+  if (sel('settings')) S.settings = structuredClone(DEFAULT_SETTINGS);
+  S.ui.pf = {}; S.ui.af = {}; S.ui.rf = {}; S.ui.modal = null;
+  await Promise.all(keys.map(k => save(k === 'settings' ? 'settings' : k)));
+  toast(`<b>Purge effectuée</b><br>${recap}`, 5000);
+  render();
+}
 const DETAILS = {
+  purge: () => purgeView(),
   in(d) {
     const { rap, sst } = wk(d); const rin = rap.filter(l => l.sens === 'in');
     const items = [...rin.map(l => ({ date: l.date, rap: l.pal, sst: 0 })), ...sst.map(r => ({ date: r.date, rap: 0, sst: r.pal }))];
@@ -1838,7 +1907,7 @@ function openDetail(key, d) { S.ui.modal = { key, d: d || null }; hideTip(); ren
 document.addEventListener('click', e => {
   if (e.target.closest('[data-close]')) { S.ui.modal = null; renderModal(); return; }
   if (e.target.closest('[data-mweek]')) { S.ui.modal.d = null; renderModal(); return; }
-  const k = e.target.closest('[data-detail]'); if (k && !e.target.closest('button,a,input')) openDetail(k.dataset.detail, k.dataset.day);
+  const k = e.target.closest('[data-detail]'); const inner = e.target.closest('button,a,input'); if (k && (!inner || inner === k)) openDetail(k.dataset.detail, k.dataset.day);
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && S.ui.modal) { S.ui.modal = null; renderModal(); }
