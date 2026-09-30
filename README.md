@@ -1,5 +1,7 @@
 # Flux Hebdo Dépôt
 
+Version **1.9.0** · Développé par **Galaad Poivey**
+
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre `index.html` dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
 
@@ -102,3 +104,24 @@ Le bouton **Purger** en haut de l'écran (également dans Paramètres) ouvre une
 
 Une confirmation est demandée avant de supprimer. En mode « avant la semaine », la VL06O est décochée d'office : c'est une photo unique, qu'on ne supprime qu'en entier.
 Pensez à exporter une sauvegarde avant de purger.
+
+## Grands détails : flux palettes et charge SILO / picking
+
+Sur le tableau de bord, un clic sur les graphiques « Flux palettes par jour » et « Charge SILO / picking » ouvre un détail en quasi plein écran.
+
+- **Flux palettes :**
+  - graphique entrées | sorties par jour, avec l'origine de chaque palette (rapatriements, réceptions SST, expéditions affrétées, transferts vers les externes) ;
+  - tableau détaillé ligne par ligne (entrepôt, sous-traitant, transporteur) avec le solde entrées − sorties ;
+  - pour information : les livraisons VL06O non affrétées et les départs Compans ;
+  - un journal des flux jour par jour.
+- **Charge SILO / picking :**
+  - heures de picking par circuit face à la capacité des préparateurs ;
+  - palettes SILO faites / à faire ;
+  - tableau par jour : reste à faire, taux de charge, préparateurs nécessaires, durée avec l'équipe ;
+  - répartition par circuit, statut des livraisons, et livraisons non terminées triées par heures restantes.
+
+Chaque chiffre ouvre son propre détail, et le bouton « ← Retour » ramène au grand détail.
+
+## Versions
+
+Le numéro de version (`APP_VERSION` dans `index.html`) augmente à chaque modification de l'app. L'historique complet est consultable en cliquant sur le numéro de version, en bas de l'écran ou dans Paramètres.

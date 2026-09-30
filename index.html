@@ -28,7 +28,7 @@ window.REF_DEFAULT = {"date":"2026-08-24","articles":{"13316003":["VERP","PAL","
   --text-1:#0e1422; --text-2:#46506a; --text-3:#6c7590;
   --grid:#d6dae4; --axis:#a8afbf;
   --accent:#2a78d6; --accent-ink:#fff;
-  --in:#2a78d6; --out:#eb6834; --silo:#4a3aa7; --pick:#1baf7a;
+  --in:#2a78d6; --out:#eb6834; --silo:#4a3aa7; --pick:#1baf7a; --c4:#eda100; --c5:#e87ba4; --c6:#008300;
   --good:#0ca30c; --good-ink:#006300; --warn:#fab219; --warn-ink:#8a5a00; --serious:#ec835a; --crit:#d03b3b; --crit-ink:#b12a2a;
   --chip:rgba(255,255,255,.55); --chip-on:#0e1422; --chip-on-ink:#fff;
   --input:rgba(255,255,255,.7);
@@ -50,7 +50,7 @@ window.REF_DEFAULT = {"date":"2026-08-24","articles":{"13316003":["VERP","PAL","
     --text-1:#f3f5fa; --text-2:#b9c0d2; --text-3:#8a93a8;
     --grid:#2e3446; --axis:#4a5266;
     --accent:#3987e5;
-    --in:#3987e5; --out:#d95926; --silo:#9085e9; --pick:#199e70;
+    --in:#3987e5; --out:#d95926; --silo:#9085e9; --pick:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300;
     --good-ink:#3fcf3f; --warn-ink:#fab219; --crit-ink:#ff7b7b;
     --chip:rgba(255,255,255,.08); --chip-on:#f3f5fa; --chip-on-ink:#0e1422;
     --input:rgba(10,14,26,.55);
@@ -71,7 +71,7 @@ window.REF_DEFAULT = {"date":"2026-08-24","articles":{"13316003":["VERP","PAL","
     --text-1:#f3f5fa; --text-2:#b9c0d2; --text-3:#8a93a8;
     --grid:#2e3446; --axis:#4a5266;
     --accent:#3987e5;
-    --in:#3987e5; --out:#d95926; --silo:#9085e9; --pick:#199e70;
+    --in:#3987e5; --out:#d95926; --silo:#9085e9; --pick:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300;
     --good-ink:#3fcf3f; --warn-ink:#fab219; --crit-ink:#ff7b7b;
     --chip:rgba(255,255,255,.08); --chip-on:#f3f5fa; --chip-on-ink:#0e1422;
     --input:rgba(10,14,26,.55);
@@ -281,6 +281,26 @@ td.clk:hover{color:var(--accent);text-decoration:underline;text-underline-offset
 .purge-opt > div{flex:1}
 .purge-opt .det{font-size:12px;color:var(--text-3)}
 .purge-opt:has(input:disabled){opacity:.55;cursor:default}
+.mpanel.xl{width:min(1680px,100%);max-height:96vh;height:96vh}
+.modal:has(.mpanel.xl){padding:2vh 12px}
+.xlchart{padding:10px 14px 4px;border-radius:18px;background:var(--glass-soft);border:1px solid var(--glass-border);margin-bottom:6px}
+.xlcharts > div{padding:12px 14px;border-radius:18px;background:var(--glass-soft);border:1px solid var(--glass-border)}
+.clickcard{cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.clickcard:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--glass-border))}
+.clickcard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.clickcard .expand{position:absolute;top:16px;right:18px;font-size:12px;font-weight:600;color:var(--accent);padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.daycards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.daycard{padding:12px 14px;border-radius:16px;background:var(--glass-soft);border:1px solid var(--glass-border)}
+.dch{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.dcs{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin:8px 0 2px}
+.dcs.in{color:var(--in)} .dcs.out{color:var(--out)}
+.daycard ul{list-style:none;margin:0;padding:0}
+.daycard li{display:grid;grid-template-columns:1fr auto;gap:0 8px;padding:4px 0;border-bottom:1px solid color-mix(in srgb,var(--grid) 60%,transparent);font-size:12.5px}
+.daycard li small{grid-column:1/-1;color:var(--text-3);font-size:11px}
+i.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:7px;vertical-align:middle}
+.linkbtn{all:unset;cursor:pointer;color:var(--accent);font-weight:600}
+.linkbtn:hover{text-decoration:underline}
+.appfoot{text-align:center;color:var(--text-3);font-size:12px;padding:4px 0 10px}
 .modal{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-start;justify-content:center;padding:4vh 16px}
 .mback{position:absolute;inset:0;background:rgba(10,15,30,.4);-webkit-backdrop-filter:blur(6px) saturate(120%);backdrop-filter:blur(6px) saturate(120%);animation:fadeIn .15s ease}
 .mpanel{position:relative;width:min(1180px,100%);max-height:92vh;display:flex;flex-direction:column;background:color-mix(in srgb,var(--bg-1) 90%,transparent);animation:popIn .18s ease}
@@ -328,6 +348,7 @@ body.modal-open{overflow:hidden}
       <button class="iconbtn" id="themeBtn" aria-label="Changer de thème" title="Thème clair / sombre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
     </header>
     <div id="view" class="grid"></div>
+    <footer class="appfoot">Flux Hebdo <button class="linkbtn" data-detail="version" id="footVer"></button> · Développé par <b>Galaad Poivey</b></footer>
   </main>
 </div>
 <div class="tip" id="tip"></div>
@@ -340,6 +361,22 @@ body.modal-open{overflow:hidden}
    Flux Hebdo Dépôt — suivi entrées / sorties / préparation
    100 % frontend : les données restent dans le navigateur (IndexedDB)
    ============================================================ */
+
+// ---------- Version (à incrémenter à chaque modification de l'app) ----------
+const APP_VERSION = '1.9.0';
+const APP_AUTHOR = 'Galaad Poivey';
+const CHANGELOG = [
+  ['1.9.0', '30/09/2026', 'Grands détails plein écran « Flux palettes » et « Charge SILO / picking », numéro de version, crédits.'],
+  ['1.8.0', '30/09/2026', 'Bouton Purger : suppression sélective des données.'],
+  ['1.7.0', '30/09/2026', 'Livraison absente de la VL06O = expédiée ; départs directs Compans (COLRUYT, dépôt 540) hors totaux.'],
+  ['1.6.0', '30/09/2026', 'Capacité picking : équipes (2 + 2 préparateurs), taux de charge, préparateurs nécessaires.'],
+  ['1.5.0', '30/09/2026', 'Nouveau format de la base affrètement ; livraisons VL06O non affrétées dans Expéditions.'],
+  ['1.4.0', '30/09/2026', 'Indicateurs cliquables avec détail, noms des transporteurs, référentiel intégré.'],
+  ['1.3.0', '30/09/2026', 'Intercos : envois et retours suivis séparément.'],
+  ['1.2.0', '30/09/2026', 'Intercos aller-retour (Plateforme 38).'],
+  ['1.1.0', '30/09/2026', 'Lecture du planning SST Monteux3 ; DESTO en sortie vers l’externe.'],
+  ['1.0.0', '30/09/2026', 'Première version : préparation VL06O, affrètement, intercos, rapatriements, réceptions SST.'],
+];
 
 // ---------- Icônes ----------
 const IC = {
@@ -892,7 +929,7 @@ const TABS = [
 function renderNav() {
   $('#nav').innerHTML = `<div class="brand"><div class="logo">FX</div><div><b>Flux Hebdo</b><small>Dépôt ${esc(S.settings.site)}</small></div></div>` +
     TABS.map(([k, l, i], n) => (n === 6 ? '<div class="sep"></div>' : '') + `<button class="${S.ui.tab === k ? 'on' : ''}" data-tab="${k}" ${S.ui.tab === k ? 'aria-current="page"' : ''}>${icon(i)}<span>${l}</span></button>`).join('') +
-    `<div class="foot">${S.prep ? `VL06O : ${esc(new Date(S.prep.importedAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }))}` : 'VL06O : non importé'}<br>Données locales au navigateur</div>`;
+    `<div class="foot">${S.prep ? `VL06O : ${esc(new Date(S.prep.importedAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }))}` : 'VL06O : non importé'}<br>Données locales au navigateur<br><button class="linkbtn" data-detail="version">v${APP_VERSION}</button> · Développé par ${APP_AUTHOR}</div>`;
 }
 $('#nav').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) { S.ui.tab = b.dataset.tab; S.ui.modal = null; render(); window.scrollTo({ top: 0 }); } });
 $('#wPrev').onclick = () => shiftWeek(-1);
@@ -968,18 +1005,18 @@ function viewDash() {
     </div>
     <div class="group-title" style="margin-top:18px">Préparation (VL06O, date de chargement)</div>
     <div class="kpis">
-      ${kpi('Charge totale', nf1.format(hrs), 'h', `SILO ${n1(A.hrSilo)} h · Picking ${n1(A.hrPick)} h`, '', 'charge')}
-      ${(() => { const dd = uniq(prep.map(l => l.dc)).filter(Boolean); const cap = sum(dd, capaOf); return kpi('Picking vs capacité', cap ? pct(A.hrPick / cap) : '–', '', `${n1(A.hrPick)} h de charge / ${n1(cap)} h dispo (${dd.length} j × ${n1(capaDay())} h) · ≈ ${n1(A.hrPick / hPerPrep())} préparateurs-jour`, '', 'charge'); })()}
+      ${kpi('Charge totale', nf1.format(hrs), 'h', `SILO ${n1(A.hrSilo)} h · Picking ${n1(A.hrPick)} h`, '', 'prepxl')}
+      ${(() => { const dd = uniq(prep.map(l => l.dc)).filter(Boolean); const cap = sum(dd, capaOf); return kpi('Picking vs capacité', cap ? pct(A.hrPick / cap) : '–', '', `${n1(A.hrPick)} h de charge / ${n1(cap)} h dispo (${dd.length} j × ${n1(capaDay())} h) · ≈ ${n1(A.hrPick / hPerPrep())} préparateurs-jour`, '', 'prepxl'); })()}
       ${kpi('Livraisons', n0(A.liv), '', `${n0(A.codes)} codes · ${n0(A.total)} colis`, '', 'livprep')}
       ${kpi('Palettes SILO', n0(A.palSilo), '', `Colis picking ${n0(A.colisPick)}`, '', 'silo')}
       <div class="kpi" data-detail="avanc" role="button" tabindex="0"><div class="lab">Avancement (heures faites)</div><div class="val">${pct(hrs ? hrsFait / hrs : NaN)}</div><div class="bar"><span style="width:${hrs ? Math.round(hrsFait / hrs * 100) : 0}%"></span></div><div class="det">${n1(hrsFait)} h faites / ${n1(hrs)} h</div></div>
     </div>
   </section>
   <div class="grid g2">
-    <section class="card glass"><h2>Flux palettes par jour</h2><p class="hint">Entrées = rapatriements + réceptions SST · Sorties = base affrètement (date d’enlèvement).</p>
+    <section class="card glass clickcard" data-detail="flux" role="button" tabindex="0"><span class="expand">Agrandir ⤢</span><h2>Flux palettes par jour</h2><p class="hint">Entrées = rapatriements + réceptions SST · Sorties = base affrètement (date d’enlèvement).</p>
       ${barChart({ cats, series: [{ key: 'palIn', label: 'Entrées', color: cssVar('--in') }, { key: 'palOut', label: 'Sorties', color: cssVar('--out') }], data: pd, unit: ' pal' })}
     </section>
-    <section class="card glass"><h2>Charge picking vs capacité</h2><p class="hint">Heures de travail picking (colis ÷ cadence du circuit, pour 1 préparateur) comparées à la capacité : ${esc(teamsLbl())} = ${n1(capaDay())} h/jour. Le SILO (${n1(A.hrSilo)} h sur la semaine) est à part.</p>
+    <section class="card glass clickcard" data-detail="prepxl" role="button" tabindex="0"><span class="expand">Agrandir ⤢</span><h2>Charge SILO / picking vs capacité</h2><p class="hint">Heures de travail picking (colis ÷ cadence du circuit, pour 1 préparateur) comparées à la capacité : ${esc(teamsLbl())} = ${n1(capaDay())} h/jour. Le SILO (${n1(A.hrSilo)} h sur la semaine) est à part.</p>
       ${barChart({ cats, series: [{ key: 'hrPick', label: 'Heures picking', color: cssVar('--pick') }], data: pd, unit: ' h', fmt: n1, ref: { value: capaDay(), label: `capacité ${n1(capaDay())} h`, legend: `Capacité (${nbPrep()} préparateurs)` } })}
     </section>
   </div>
@@ -991,6 +1028,7 @@ function viewDash() {
   </section>`;
 }
 const MATRIX_DETAIL = { palRap: 'rapin', camRap: 'rapin', palSst: 'sst', camSst: 'sst', palIntercoBack: 'sst', palIn: 'in', livOut: 'out', livNA: 'out', palOut: 'out', blocs: 'blocs', palInterco: 'interco', poids: 'poids', palExt: 'ext', livPrep: 'livprep', codes: 'livprep', hrs: 'charge', hrsFait: 'avanc', hrPick: 'charge', capa: 'charge', taux: 'charge', prepNeed: 'charge', dureeEq: 'charge' };
+const MATRIX_WEEK = { palIn: 'flux', palOut: 'flux', hrs: 'prepxl', hrPick: 'prepxl', capa: 'prepxl', taux: 'prepxl', prepNeed: 'prepxl', dureeEq: 'prepxl' };
 function dayMatrix(pd) {
   const rowsDef = [
     ['Rapatriements (pal)', 'palRap', n0], ['Camions rapatriement', 'camRap', n0], ['Réceptions SST (pal)', 'palSst', n0], ['Camions SST', 'camSst', n0], ['dont retours interco (pal)', 'palIntercoBack', n0],
@@ -1002,7 +1040,7 @@ function dayMatrix(pd) {
     ['Préparateurs nécessaires', 'prepNeed', n1, false, pd => NaN], ['Durée picking avec l’équipe (h)', 'dureeEq', n1],
   ];
   const th = `<th scope="col">Indicateur</th>` + pd.map(r => `<th class="num dayhead" scope="col">${DAYS[dayIdx(r.d)]}<small>${fdate(r.d)}</small></th>`).join('') + '<th class="num" scope="col">Semaine</th>';
-  const body = rowsDef.map(([lab, k, f, hl, wf]) => { const dk = MATRIX_DETAIL[k]; const wv = wf ? wf(pd) : sum(pd, r => r[k]); return `<tr${hl ? ' class="sub"' : ''}><td${dk ? ` class="clk" data-detail="${dk}"` : ''}>${lab}</td>${pd.map(r => `<td class="num${r[k] && dk ? ' clk' : ''}"${r[k] && dk ? ` data-detail="${dk}" data-day="${r.d}"` : ''}>${r[k] ? f(r[k]) : '<span class="muted">·</span>'}</td>`).join('')}<td class="num${dk ? ' clk' : ''}"${dk ? ` data-detail="${dk}"` : ''}><b>${isNaN(wv) ? '' : f(wv)}</b></td></tr>`; }).join('');
+  const body = rowsDef.map(([lab, k, f, hl, wf]) => { const dk = MATRIX_DETAIL[k]; const wv = wf ? wf(pd) : sum(pd, r => r[k]); return `<tr${hl ? ' class="sub"' : ''}><td${dk ? ` class="clk" data-detail="${dk}"` : ''}>${lab}</td>${pd.map(r => `<td class="num${r[k] && dk ? ' clk' : ''}"${r[k] && dk ? ` data-detail="${dk}" data-day="${r.d}"` : ''}>${r[k] ? f(r[k]) : '<span class="muted">·</span>'}</td>`).join('')}<td class="num${dk ? ' clk' : ''}"${dk ? ` data-detail="${MATRIX_WEEK[k] || dk}"` : ''}><b>${isNaN(wv) ? '' : f(wv)}</b></td></tr>`; }).join('');
   return `<div class="tbl-wrap matrix"><table class="t"><thead><tr>${th}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 function buildAlerts(aff, prep) {
@@ -1522,6 +1560,7 @@ function viewSettings() {
     <div class="drop" data-drop="ref">${icon('upload')}<div><b>Déposez un référentiel</b> ou <button class="btn sm" data-pick="ref">choisir</button></div></div>
     ${S.ref ? `<div class="row" style="margin-top:10px"><button class="btn sm" data-act="ref-reset">Revenir au référentiel par défaut</button></div>` : ''}
   </section>
+  <section class="card glass"><h2>À propos</h2><p class="hint" style="margin:0">Flux Hebdo Dépôt — version <button class="linkbtn" data-detail="version">${APP_VERSION}</button> — développé par <b>${APP_AUTHOR}</b>. Application 100 % locale : aucune donnée ne quitte ce navigateur.</p></section>
   <section class="card glass"><h2>Sauvegarde</h2><p class="hint">Toutes les données sont stockées dans ce navigateur. Exportez une sauvegarde pour les transférer sur un autre poste.</p>
     <div class="row">
       <button class="btn" data-act="backup">${icon('dl')} Exporter une sauvegarde</button>
@@ -1583,7 +1622,7 @@ document.addEventListener('click', async e => {
   if (a === 'ref-reset' && confirm('Revenir au référentiel par défaut ?')) { S.ref = null; await save('ref'); render(); }
   if (a === 'purge-run') return purgeRun();
   if (a === 'backup') {
-    const blob = new Blob([JSON.stringify({ app: 'flux-hebdo', v: 1, at: new Date().toISOString(), settings: S.settings, ref: S.ref, prep: S.prep, affret: S.affret, rapat: S.rapat, sst: S.sst })], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ app: 'flux-hebdo', v: 1, version: APP_VERSION, at: new Date().toISOString(), settings: S.settings, ref: S.ref, prep: S.prep, affret: S.affret, rapat: S.rapat, sst: S.sst })], { type: 'application/json' });
     download(blob, `flux-hebdo-sauvegarde-${today()}.json`);
   }
   if (a === 'export-week') exportWeek();
@@ -1734,6 +1773,139 @@ function prepDetail(lines, mode, scope) {
     return { title: mode === 'avanc' ? 'Avancement de la préparation' : 'Reste à faire', sub: scope + ' · « Fait » = statut global de prélèvement C', body: mini([['Faites', n1(hrsOf(F)), 'h', `${n0(F.length)} codes`], ['À faire', n1(hrsOf(T)), 'h', `${n0(T.length)} codes`], ['Avancement', pct(hrsOf(lines) ? hrsOf(F) / hrsOf(lines) : NaN)], ['Livraisons non terminées', n0(open.length)]]) + (days ? h3('Par jour de chargement') + days : '') + h3('Livraisons non terminées', 'Non commencées ou partiellement préparées.') + livTable('dOpen', open.sort((a, b) => (a.dc || '').localeCompare(b.dc || '') || a.prep.localeCompare(b.prep))) };
   }
 }
+// ============================================================
+//   GRANDS DÉTAILS : FLUX PALETTES & CHARGE SILO / PICKING
+// ============================================================
+// Deux barres empilées par jour (ex. entrées | sorties), segments par origine
+function pairStackChart({ cats, data, groups, unit = ' pal', fmt = n0, height = 360 }) {
+  const W = 1100, H = height, ml = 52, mr = 10, mt = 24, mb = 58;
+  const iw = W - ml - mr, ih = H - mt - mb;
+  const tot = (d, g) => sum(g.series, s => d[s.key]);
+  let max = Math.max(1, ...data.flatMap(d => groups.map(g => tot(d, g))));
+  const step = niceStep(max / 5); max = Math.ceil(max / step) * step;
+  const y = v => mt + ih - (v / max) * ih;
+  const bw = iw / cats.length, barW = Math.min(58, bw * .3), gap = 6;
+  let g = '', bars = '', hits = '';
+  for (let v = 0; v <= max + 1e-9; v += step) g += `<line class="gridline" x1="${ml}" x2="${W - mr}" y1="${y(v)}" y2="${y(v)}"/><text class="axis-t" x="${ml - 8}" y="${y(v) + 4}" text-anchor="end">${fmt(v)}</text>`;
+  cats.forEach((c, i) => {
+    const x0 = ml + i * bw, d = data[i];
+    const xs = x0 + (bw - (groups.length * barW + (groups.length - 1) * gap)) / 2;
+    groups.forEach((gr, gi) => {
+      const x = xs + gi * (barW + gap); let acc = 0;
+      const segs = gr.series.filter(s => (d[s.key] || 0) > 0);
+      segs.forEach((s, si) => {
+        const v = d[s.key]; const y1 = y(acc + v), y0 = y(acc);
+        bars += roundedBar(x, y1, barW, Math.max(0, y0 - y1 - (acc > 0 ? 2 : 0)), si === segs.length - 1 ? 5 : 0, s.color); acc += v;
+      });
+      if (acc > 0) bars += `<text class="val-t" x="${x + barW / 2}" y="${y(acc) - 6}" text-anchor="middle">${fmt(acc)}</text>`;
+      g += `<text class="axis-t" x="${x + barW / 2}" y="${H - mb + 14}" text-anchor="middle" opacity=".75">${esc(gr.short)}</text>`;
+    });
+    g += `<text class="axis-t" x="${x0 + bw / 2}" y="${H - mb + 32}" text-anchor="middle" style="font-weight:600">${esc(c.label)}</text><text class="axis-t" x="${x0 + bw / 2}" y="${H - mb + 46}" text-anchor="middle">${esc(c.sub || '')}</text>`;
+    const tip = `<b>${esc(c.tip || c.label)}</b>` + groups.map(gr => `<div style="margin-top:4px"><b style="display:inline">${esc(gr.label)} : ${fmt(tot(d, gr))}${unit}</b></div>` + gr.series.filter(s => d[s.key] > 0).map(s => `<div><i style="background:${s.color}"></i>${esc(s.label)} : ${fmt(d[s.key])}${unit}</div>`).join('')).join('');
+    hits += `<rect x="${x0}" y="${mt}" width="${bw}" height="${ih}" fill="transparent" data-tip="${esc(tip)}"/>`;
+  });
+  g += `<line x1="${ml}" x2="${W - mr}" y1="${y(0)}" y2="${y(0)}" stroke="var(--axis)"/>`;
+  const legend = `<div class="legend">${groups.map(gr => `<span style="font-weight:600;color:var(--text-1)">${esc(gr.label)} :</span>${gr.series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.label)}</span>`).join('')}`).join('<span style="width:14px"></span>')}</div>`;
+  return `${legend}<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img">${g}${bars}${hits}</svg></div>`;
+}
+const cellPal = (pal, n, unitN) => pal || n ? `<b>${n0(pal)}</b>${n ? ` <span class="muted">${n0(n)} ${unitN}</span>` : ''}` : '<span class="muted">·</span>';
+function flowDetail() {
+  const w = weekData(); const days = w.days.filter((d, i) => i < 5 || w.aff.some(r => r.date === d) || w.rap.some(l => l.date === d) || w.sst.some(r => r.date === d));
+  const rin = w.rap.filter(l => l.sens === 'in'), rout = w.rap.filter(l => l.sens === 'out');
+  const na = vlOnlyRows(), idx = livIndex();
+  const ext = Object.values(S.affret.rows).filter(r => inWeek(r.date) && isExtShip(r));
+  const back = w.sst.filter(r => isInterco(r.sst));
+  const per = days.map(d => {
+    const ri = rin.filter(l => l.date === d), s = w.sst.filter(r => r.date === d), a = w.aff.filter(r => r.date === d), ro = rout.filter(l => l.date === d);
+    return { d, rap: sum(ri, l => l.pal), sst: sum(s, r => r.pal), aff: sum(a, r => r.pal), ext: sum(ro, l => l.pal), camIn: ri.length + sum(s, r => r.cam || 1), camOut: uniq(a.map(r => r.transp + '|' + (r.camion || r.liv))).length + ro.length };
+  });
+  const T = k => sum(per, p => p[k]);
+  const tin = T('rap') + T('sst'), tout = T('aff') + T('ext');
+  const peak = [...per].sort((a, b) => (b.rap + b.sst + b.aff + b.ext) - (a.rap + a.sst + a.aff + a.ext))[0];
+  const cats = days.map(d => ({ label: DAYS[dayIdx(d)], sub: fdate(d), tip: `${DAYS[dayIdx(d)]} ${fdate(d)}` }));
+  const chart = pairStackChart({ cats, data: per, groups: [
+    { label: 'Entrées', short: 'Entrées', series: [{ key: 'rap', label: 'Rapatriements', color: cssVar('--in') }, { key: 'sst', label: 'Réceptions SST', color: cssVar('--pick') }] },
+    { label: 'Sorties', short: 'Sorties', series: [{ key: 'aff', label: 'Expéditions affrétées', color: cssVar('--out') }, { key: 'ext', label: 'Transferts vers externes', color: cssVar('--c4') }] },
+  ] });
+  // matrice détaillée
+  const th = `<th>Flux</th>${days.map(d => `<th class="num dayhead">${DAYS[dayIdx(d)]}<small>${fdate(d)}</small></th>`).join('')}<th class="num">Semaine</th>`;
+  const row = (lab, list, dateOf, palOf, cntOf, unitN, key, cls = '') => `<tr class="${cls}"><td>${lab}</td>${days.map(d => { const x = list.filter(i => dateOf(i) === d); return `<td class="num${x.length && key ? ' clk' : ''}"${x.length && key ? ` data-detail="${esc(key)}" data-day="${d}"` : ''}>${x.length ? cellPal(sum(x, palOf), cntOf(x), unitN) : '<span class="muted">·</span>'}</td>`; }).join('')}<td class="num${key ? ' clk' : ''}"${key ? ` data-detail="${esc(key)}"` : ''}>${cellPal(sum(list, palOf), cntOf(list), unitN)}</td></tr>`;
+  const sec = t => `<tr class="sub"><td colspan="${days.length + 2}" style="text-transform:uppercase;letter-spacing:.05em;font-size:11.5px">${t}</td></tr>`;
+  const ents = uniq(rin.map(l => l.entrepot)).sort(), ssts = uniq(w.sst.map(r => r.sst)).sort((a, b) => sum(w.sst.filter(r => r.sst === b), r => r.pal) - sum(w.sst.filter(r => r.sst === a), r => r.pal));
+  const trs = uniq(w.aff.map(r => r.transp)).sort((a, b) => sum(w.aff.filter(r => r.transp === b), r => r.pal) - sum(w.aff.filter(r => r.transp === a), r => r.pal));
+  const oents = uniq(rout.map(l => l.entrepot)).sort();
+  const soldeRow = `<tr class="tot"><td>Solde entrées − sorties</td>${per.map(p => { const v = p.rap + p.sst - p.aff - p.ext; return `<td class="num" style="color:${v > 0 ? 'var(--in)' : v < 0 ? 'var(--out)' : 'inherit'}">${v > 0 ? '+' : ''}${n0(v)}</td>`; }).join('')}<td class="num">${tin - tout > 0 ? '+' : ''}${n0(tin - tout)}</td></tr>`;
+  const mtx = `<div class="tbl-wrap matrix"><table class="t"><thead><tr>${th}</tr></thead><tbody>
+    ${sec('Entrées au dépôt')}
+    ${ents.map(e => row(`Rapatriement · ${esc(e)}`, rin.filter(l => l.entrepot === e), l => l.date, l => l.pal, x => x.length, 'cam.', 'ent|' + e)).join('')}
+    ${ssts.map(n => row(`Réception SST · ${esc(n || '—')}${isInterco(n) ? ' <span class="badge b-info b-nodot">retour interco</span>' : ''}`, w.sst.filter(r => r.sst === n), r => r.date, r => r.pal, x => sum(x, r => r.cam || 1), 'cam.', 'sstn|' + n)).join('')}
+    ${row('<b>Total entrées</b>', [...rin.map(l => ({ date: l.date, pal: l.pal, c: 1 })), ...w.sst.map(r => ({ date: r.date, pal: r.pal, c: r.cam || 1 }))], i => i.date, i => i.pal, x => sum(x, i => i.c), 'cam.', 'in', 'sub')}
+    ${sec('Sorties du dépôt')}
+    ${trs.map(t => row(`Expédition · ${esc(transpName(t))}`, w.aff.filter(r => r.transp === t), r => r.date, r => r.pal, x => x.length, 'liv.', 'tr|' + t)).join('')}
+    ${oents.map(e => row(`Transfert externe · ${esc(e)}`, rout.filter(l => l.entrepot === e), l => l.date, l => l.pal, x => x.length, 'cam.', 'ext')).join('')}
+    ${row('<b>Total sorties</b>', [...w.aff.map(r => ({ date: r.date, pal: r.pal, c: 1 })), ...rout.map(l => ({ date: l.date, pal: l.pal, c: 1 }))], i => i.date, i => i.pal, x => sum(x, i => i.c), 'mvt', 'out', 'sub')}
+    ${soldeRow}
+    ${sec('Pour information (hors totaux)')}
+    ${row('VL06O non affrétées · pal SILO estimées', na, r => r.date, r => idx.get(r.liv)?.palSilo, x => x.length, 'liv.', 'out')}
+    ${ext.length ? row(`Départs directs ${esc(S.settings.siteExt)}`, ext, r => r.date, r => r.pal, x => x.length, 'liv.', null) : ''}
+  </tbody></table></div>`;
+  // journal par jour
+  const cards = days.map(d => {
+    const ri = rin.filter(l => l.date === d), s = w.sst.filter(r => r.date === d).sort((a, b) => a.heure.localeCompare(b.heure)), a = w.aff.filter(r => r.date === d), ro = rout.filter(l => l.date === d);
+    const byT = uniq(a.map(r => r.transp)).map(t => { const x = a.filter(r => r.transp === t); return `<li><span>${esc(transpName(t))}</span><b>${n0(sum(x, r => r.pal))} pal</b><small>${x.length} liv. · ${n0(sum(x, r => r.blocs))} bl</small></li>`; }).join('');
+    return `<div class="daycard"><div class="dch"><b>${DAYS[dayIdx(d)]} ${fdate(d)}</b><span class="meta">↘ ${n0(sum(ri, l => l.pal) + sum(s, r => r.pal))} · ↗ ${n0(sum(a, r => r.pal) + sum(ro, l => l.pal))}</span></div>
+      <div class="dcs in">Entrées</div><ul>${ri.map(l => `<li><span>${esc(l.entrepot)} · ${esc(l.ref)}</span><b>${n0(l.pal)} pal</b><small>${KIND[l.kind]}</small></li>`).join('')}${s.map(r => `<li><span>${esc(r.heure)} · ${esc(r.sst)}</span><b>${n0(r.pal)} pal</b><small>${r.recu ? '✓ reçu' : 'SST'}</small></li>`).join('') || (ri.length ? '' : '<li class="muted">—</li>')}</ul>
+      <div class="dcs out">Sorties</div><ul>${byT}${ro.map(l => `<li><span>${esc(l.entrepot)} · ${esc(l.ref)}</span><b>${n0(l.pal)} pal</b><small>${KIND[l.kind]}</small></li>`).join('') || (byT ? '' : '<li class="muted">—</li>')}</ul></div>`;
+  }).join('');
+  return { xl: true, title: 'Flux palettes de la semaine', sub: `${scopeLbl()} · entrées (rapatriements, réceptions SST) et sorties (expéditions affrétées, transferts vers les entrepôts externes) — cliquez un chiffre pour le détail`, body:
+    mini([['Entrées', n0(tin), 'pal', `${n0(T('camIn'))} camions · rapatriements ${n0(T('rap'))} · SST ${n0(T('sst'))}`], ['Sorties', n0(tout), 'pal', `expéditions ${n0(T('aff'))} · transferts ${n0(T('ext'))}`], ['Solde', `${tin - tout > 0 ? '+' : ''}${n0(tin - tout)}`, 'pal', tin - tout >= 0 ? 'le stock du dépôt augmente' : 'le stock du dépôt diminue'], ['Jour le plus chargé', peak ? `${DAYS[dayIdx(peak.d)]}` : '–', '', peak ? `${n0(peak.rap + peak.sst + peak.aff + peak.ext)} pal manipulées` : ''], ['Retours interco', n0(sum(back, r => r.pal)), 'pal', `${back.length} RDV`], ['VL06O non affrétées', n0(na.length), 'liv.', `≈ ${n0(sum(na, r => idx.get(r.liv)?.palSilo))} pal SILO`]]) +
+    `<div class="xlchart">${chart}</div>` + h3('Détail par jour', 'Chaque chiffre : palettes, puis nombre de camions / livraisons.') + mtx + h3('Journal des flux par jour') + `<div class="daycards">${cards}</div>` };
+}
+const CIRC_ORDER = ['Entrepot', 'Export', 'MDD', 'Interco', 'GMS', 'Allotie', '???'];
+const circColor = c => cssVar(['--in', '--out', '--pick', '--c4', '--c5', '--c6', '--silo'][Math.max(0, CIRC_ORDER.indexOf(c))]);
+function prepXlDetail() {
+  const lines = weekData().prep;
+  const days = uniq(lines.map(l => l.dc)).filter(Boolean).sort();
+  if (!lines.length) return { xl: true, title: 'Charge SILO / picking', sub: scopeLbl(), body: none('Aucune ligne VL06O cette semaine — importez la VL06O dans l’onglet Préparation.') };
+  const A = agg(lines), Fh = hrsOf(lines.filter(l => l.sgp === 'C'));
+  const circs = CIRC_ORDER.filter(c => lines.some(l => l.circuit === c));
+  const cats = days.map(d => ({ label: DAYS[dayIdx(d)].slice(0, 3) + '. ' + fdate(d), tip: `${DAYS[dayIdx(d)]} ${fdate(d)}` }));
+  const perC = days.map(d => { const o = {}; circs.forEach(c => o[c] = sum(lines.filter(l => l.dc === d && l.circuit === c), l => l.hrPick)); return o; });
+  const pickChart = barChart({ cats, series: circs.map(c => ({ key: c, label: c, color: circColor(c) })), data: perC, stacked: true, unit: ' h', fmt: n1, height: 300, ref: { value: capaDay(), label: `capacité ${n1(capaDay())} h`, legend: `Capacité (${nbPrep()} préparateurs)` } });
+  const siloData = days.map(d => { const x = lines.filter(l => l.dc === d); return { fait: sum(x.filter(l => l.sgp === 'C'), l => l.palSilo), reste: sum(x.filter(l => l.sgp !== 'C'), l => l.palSilo) }; });
+  const siloChart = barChart({ cats, series: [{ key: 'fait', label: 'Pal SILO faites', color: cssVar('--pick') }, { key: 'reste', label: 'Pal SILO à faire', color: cssVar('--silo') }], data: siloData, stacked: true, unit: ' pal', height: 300 });
+  const dayRows = days.map(d => {
+    const x = lines.filter(l => l.dc === d), a = agg(x), cap = capaOf(d), rp = sum(x.filter(l => l.sgp !== 'C'), l => l.hrPick), rs = sum(x.filter(l => l.sgp !== 'C'), l => l.hrSilo);
+    return { d, liv: a.liv, codes: a.codes, palSilo: a.palSilo, hrSilo: a.hrSilo, colisPick: a.colisPick, hrPick: a.hrPick, cap, taux: cap ? a.hrPick / cap : NaN, restePick: rp, resteSilo: rs, need: a.hrPick / hPerPrep(), duree: nbPrep() ? a.hrPick / nbPrep() : NaN, av: hrsOf(x) ? hrsOf(x.filter(l => l.sgp === 'C')) / hrsOf(x) : NaN };
+  });
+  const tauxCell = v => isFinite(v) ? `<span class="badge b-nodot ${v > 1 ? 'b-crit' : v > .85 ? 'b-warn' : 'b-good'}">${pct(v)}</span>` : '–';
+  const dayTable = table('xlDays', [
+    { k: 'd', label: 'Jour de chargement', fmt: fdateL }, { k: 'liv', label: 'Livr.', num: true, fmt: n0 }, { k: 'codes', label: 'Codes', num: true, fmt: n0 },
+    { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'hrSilo', label: 'Hr SILO', num: true, fmt: hr }, { k: 'resteSilo', label: 'SILO reste', num: true, fmt: hr },
+    { k: 'colisPick', label: 'Colis picking', num: true, fmt: n0 }, { k: 'hrPick', label: 'Hr picking', num: true, fmt: hr }, { k: 'restePick', label: 'Picking reste', num: true, fmt: hr },
+    { k: 'cap', label: 'Capacité', num: true, fmt: hr }, { k: 'taux', label: 'Taux de charge', num: true, html: r => tauxCell(r.taux) },
+    { k: 'need', label: 'Prép. nécessaires', num: true, fmt: n1 }, { k: 'duree', label: `Durée à ${nbPrep()} prép.`, num: true, fmt: hr }, { k: 'av', label: 'Avancement', num: true, fmt: pct },
+  ], dayRows, { total: { liv: A.liv, codes: A.codes, palSilo: A.palSilo, hrSilo: A.hrSilo, resteSilo: sum(dayRows, r => r.resteSilo), colisPick: A.colisPick, hrPick: A.hrPick, restePick: sum(dayRows, r => r.restePick), cap: sum(dayRows, r => r.cap), need: A.hrPick / hPerPrep() / Math.max(1, days.length), av: hrsOf(lines) ? Fh / hrsOf(lines) : NaN } });
+  const circMtx = `<div class="tbl-wrap matrix"><table class="t"><thead><tr><th>Circuit</th><th class="num">Cadence</th>${days.map(d => `<th class="num dayhead">${DAYS[dayIdx(d)]}<small>${fdate(d)}</small></th>`).join('')}<th class="num">Semaine</th></tr></thead><tbody>
+    ${circs.map(c => { const x = lines.filter(l => l.circuit === c); return `<tr><td><i class="dot" style="background:${circColor(c)}"></i>${esc(c)}</td><td class="num muted">${n0(cadencePick(c))} colis/h</td>${days.map(d => { const y = x.filter(l => l.dc === d); return `<td class="num">${y.length ? `<b>${hr(sum(y, l => l.hrPick))}</b> <span class="muted">${n0(sum(y, l => l.colisPick))} colis · ${n0(sum(y, l => l.palSilo))} pal</span>` : '<span class="muted">·</span>'}</td>`; }).join('')}<td class="num"><b>${hr(sum(x, l => l.hrPick))}</b></td></tr>`; }).join('')}
+  </tbody></table></div>`;
+  const stRows = days.map(d => { const ls = livsOf(lines.filter(l => l.dc === d)); return { d, C: ls.filter(l => l.prep === 'C').length, B: ls.filter(l => l.prep === 'B').length, A: ls.filter(l => l.prep === 'A').length, otA: ls.filter(l => l.ot === 'A').length }; });
+  const stTable = table('xlSt', [{ k: 'd', label: 'Jour', fmt: fdateL }, { k: 'C', label: 'Terminées', num: true, fmt: n0 }, { k: 'B', label: 'En cours', num: true, fmt: n0 }, { k: 'A', label: 'Non commencées', num: true, fmt: n0 }, { k: 'otA', label: 'OT non créés', num: true, fmt: n0 }], stRows, { total: { C: sum(stRows, r => r.C), B: sum(stRows, r => r.B), A: sum(stRows, r => r.A), otA: sum(stRows, r => r.otA) } });
+  const open = livsOf(lines).filter(l => l.prep !== 'C').map(l => Object.assign({}, l, { reste: hrsOf(l.lines.filter(x => x.sgp !== 'C')) })).sort((a, b) => b.reste - a.reste);
+  const openTable = open.length ? table('xlOpen', [
+    { k: 'dc', label: 'Chargement', fmt: fdateL }, { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' }, { k: 'circuit', label: 'Circuit' },
+    { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis picking', num: true, fmt: n0 }, { k: 'reste', label: 'Reste à faire', num: true, fmt: hr },
+    { k: 'prep', label: 'Prépa', html: r => prepBadge(r.prep) }, { k: 'ot', label: 'OT', html: r => badge(...OT_LABEL[r.ot]) },
+  ], open, { total: { palSilo: sum(open, l => l.palSilo), colisPick: sum(open, l => l.colisPick), reste: sum(open, l => l.reste) }, limit: 300 }) : none('Toutes les livraisons sont terminées.');
+  const cap = sum(days, capaOf);
+  return { xl: true, title: 'Charge SILO / picking', sub: `${scopeLbl()} · par date de chargement VL06O · capacité picking : ${esc(teamsLbl())} = ${n1(capaDay())} h/jour`, body:
+    mini([['Charge totale', n1(hrsOf(lines)), 'h', `${n0(A.liv)} livraisons · ${n0(A.codes)} codes`], ['SILO', n0(A.palSilo), 'pal', `${n1(A.hrSilo)} h à ${S.settings.cadSilo} pal/h`], ['Picking', n0(A.colisPick), 'colis', `${n1(A.hrPick)} h de travail`], ['Capacité picking', n1(cap), 'h', `${days.length} j × ${n1(capaDay())} h`], ['Taux de charge', cap ? pct(A.hrPick / cap) : '–', '', `≈ ${n1(A.hrPick / hPerPrep() / Math.max(1, days.length))} préparateurs / jour`], ['Reste à faire', n1(hrsOf(lines) - Fh), 'h', `avancement ${pct(hrsOf(lines) ? Fh / hrsOf(lines) : NaN)}`]]) +
+    `<div class="grid g2 xlcharts"><div><h3 class="mh" style="margin-top:0">Heures de picking par circuit</h3>${pickChart}</div><div><h3 class="mh" style="margin-top:0">Palettes SILO : faites / à faire</h3>${siloChart}</div></div>` +
+    h3('Charge par jour de chargement', `Hr picking = colis ÷ cadence du circuit (heures de travail d’un préparateur). Taux de charge : vert < 85 %, orange < 100 %, rouge au-delà de la capacité.`) + dayTable +
+    `<div class="grid g2" style="margin-top:4px"><div>${h3('Heures de picking par circuit et par jour')}${circMtx}</div><div>${h3('Statut des livraisons')}${stTable}</div></div>` +
+    h3('Livraisons non terminées', 'Triées par heures restantes (postes au statut A ou B).') + openTable };
+}
+
 // ---------- Purge des données ----------
 function purgeCounts(before) {
   const old = d => !before || (d && d < before);
@@ -1799,6 +1971,13 @@ async function purgeRun() {
 }
 const DETAILS = {
   purge: () => purgeView(),
+  flux: () => flowDetail(),
+  prepxl: () => prepXlDetail(),
+  tr(d, code) {
+    const aff = wk(d).aff.filter(r => r.transp === code);
+    return { title: `Expéditions · ${esc(transpName(code))}`, sub: scopeLbl(d), body: mini([['Palettes', n0(sum(aff, r => r.pal))], ['Livraisons', n0(aff.length)], ['Blocs sol', n0(sum(aff, r => r.blocs))], ['Poids', tons(sum(aff, r => r.poids)), 't']]) + (d ? '' : h3('Par jour') + byDay('dTrD', aff, r => r.date, [{ label: 'Livraisons', f: x => x.length }, { label: 'Palettes', f: x => sum(x, r => r.pal) }, { label: 'Blocs', f: x => sum(x, r => r.blocs) }])) + h3('Livraisons') + affTable('dTrL', aff) };
+  },
+  version: () => ({ title: `Flux Hebdo · version ${APP_VERSION}`, sub: `Développé par ${APP_AUTHOR}`, body: h3('Historique des versions') + table('vers', [{ k: 0, label: 'Version' }, { k: 1, label: 'Date' }, { k: 2, label: 'Nouveautés', cls: 'wrap' }], CHANGELOG) }),
   in(d) {
     const { rap, sst } = wk(d); const rin = rap.filter(l => l.sens === 'in');
     const items = [...rin.map(l => ({ date: l.date, rap: l.pal, sst: 0 })), ...sst.map(r => ({ date: r.date, rap: 0, sst: r.pal }))];
@@ -1893,8 +2072,8 @@ function renderModal() {
   if (isNew) { m = document.createElement('div'); m.id = 'modal'; m.className = 'modal'; document.body.appendChild(m); }
   const sc = m.querySelector('.mbody')?.scrollTop || 0;
   m.innerHTML = `<div class="mback" data-close></div>
-    <div class="mpanel glass" role="dialog" aria-modal="true" aria-labelledby="mTitle">
-      <div class="mhead"><div style="flex:1;min-width:0"><h2 id="mTitle">${r.title}</h2><p class="hint" style="margin:2px 0 0">${r.sub || ''}</p></div>
+    <div class="mpanel glass${r.xl ? ' xl' : ''}" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+      <div class="mhead">${(S.ui.mstack || []).length ? `<button class="btn sm" data-mprev>← Retour</button>` : ''}<div style="flex:1;min-width:0"><h2 id="mTitle">${r.title}</h2><p class="hint" style="margin:2px 0 0">${r.sub || ''}</p></div>
         ${S.ui.modal.d ? `<button class="btn sm" data-mweek>Toute la semaine</button>` : ''}
         <button class="iconbtn" data-close aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
       <div class="mbody">${r.body}</div>
@@ -1903,14 +2082,15 @@ function renderModal() {
   document.body.classList.add('modal-open');
   if (isNew) m.querySelector('.iconbtn[data-close]').focus();
 }
-function openDetail(key, d) { S.ui.modal = { key, d: d || null }; hideTip(); renderModal(); }
+function openDetail(key, d, fromModal) { S.ui.mstack = fromModal && S.ui.modal ? [...(S.ui.mstack || []), S.ui.modal] : []; S.ui.modal = { key, d: d || null }; hideTip(); renderModal(); }
 document.addEventListener('click', e => {
-  if (e.target.closest('[data-close]')) { S.ui.modal = null; renderModal(); return; }
+  if (e.target.closest('[data-close]')) { S.ui.modal = null; S.ui.mstack = []; renderModal(); return; }
+  if (e.target.closest('[data-mprev]')) { S.ui.modal = S.ui.mstack.pop() || null; renderModal(); return; }
   if (e.target.closest('[data-mweek]')) { S.ui.modal.d = null; renderModal(); return; }
-  const k = e.target.closest('[data-detail]'); const inner = e.target.closest('button,a,input'); if (k && (!inner || inner === k)) openDetail(k.dataset.detail, k.dataset.day);
+  const k = e.target.closest('[data-detail]'); const inner = e.target.closest('button,a,input'); if (k && (!inner || inner === k)) openDetail(k.dataset.detail, k.dataset.day, !!e.target.closest('#modal'));
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && S.ui.modal) { S.ui.modal = null; renderModal(); }
+  if (e.key === 'Escape' && S.ui.modal) { if ((S.ui.mstack || []).length) S.ui.modal = S.ui.mstack.pop(); else S.ui.modal = null; renderModal(); }
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[data-detail]')) { e.preventDefault(); openDetail(e.target.dataset.detail, e.target.dataset.day); }
 });
 
@@ -1930,6 +2110,7 @@ function render() {
   const [t, s] = TITLES[S.ui.tab]; $('#pageTitle').textContent = t; $('#pageSub').textContent = s;
   document.title = `${t} · Flux Hebdo`;
   renderNav();
+  $('#footVer').textContent = 'v' + APP_VERSION;
   const v = { dash: viewDash, prep: viewPrep, out: viewOut, interco: viewInterco, rapat: viewRapat, sst: viewSST, set: viewSettings }[S.ui.tab];
   try { $('#view').innerHTML = v(); } catch (err) { console.error(err); $('#view').innerHTML = `<section class="card glass"><div class="empty"><b>Erreur d’affichage</b>${esc(err.message)}</div></section>`; }
   renderModal();
