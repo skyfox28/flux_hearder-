@@ -1,0 +1,1488 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flux Hebdo Dépôt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="lib/xlsx.full.min.js"></script>
+<script>window.XLSX || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>')</script>
+<script src="referentiels.js"></script>
+<style>
+:root{
+  color-scheme: light;
+  --bg-1:#dfe8f5; --bg-2:#f3eaf6; --bg-3:#e6f4ef;
+  --blob-1:#7fb2ff; --blob-2:#ffb38a; --blob-3:#8fe3c4; --blob-4:#c5b6ff;
+  --glass: rgba(255,255,255,.52);
+  --glass-strong: rgba(255,255,255,.72);
+  --glass-soft: rgba(255,255,255,.34);
+  --glass-border: rgba(255,255,255,.75);
+  --glass-edge: rgba(20,30,60,.08);
+  --glass-shine: rgba(255,255,255,.9);
+  --shadow: 0 10px 40px rgba(30,45,90,.14), 0 1px 3px rgba(30,45,90,.08);
+  --text-1:#0e1422; --text-2:#46506a; --text-3:#6c7590;
+  --grid:#d6dae4; --axis:#a8afbf;
+  --accent:#2a78d6; --accent-ink:#fff;
+  --in:#2a78d6; --out:#eb6834; --silo:#4a3aa7; --pick:#1baf7a;
+  --good:#0ca30c; --good-ink:#006300; --warn:#fab219; --warn-ink:#8a5a00; --serious:#ec835a; --crit:#d03b3b; --crit-ink:#b12a2a;
+  --chip:rgba(255,255,255,.55); --chip-on:#0e1422; --chip-on-ink:#fff;
+  --input:rgba(255,255,255,.7);
+  --row-hover:rgba(42,120,214,.07);
+  --radius:22px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg-1:#0b1020; --bg-2:#141026; --bg-3:#0b1a1a;
+    --blob-1:#1d4d9a; --blob-2:#8a3a1c; --blob-3:#0f6b4e; --blob-4:#3d2f8f;
+    --glass: rgba(28,34,52,.48);
+    --glass-strong: rgba(34,40,60,.72);
+    --glass-soft: rgba(255,255,255,.05);
+    --glass-border: rgba(255,255,255,.14);
+    --glass-edge: rgba(0,0,0,.3);
+    --glass-shine: rgba(255,255,255,.22);
+    --shadow: 0 12px 44px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.4);
+    --text-1:#f3f5fa; --text-2:#b9c0d2; --text-3:#8a93a8;
+    --grid:#2e3446; --axis:#4a5266;
+    --accent:#3987e5;
+    --in:#3987e5; --out:#d95926; --silo:#9085e9; --pick:#199e70;
+    --good-ink:#3fcf3f; --warn-ink:#fab219; --crit-ink:#ff7b7b;
+    --chip:rgba(255,255,255,.08); --chip-on:#f3f5fa; --chip-on-ink:#0e1422;
+    --input:rgba(10,14,26,.55);
+    --row-hover:rgba(57,135,229,.12);
+  }
+}
+:root[data-theme="dark"]{
+    color-scheme: dark;
+    --bg-1:#0b1020; --bg-2:#141026; --bg-3:#0b1a1a;
+    --blob-1:#1d4d9a; --blob-2:#8a3a1c; --blob-3:#0f6b4e; --blob-4:#3d2f8f;
+    --glass: rgba(28,34,52,.48);
+    --glass-strong: rgba(34,40,60,.72);
+    --glass-soft: rgba(255,255,255,.05);
+    --glass-border: rgba(255,255,255,.14);
+    --glass-edge: rgba(0,0,0,.3);
+    --glass-shine: rgba(255,255,255,.22);
+    --shadow: 0 12px 44px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.4);
+    --text-1:#f3f5fa; --text-2:#b9c0d2; --text-3:#8a93a8;
+    --grid:#2e3446; --axis:#4a5266;
+    --accent:#3987e5;
+    --in:#3987e5; --out:#d95926; --silo:#9085e9; --pick:#199e70;
+    --good-ink:#3fcf3f; --warn-ink:#fab219; --crit-ink:#ff7b7b;
+    --chip:rgba(255,255,255,.08); --chip-on:#f3f5fa; --chip-on-ink:#0e1422;
+    --input:rgba(10,14,26,.55);
+    --row-hover:rgba(57,135,229,.12);
+}
+*{box-sizing:border-box}
+svg[aria-hidden="true"]{width:18px;height:18px;flex:none}
+html,body{margin:0;min-height:100%}
+html{background:var(--bg-1)}
+body{
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:14px; color:var(--text-1);
+  background:linear-gradient(135deg,var(--bg-1),var(--bg-2) 50%,var(--bg-3));
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+.blobs{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.blobs i{position:absolute;border-radius:50%;filter:blur(80px);opacity:.55}
+.blobs i:nth-child(1){width:46vw;height:46vw;left:-10vw;top:-12vw;background:var(--blob-1)}
+.blobs i:nth-child(2){width:38vw;height:38vw;right:-8vw;top:8vh;background:var(--blob-2);opacity:.45}
+.blobs i:nth-child(3){width:42vw;height:42vw;left:25vw;bottom:-18vw;background:var(--blob-3);opacity:.45}
+.blobs i:nth-child(4){width:26vw;height:26vw;right:18vw;bottom:10vh;background:var(--blob-4);opacity:.4}
+
+.glass{
+  position:relative;
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(26px) saturate(170%);
+  backdrop-filter:blur(26px) saturate(170%);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow), inset 0 1px 0 var(--glass-shine), inset 0 -1px 0 var(--glass-edge);
+}
+.glass::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(160deg,rgba(255,255,255,.35),rgba(255,255,255,0) 38%);
+  opacity:.55;
+}
+:root[data-theme="dark"] .glass::before{opacity:.12}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .glass::before{opacity:.12}}
+
+.app{position:relative;z-index:1;display:grid;grid-template-columns:232px 1fr;gap:18px;padding:18px;min-height:100vh}
+aside.nav{position:sticky;top:18px;align-self:start;padding:18px 12px;display:flex;flex-direction:column;gap:4px}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 10px 16px}
+.brand .logo{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--in),var(--silo));color:#fff;font-weight:700;box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+.brand b{display:block;font-size:15px}
+.brand small{color:var(--text-3);font-size:12px}
+.nav button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;color:var(--text-2);font-weight:500}
+.nav button svg{width:18px;height:18px;flex:none}
+.nav button:hover{background:var(--glass-soft);color:var(--text-1)}
+.nav button.on{background:var(--glass-strong);color:var(--text-1);box-shadow:inset 0 1px 0 var(--glass-shine),0 2px 8px rgba(0,0,0,.08)}
+.nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.nav .sep{height:1px;background:var(--glass-border);margin:10px 8px}
+.nav .foot{margin-top:auto;padding:10px 12px 0;color:var(--text-3);font-size:12px;line-height:1.5}
+
+main{min-width:0;display:flex;flex-direction:column;gap:18px}
+#view{grid-template-columns:minmax(0,1fr)}
+#view > *{min-width:0}
+header.top{display:flex;align-items:center;gap:14px;padding:14px 18px;flex-wrap:wrap}
+header.top h1{font-size:20px;margin:0;font-weight:700;letter-spacing:-.01em}
+header.top .sub{color:var(--text-3);font-size:13px}
+.spacer{flex:1}
+.weekpick{display:flex;align-items:center;gap:6px;background:var(--glass-soft);border:1px solid var(--glass-border);border-radius:999px;padding:4px}
+.weekpick b{min-width:150px;text-align:center;font-weight:600}
+.weekpick small{display:block;font-weight:400;color:var(--text-3);font-size:11px}
+.iconbtn{all:unset;cursor:pointer;width:32px;height:32px;display:grid;place-items:center;border-radius:999px;color:var(--text-2)}
+.iconbtn:hover{background:var(--glass-strong);color:var(--text-1)}
+.iconbtn:focus-visible{outline:2px solid var(--accent)}
+.iconbtn svg{width:18px;height:18px}
+
+.btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;font-weight:600;font-size:13px;
+  background:var(--glass-strong);border:1px solid var(--glass-border);color:var(--text-1);box-shadow:inset 0 1px 0 var(--glass-shine),0 2px 6px rgba(0,0,0,.06)}
+.btn:hover{filter:brightness(1.04)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 88%,#fff),var(--accent));color:#fff;border-color:transparent}
+.btn.danger{color:var(--crit-ink)}
+.btn.sm{padding:6px 12px;font-size:12px}
+.btn svg{width:16px;height:16px}
+
+section.card{padding:18px 20px}
+.card h2{margin:0 0 4px;font-size:16px;font-weight:650}
+.card .hint{color:var(--text-3);font-size:12.5px;margin:0 0 12px;line-height:1.5}
+.card-head{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.card-head > div:first-child{flex:1;min-width:200px}
+.card-head .hint{margin:0}
+
+.grid{display:grid;gap:18px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.kpi{padding:14px 16px;border-radius:18px;background:var(--glass-soft);border:1px solid var(--glass-border);box-shadow:inset 0 1px 0 var(--glass-shine)}
+.kpi .lab{font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:6px}
+.kpi .lab i{width:8px;height:8px;border-radius:3px;display:inline-block}
+.kpi .val{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .val small{font-size:13px;font-weight:500;color:var(--text-3);margin-left:4px}
+.kpi .det{font-size:12px;color:var(--text-3);margin-top:2px}
+.bar{height:6px;border-radius:99px;background:var(--grid);overflow:hidden;margin-top:8px}
+.bar > span{display:block;height:100%;border-radius:99px;background:var(--good)}
+
+.group-title{display:flex;align-items:center;gap:10px;margin:2px 0 10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);font-weight:600}
+.group-title::after{content:"";flex:1;height:1px;background:var(--glass-border)}
+
+.filters{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-bottom:14px}
+.fgroup{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.fgroup > label{font-size:12px;color:var(--text-3);margin-right:2px}
+.chip{all:unset;cursor:pointer;padding:5px 11px;border-radius:999px;font-size:12.5px;font-weight:500;background:var(--chip);border:1px solid color-mix(in srgb,var(--text-3) 30%,transparent);color:var(--text-2)}
+.chip:hover{color:var(--text-1)}
+.chip.on{background:var(--chip-on);color:var(--chip-on-ink);border-color:transparent}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+input.search,select.inp,input.inp,textarea.inp{font:inherit;color:var(--text-1);background:var(--input);border:1px solid var(--glass-border);border-radius:12px;padding:8px 12px;outline:none}
+input.search:focus,select.inp:focus,input.inp:focus,textarea.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+input.search{min-width:220px;border-radius:999px}
+textarea.inp{width:100%;min-height:120px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+
+.tabs{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:var(--glass-soft);border:1px solid var(--glass-border);margin-bottom:14px;flex-wrap:wrap}
+.tabs button{all:unset;cursor:pointer;padding:7px 14px;border-radius:999px;font-weight:500;font-size:13px;color:var(--text-2)}
+.tabs button.on{background:var(--glass-strong);color:var(--text-1);box-shadow:inset 0 1px 0 var(--glass-shine),0 2px 6px rgba(0,0,0,.08)}
+
+.tbl-wrap{overflow:auto;border-radius:16px;border:1px solid var(--glass-border);background:var(--glass-soft);max-height:70vh}
+table.t{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+.t th{position:sticky;top:0;z-index:2;background:var(--glass-strong);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);text-align:left;font-weight:600;font-size:12px;color:var(--text-2);padding:9px 10px;border-bottom:1px solid var(--glass-border);white-space:nowrap;cursor:pointer;user-select:none}
+.t th.num,.t td.num{text-align:right}
+.t td{padding:7px 10px;border-bottom:1px solid color-mix(in srgb,var(--grid) 60%,transparent);white-space:nowrap}
+.t tbody tr:hover td{background:var(--row-hover)}
+.t tr.sub td{font-weight:600;background:color-mix(in srgb,var(--glass-strong) 60%,transparent)}
+.t tr.tot td{font-weight:700;background:var(--glass-strong);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);position:sticky;bottom:0;z-index:1;border-top:1px solid var(--glass-border)}
+.t tr.pct td{color:var(--text-2);font-style:italic}
+.t td.wrap{white-space:normal;min-width:220px;max-width:420px}
+.t td.muted{color:var(--text-3)}
+.t tr.clickable{cursor:pointer}
+.t tr.detail td{background:color-mix(in srgb,var(--glass-soft) 80%,transparent);padding:0}
+.t .sort-ind{opacity:.5;margin-left:4px;font-size:10px}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600;border:1px solid transparent;white-space:nowrap}
+.badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.b-good{color:var(--good-ink);background:color-mix(in srgb,var(--good) 14%,transparent)}
+.b-warn{color:var(--warn-ink);background:color-mix(in srgb,var(--warn) 18%,transparent)}
+.b-crit{color:var(--crit-ink);background:color-mix(in srgb,var(--crit) 13%,transparent)}
+.b-neutral{color:var(--text-2);background:var(--chip)}
+.b-info{color:var(--accent);background:color-mix(in srgb,var(--accent) 13%,transparent)}
+.b-nodot::before{display:none}
+
+.alerts{display:flex;flex-direction:column;gap:8px}
+.alert{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:14px;background:var(--glass-soft);border:1px solid var(--glass-border);font-size:13px}
+.alert svg{width:18px;height:18px;flex:none;margin-top:1px}
+.alert.crit svg{color:var(--crit-ink)} .alert.warn svg{color:var(--warn-ink)} .alert.info svg{color:var(--accent)}
+.alert b{font-weight:600}
+.alert .x{color:var(--text-3);font-size:12px;margin-top:2px}
+
+.drop{border:1.5px dashed color-mix(in srgb,var(--text-3) 60%,transparent);border-radius:18px;padding:18px;text-align:center;color:var(--text-2);background:var(--glass-soft);transition:.15s}
+.drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.drop b{color:var(--text-1)}
+.drop > svg{width:26px;height:26px;display:block;margin:0 auto 8px;color:var(--text-3)}
+.drop small{display:block;color:var(--text-3);margin-top:4px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.meta{font-size:12px;color:var(--text-3)}
+.empty{padding:28px;text-align:center;color:var(--text-3)}
+.empty b{display:block;color:var(--text-2);font-size:14px;margin-bottom:4px}
+
+/* charts */
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart .gridline{stroke:var(--grid);stroke-width:1}
+.chart .axis-t{fill:var(--text-3);font-size:11px}
+.chart .val-t{fill:var(--text-2);font-size:11px;font-weight:600}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-2);margin-bottom:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.tip{position:fixed;z-index:50;pointer-events:none;padding:8px 10px;border-radius:12px;font-size:12px;line-height:1.5;
+  background:var(--glass-strong);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid var(--glass-border);box-shadow:var(--shadow);color:var(--text-1);opacity:0;transition:opacity .1s;max-width:280px}
+.tip b{display:block;margin-bottom:2px}
+.tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+
+.matrix td.num.hl{font-weight:700}
+.dayhead small{display:block;font-weight:400;color:var(--text-3)}
+.toast{position:fixed;right:22px;bottom:22px;z-index:60;padding:12px 16px;border-radius:16px;max-width:420px;font-size:13px;transform:translateY(20px);opacity:0;transition:.25s}
+.toast.show{transform:none;opacity:1}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--text-3)}
+.set-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.set-grid label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--text-3)}
+details.paste summary{cursor:pointer;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px}
+details.paste summary::-webkit-details-marker{display:none}
+kbd{font-family:inherit;font-size:11px;padding:1px 6px;border-radius:6px;background:var(--chip);border:1px solid var(--glass-border)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+@media (max-width: 1100px){ .g3{grid-template-columns:1fr 1fr} }
+@media (max-width: 900px){
+  .app{grid-template-columns:1fr;padding:12px 16px;gap:14px}
+  aside.nav{position:sticky;top:8px;z-index:20;flex-direction:row;overflow-x:auto;padding:8px;gap:2px}
+  .brand,.nav .sep,.nav .foot{display:none}
+  .nav button{white-space:nowrap;padding:8px 10px}
+  .g2,.g3{grid-template-columns:1fr}
+  .weekpick b{min-width:110px}
+  input.search{min-width:0;width:100%}
+}
+@media print{ .blobs,aside.nav,.noprint{display:none!important} .app{display:block} .glass{backdrop-filter:none;box-shadow:none;background:#fff} }
+</style>
+</head>
+<body>
+<div class="blobs" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+<div class="app">
+  <aside class="nav glass" id="nav"></aside>
+  <main>
+    <header class="top glass">
+      <div>
+        <h1 id="pageTitle">Tableau de bord</h1>
+        <div class="sub" id="pageSub"></div>
+      </div>
+      <div class="spacer"></div>
+      <div class="weekpick" role="group" aria-label="Semaine">
+        <button class="iconbtn" id="wPrev" aria-label="Semaine précédente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <b id="wLabel"></b>
+        <button class="iconbtn" id="wNext" aria-label="Semaine suivante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></button>
+      </div>
+      <button class="btn sm" id="wToday">Cette semaine</button>
+      <button class="iconbtn" id="themeBtn" aria-label="Changer de thème" title="Thème clair / sombre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+    </header>
+    <div id="view" class="grid"></div>
+  </main>
+</div>
+<div class="tip" id="tip"></div>
+<div class="toast glass" id="toast" role="status"></div>
+<input type="file" id="fileInput" hidden multiple>
+
+<script>
+'use strict';
+/* ============================================================
+   Flux Hebdo Dépôt — suivi entrées / sorties / préparation
+   100 % frontend : les données restent dans le navigateur (IndexedDB)
+   ============================================================ */
+
+// ---------- Icônes ----------
+const IC = {
+  dash:'<path d="M3 13h8V3H3zM13 21h8v-8h-8zM3 21h8v-6H3zM13 3v8h8V3z"/>',
+  prep:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+  out:'<path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>',
+  interco:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  rapat:'<path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/>',
+  sst:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  set:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
+  warn:'<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+  info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+  trash:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
+  dl:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+  paste:'<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>',
+};
+const icon = (k, cls='') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
+
+// ---------- Utilitaires ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf0 = new Intl.NumberFormat('fr-FR', {maximumFractionDigits:0});
+const nf1 = new Intl.NumberFormat('fr-FR', {minimumFractionDigits:1, maximumFractionDigits:1});
+const nf2 = new Intl.NumberFormat('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2});
+const n0 = v => (v || v === 0) && isFinite(v) ? nf0.format(v) : '';
+const n1 = v => isFinite(v) ? nf1.format(v) : '';
+const hr = v => isFinite(v) ? nf2.format(v) + ' h' : '';
+const pct = v => isFinite(v) ? Math.round(v * 100) + ' %' : '–';
+const tons = kg => isFinite(kg) ? nf1.format(kg / 1000) : '';
+const norm = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const num = v => {
+  if (typeof v === 'number') return v;
+  if (v == null || v === '') return 0;
+  const x = parseFloat(String(v).replace(/[\s  ]/g, '').replace(',', '.'));
+  return isFinite(x) ? x : 0;
+};
+const str = v => v == null ? '' : String(v).trim();
+const uniq = a => [...new Set(a)];
+const sum = (a, f) => a.reduce((s, x) => s + (f(x) || 0), 0);
+
+// Dates : toujours en chaîne ISO « AAAA-MM-JJ »
+const pad = n => String(n).padStart(2, '0');
+const isoUTC = d => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+const isoLocal = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const utc = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+const addDays = (iso, n) => { const d = utc(iso); d.setUTCDate(d.getUTCDate() + n); return isoUTC(d); };
+function toIso(v) {
+  if (v == null || v === '') return null;
+  if (typeof v === 'number') { if (v < 20000 || v > 80000) return null; return isoUTC(new Date(Math.round((Math.floor(v) - 25569) * 864e5))); }
+  if (v instanceof Date) return isNaN(v) ? null : isoLocal(v);
+  const s = String(v).trim();
+  let m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/);
+  if (m) { let y = +m[3]; if (y < 100) y += 2000; return `${y}-${pad(+m[2])}-${pad(+m[1])}`; }
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  return null;
+}
+function isoWeek(iso) {
+  const t = utc(iso); const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y = t.getUTCFullYear(); const w = Math.ceil(((t - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7);
+  return { y, w };
+}
+function mondayOf(y, w) {
+  const s = new Date(Date.UTC(y, 0, 4)); const day = s.getUTCDay() || 7;
+  s.setUTCDate(s.getUTCDate() - day + 1 + (w - 1) * 7); return isoUTC(s);
+}
+const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+const dayIdx = iso => (utc(iso).getUTCDay() + 6) % 7;
+const fdate = iso => iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}` : '';
+const fdateL = iso => iso ? `${DAYS[dayIdx(iso)].slice(0, 3)}. ${fdate(iso)}` : '';
+const today = () => isoLocal(new Date());
+
+// ---------- Stockage (IndexedDB, repli mémoire) ----------
+const DB = (() => {
+  let dbp = null; const mem = {};
+  function open() {
+    if (dbp) return dbp;
+    dbp = new Promise(res => {
+      try {
+        const r = indexedDB.open('flux-hebdo', 1);
+        r.onupgradeneeded = () => r.result.createObjectStore('kv');
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => res(null);
+      } catch (e) { res(null); }
+    });
+    return dbp;
+  }
+  return {
+    async get(k) {
+      const db = await open(); if (!db) return mem[k];
+      return new Promise(res => { try { const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(mem[k]); } catch (e) { res(mem[k]); } });
+    },
+    async set(k, v) {
+      mem[k] = v; const db = await open(); if (!db) return;
+      return new Promise(res => { try { const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = res; tx.onerror = res; } catch (e) { res(); } });
+    },
+  };
+})();
+
+// ---------- État ----------
+const DEFAULT_SETTINGS = {
+  cadSilo: 18, cadEntrepot: 400, cadExport: 750, cadMdd: 1300,
+  intercoKeys: ['PLATEFORME 38', 'COMPANS', 'MCCORMICK'],
+  transporteurs: {},
+  site: 'Monteux3',
+};
+const S = {
+  settings: structuredClone(DEFAULT_SETTINGS),
+  ref: null,            // référentiels importés (sinon REF_DEFAULT)
+  prep: null,           // { file, importedAt, rows: [] }  – snapshot VL06O
+  affret: { rows: {} }, // livraison -> ligne base affrètement
+  rapat: { loads: {} }, // id -> chargement rapatriement
+  sst: { rows: [] },
+  ui: { tab: 'dash', week: null, prepView: 'synth', pf: {}, af: {}, rf: {}, sort: {} },
+};
+const save = k => DB.set(k, S[k]);
+const ref = () => S.ref || window.REF_DEFAULT || { articles: {}, mlgt: {}, magasins: {} };
+
+// ---------- Moteur préparation (reprend la requête Power Query + formules Excel) ----------
+const CIRCUITS = { 1: 'Entrepot', 2: 'GMS', 3: 'Export', 4: 'Allotie', 6: 'MDD', 9: 'Interco' };
+function cadencePick(circuit) {
+  const st = S.settings;
+  if (circuit === 'Export') return st.cadExport;
+  if (circuit === 'MDD') return st.cadMdd;
+  return st.cadEntrepot;
+}
+let prepCache = null, prepCacheKey = '';
+function prepLines() {
+  if (!S.prep) return [];
+  const st = S.settings, R = ref();
+  const key = S.prep.importedAt + '|' + st.cadSilo + '|' + st.cadEntrepot + '|' + st.cadExport + '|' + st.cadMdd + '|' + (S.ref ? S.ref.date : 'def');
+  if (prepCache && key === prepCacheKey) return prepCache;
+  const out = S.prep.rows.map(r => {
+    const a = R.articles[r.art];
+    const uqpal = a ? num(a[3]) : 0;
+    const circuit = CIRCUITS[r.prio] || '???';
+    let palSilo = 0, colisSilo = 0, colisPick = 0, noRef = false;
+    if (uqpal > 0) {
+      palSilo = Math.floor(r.pk / uqpal);          // Number.RoundDown(Number of Packages / UQ/PAL)
+      colisSilo = palSilo * uqpal;
+      colisPick = r.pk - colisSilo;
+    } else noRef = true;                           // PQ : valeur nulle -> non comptée
+    return Object.assign({}, r, {
+      circuit, uqpal, palSilo, colisSilo, colisPick, noRef,
+      marque: a ? a[4] : '', format: (a && a[5]) || 'Standard', tyar: a ? a[0] : '',
+      lieu: R.magasins[r.mag] || (r.mag ? 'Mag. ' + r.mag : ''),
+      nbPick: colisPick > 0 ? 1 : 0,
+      hrPick: colisPick / cadencePick(circuit),
+      hrSilo: palSilo / st.cadSilo,
+      picking: colisPick > 0 ? (R.mlgt[r.art] || '') : '',
+    });
+  });
+  out.sort((a, b) => (a.dc || '').localeCompare(b.dc || '') || a.liv.localeCompare(b.liv) || a.poste - b.poste);
+  prepCache = out; prepCacheKey = key;
+  return out;
+}
+function agg(lines) {
+  return {
+    liv: new Set(lines.map(l => l.liv)).size,
+    codes: lines.length,
+    palSilo: sum(lines, l => l.palSilo), hrSilo: sum(lines, l => l.hrSilo),
+    nbPick: sum(lines, l => l.nbPick), colisPick: sum(lines, l => l.colisPick), hrPick: sum(lines, l => l.hrPick),
+    total: sum(lines, l => l.pk),
+  };
+}
+// Statut d'une livraison à partir des postes
+function livStatus(lines) {
+  const s = uniq(lines.map(l => l.sgp || 'A'));
+  const prep = s.length === 1 && s[0] === 'C' ? 'C' : (s.every(x => x === 'A') ? 'A' : 'B');
+  const w = uniq(lines.map(l => l.swm || 'A'));
+  const ot = w.length === 1 && w[0] === 'C' ? 'C' : (w.every(x => x === 'A') ? 'A' : 'B');
+  return { prep, ot };
+}
+let livIndexCache = null, livIndexKey = '';
+function livIndex() {
+  const lines = prepLines();
+  if (livIndexCache && livIndexKey === prepCacheKey) return livIndexCache;
+  const m = new Map();
+  for (const l of lines) { if (!m.has(l.liv)) m.set(l.liv, []); m.get(l.liv).push(l); }
+  const idx = new Map();
+  for (const [liv, ls] of m) idx.set(liv, Object.assign(agg(ls), { nbLiv: 1, liv, lines: ls, dc: ls[0].dc, nom: ls[0].nom, ville: ls[0].ville, circuit: ls[0].circuit, prio: ls[0].prio, itin: ls[0].itin }, livStatus(ls)));
+  livIndexCache = idx; livIndexKey = prepCacheKey;
+  return idx;
+}
+const PREP_LABEL = { A: ['Non commencée', 'b-crit'], B: ['En cours', 'b-warn'], C: ['Terminée', 'b-good'] };
+const OT_LABEL = { A: ['OT non créés', 'b-crit'], B: ['OT partiels', 'b-warn'], C: ['OT créés', 'b-good'] };
+const badge = (lab, cls) => `<span class="badge ${cls}">${esc(lab)}</span>`;
+const prepBadge = s => s ? badge(...PREP_LABEL[s]) : badge('Hors VL06O', 'b-neutral');
+
+function isInterco(nom, prio) {
+  if (prio === 9) return true;
+  const u = String(nom || '').toUpperCase();
+  return S.settings.intercoKeys.some(k => k && u.includes(k.toUpperCase()));
+}
+
+// ---------- Lecture fichiers ----------
+function readWorkbook(file) {
+  return new Promise((res, rej) => {
+    if (!window.XLSX) return rej(new Error('Bibliothèque Excel (SheetJS) non chargée — le fichier lib/xlsx.full.min.js doit accompagner index.html.'));
+    const fr = new FileReader();
+    fr.onload = () => { try { res(XLSX.read(new Uint8Array(fr.result), { type: 'array' })); } catch (e) { rej(e); } };
+    fr.onerror = () => rej(fr.error);
+    fr.readAsArrayBuffer(file);
+  });
+}
+const sheetRows = ws => ws ? XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null, blankrows: false }) : [];
+function headerMap(header, spec) {
+  const H = header.map(norm); const map = {};
+  for (const [key, cands] of Object.entries(spec)) {
+    for (const c of cands) { const i = H.indexOf(norm(c)); if (i >= 0) { map[key] = i; break; } }
+    if (map[key] == null) for (const c of cands) { const n = norm(c); const i = H.findIndex(h => h && h.startsWith(n)); if (i >= 0) { map[key] = i; break; } }
+  }
+  return map;
+}
+
+// VL06O
+const VL_SPEC = {
+  dc: ['Date de chargement'], dl: ['Date livraison de/à'], mag: ['Magasin'], prio: ['Priorité livraison'],
+  itin: ['Itinéraire'], sgp: ['Statut global prélèv'], vp: ['Validat. prélèvement'], swm: ['Statut activité WM'],
+  tp: ['Type de poste'], liv: ['Livraison'], poste: ['Poste activité référ', 'Poste'], art: ['Article'], des: ['Désignation'],
+  pk: ['Number of Packages'], nom: ['Nom réceptionnaire des marchand.'], ville: ['Ville du réceptionnaire'], rec: ['Réceptionn.marchand.'],
+};
+function parseVL06O(wb) {
+  const rows = sheetRows(wb.Sheets[wb.SheetNames[0]]);
+  let h = rows.findIndex(r => r.some(c => norm(c) === 'livraison') && r.some(c => norm(c) === 'numberofpackages'));
+  if (h < 0) throw new Error('En-têtes VL06O introuvables (colonnes « Livraison » et « Number of Packages » attendues).');
+  const M = headerMap(rows[h], VL_SPEC);
+  const out = [];
+  for (const r of rows.slice(h + 1)) {
+    const g = k => M[k] == null ? null : r[M[k]];
+    const liv = str(g('liv')); if (!liv) continue;
+    const pk = num(g('pk')); if (pk === 0) continue;   // PQ : Number of Packages <> 0
+    let mag = str(g('mag')); if (/^\d+$/.test(mag)) mag = mag.padStart(4, '0');
+    let art = g('art'); art = typeof art === 'number' ? String(art) : str(art);
+    out.push({
+      dc: toIso(g('dc')), dl: toIso(g('dl')), mag, prio: parseInt(num(g('prio'))) || 0, itin: str(g('itin')),
+      sgp: str(g('sgp')), vp: str(g('vp')), swm: str(g('swm')), tp: str(g('tp')),
+      liv, poste: num(g('poste')), art, des: str(g('des')), pk,
+      nom: str(g('nom')), ville: str(g('ville')), rec: str(g('rec')),
+    });
+  }
+  return out;
+}
+
+// Base affrètement (copier-coller Access)
+const AF_SPEC = {
+  date: ['Date Enl', 'Date enlèvement', 'Date'], liv: ['Livraison'], client: ['Client'], prep: ['Prep'], transp: ['Transp', 'Transporteur'],
+  nom: ['nom', 'Nom'], ville: ['ville'], cp: ['cp', 'Code postal'], poids: ['Poids brut'], poidsTax: ['poids taxable'],
+  blocs: ['blocs'], pal: ['Palettes'], palEnt: ['NbPalettes_Ent'], couches: ['NbCouches_Ent'], cartDet: ['NbCartons_Detail'], cartPk: ['NbCartons_PK'],
+  comm: ['commentaires', 'commentaire'],
+};
+function parseAffret(text) {
+  const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
+  if (!lines.length) throw new Error('Rien à importer.');
+  const cells = lines.map(l => l.split('\t'));
+  let h = cells.findIndex(r => r.some(c => norm(c) === 'livraison'));
+  let M;
+  if (h >= 0) M = headerMap(cells[h], AF_SPEC);
+  else { // pas d'en-tête : ordre standard de la base
+    h = -1; M = { date: 0, liv: 1, client: 2, prep: 3, transp: 4, nom: 5, ville: 6, cp: 7, poids: 8, poidsTax: 9, blocs: 10, pal: 11, palEnt: 12, couches: 13, cartDet: 14, cartPk: 15, comm: 16 };
+  }
+  const out = [];
+  for (const r of cells.slice(h + 1)) {
+    const g = k => M[k] == null ? '' : (r[M[k]] ?? '');
+    const liv = str(g('liv')).replace(/\s/g, '');
+    const date = toIso(str(g('date')));
+    if (!/^\d{6,}$/.test(liv) || !date) continue;   // ignore la ligne de totaux
+    const comm = str(g('comm'));
+    const rdv = (comm.match(/(?:rv|rdv|rendez[- ]vous|livraison|a)\s*(?:a\s*)?(\d{1,2})\s*[h:]\s*(\d{2})?/i) || comm.match(/\b(\d{1,2})[h:](\d{2})\b/i));
+    const cam = comm.match(/CAMION\s*(\d+)/i);
+    out.push({
+      date, liv, client: str(g('client')), prep: str(g('prep')), transp: str(g('transp')), nom: str(g('nom')), ville: str(g('ville')), cp: str(g('cp')),
+      poids: num(g('poids')), poidsTax: num(g('poidsTax')), blocs: num(g('blocs')), pal: num(g('pal')), palEnt: num(g('palEnt')),
+      couches: num(g('couches')), cartDet: num(g('cartDet')), cartPk: num(g('cartPk')), comm,
+      rdv: rdv ? `${pad(+rdv[1])}:${rdv[2] || '00'}` : '', camion: cam ? cam[1] : '',
+    });
+  }
+  return out;
+}
+
+// Rapatriements (classeur par entrepôt externe et par semaine : 2026_S40_FM.xlsx)
+const DAY_RE = /^(LUNDI|MARDI|MERCREDI|JEUDI|VENDREDI|SAMEDI|DIMANCHE)/i;
+const RP_SPEC = {
+  dt: ['n° DT', 'BL'], dest: ['Destinataire'], date: ['A LIVRER LE', 'Date Détournement', 'Date'], art: ['Article', 'Produit'],
+  des: ['Désignation article', 'Description', 'Désignation'], sscc: ['Unité stk', 'Unité de stock', 'Unité Manutention', 'Attribut'],
+  qte: ['Qté', 'Qtés.', 'Qte', 'Stock total', 'Stock disponible', 'Stock'], pal: ['Pal', 'Nb Pal'], poids: ['Poids Kg', 'Poids (A.S)', 'Poids'],
+  lot: ['Lot', 'Origin Code'], remorque: ['N° Remorque'], usine: ['Usine Prod.'], livE: ['Liv. Entr.'], livS: ['Liv. Sort.'], dlc: ['Date péremption/DLC', 'DLUO'],
+};
+function parseRapatWorkbook(wb, fileName) {
+  const m = fileName.match(/(\d{4})_S(\d{1,2})_(.+?)\.xls/i);
+  const year = m ? +m[1] : isoWeek(today()).y, week = m ? +m[2] : null;
+  const entrepot = m ? m[3].replace(/_/g, ' ').trim() : fileName.replace(/\.xls.*$/i, '');
+  const monday = week ? mondayOf(year, week) : null;
+  let day = null; const loads = [];
+  for (const name of wb.SheetNames) {
+    const dm = name.match(DAY_RE);
+    if (dm) { day = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'].indexOf(dm[1].toUpperCase()); continue; }
+    const rows = sheetRows(wb.Sheets[name]);
+    if (rows.length < 2) continue;
+    const hi = rows.findIndex(r => r.filter(c => c != null && c !== '').length >= 3);
+    if (hi < 0) continue;
+    const H = rows[hi]; const M = headerMap(H, RP_SPEC);
+    if (M.art == null && M.des == null) continue;
+    const isNav = M.remorque != null || H.some(c => norm(c) === 'datedetournement');
+    const lines = [];
+    for (const r of rows.slice(hi + 1)) {
+      const g = k => M[k] == null ? null : r[M[k]];
+      const art = str(g('art')), des = str(g('des'));
+      if (!art && !des) continue;
+      if (/^total/i.test(art) || /^total/i.test(des)) continue;
+      lines.push({ art, des, sscc: str(g('sscc')), qte: num(g('qte')), pal: M.pal != null ? num(g('pal')) : 1, poids: num(g('poids')), lot: str(g('lot')), date: toIso(g('date')), dlc: toIso(g('dlc')) });
+    }
+    if (!lines.length) continue;
+    const first = rows.slice(hi + 1).find(r => M.remorque != null && r[M.remorque] != null);
+    const g0 = k => first && M[k] != null ? str(first[M[k]]) : '';
+    let date = lines.map(l => l.date).find(Boolean) || null, approx = false;
+    if (!date && monday) { date = addDays(monday, day ?? 0); approx = day == null; }
+    const kind = isNav ? 'NAV' : (/^DESTO/i.test(name) || M.dt == null ? 'DESTO' : 'DT');
+    const dtNo = M.dt != null ? str(rows[hi + 1][M.dt]) : '';
+    loads.push({
+      id: `${entrepot}|${year}-S${week}|${name}`, file: fileName, entrepot, year, week, sheet: name, kind,
+      sens: kind === 'NAV' ? 'out' : 'in', date, approx,
+      ref: dtNo || name, remorque: g0('remorque'), usine: g0('usine'), livE: g0('livE'), livS: g0('livS'),
+      pal: sum(lines, l => l.pal), poids: sum(lines, l => l.poids), qte: sum(lines, l => l.qte), nbArt: new Set(lines.map(l => l.art || l.des)).size,
+      lines: lines.map(({ date, ...l }) => l),
+    });
+  }
+  return { entrepot, week, year, loads };
+}
+
+// Planning réceptions sous-traitants (lecture générique : colonnes détectées)
+const SST_SPEC = {
+  date: ['Date réception', 'Date de réception', 'Date livraison', 'Date', 'Jour'], heure: ['Heure', 'Créneau', 'Horaire', 'RDV'],
+  sst: ['Sous-traitant', 'Sous traitant', 'SST', 'Fournisseur', 'Expéditeur', 'Provenance', 'Transporteur'],
+  ref: ['N° commande', 'Commande', 'PO', 'Référence', 'Réf', 'N° livraison', 'Livraison', 'BL'],
+  pal: ['Nb palettes', 'Palettes', 'Nb pal', 'Pal', 'Nombre de palettes', 'Qté palettes'],
+  quai: ['Quai', 'Porte'], comm: ['Commentaire', 'Commentaires', 'Observations', 'Remarque'], statut: ['Statut', 'Etat', 'Réceptionné'],
+};
+function parseSST(wb, fileName) {
+  const out = [];
+  for (const name of wb.SheetNames) {
+    const rows = sheetRows(wb.Sheets[name]);
+    const hi = rows.slice(0, 25).findIndex(r => r.some(c => /date|jour/i.test(String(c ?? ''))) && r.filter(c => c != null && c !== '').length >= 2);
+    if (hi < 0) continue;
+    const M = headerMap(rows[hi], SST_SPEC);
+    if (M.date == null) continue;
+    let lastDate = null;
+    for (const r of rows.slice(hi + 1)) {
+      const g = k => M[k] == null ? null : r[M[k]];
+      const d = toIso(g('date')) || lastDate; if (toIso(g('date'))) lastDate = d;
+      const sst = str(g('sst')), refv = str(g('ref')), pal = num(g('pal'));
+      if (!d || (!sst && !refv && !pal)) continue;
+      let h = g('heure'); if (typeof h === 'number' && h < 1) { const mn = Math.round(h * 1440); h = `${pad(Math.floor(mn / 60))}:${pad(mn % 60)}`; }
+      const stv = str(g('statut'));
+      out.push({ id: 'x' + Math.random().toString(36).slice(2, 10), date: d, heure: str(h), sst, ref: refv, pal, quai: str(g('quai')), comm: str(g('comm')), recu: /^(oui|ok|x|re[cç]u|r[ée]ceptionn[ée]|fait|1|true)$/i.test(stv), src: fileName + ' / ' + name });
+    }
+  }
+  return out;
+}
+
+// Référentiels : FichierArticle.XLSX, MLGT.XLSX, ou le classeur Analyse_Activité_Préparation lui-même
+function parseRefs(wb) {
+  const res = {};
+  for (const name of wb.SheetNames) {
+    const rows = sheetRows(wb.Sheets[name]); if (!rows.length) continue;
+    const H = rows[0].map(norm);
+    if (H.includes('article') && H.includes('uqa') && (H.includes('numer') || H.includes('uqpal'))) {
+      const M = headerMap(rows[0], { art: ['Article'], tyar: ['TyAr'], uqa: ['UQA'], uq: ['UQ'], n: ['Numér.', 'UQ/PAL'], g4: ["Groupe d'articles 4"], g5: ["Groupe d'articles 5"] });
+      const arts = {};
+      for (const r of rows.slice(1)) {
+        const a = typeof r[M.art] === 'number' ? String(r[M.art]) : str(r[M.art]); if (!a || arts[a]) continue;
+        const tyar = str(r[M.tyar]), uqa = str(r[M.uqa]);
+        if (uqa !== 'PAL' || tyar === 'ROH' || tyar === 'ZNVM') continue;   // filtre PQ Fichier_Article
+        arts[a] = [tyar, uqa, str(r[M.uq]), num(r[M.n]) || null, M.g4 != null ? str(r[M.g4]) : '', M.g5 != null ? str(r[M.g5]) : ''];
+      }
+      if (Object.keys(arts).length) res.articles = arts;
+    } else if (H.includes('matnr') && H.includes('lgpla')) {
+      const iA = H.indexOf('matnr'), iP = H.indexOf('lgpla'); const ml = {};
+      for (const r of rows.slice(1)) { const a = typeof r[iA] === 'number' ? String(r[iA]) : str(r[iA]); if (a && !(a in ml)) ml[a] = str(r[iP]); }
+      res.mlgt = ml;
+    } else if (H.includes('magasin') && H.includes('lieupreparation')) {
+      const mg = {}; for (const r of rows.slice(1)) { let k = str(r[0]); if (/^\d+$/.test(k)) k = k.padStart(4, '0'); if (k) mg[k] = str(r[1]); }
+      res.magasins = mg;
+    }
+  }
+  return res;
+}
+
+// ---------- Tooltip & toast ----------
+const tip = $('#tip');
+function showTip(html, e) { tip.innerHTML = html; tip.style.opacity = 1; moveTip(e); }
+function moveTip(e) { const w = tip.offsetWidth, h = tip.offsetHeight; let x = e.clientX + 14, y = e.clientY + 14; if (x + w > innerWidth - 8) x = e.clientX - w - 14; if (y + h > innerHeight - 8) y = e.clientY - h - 14; tip.style.left = x + 'px'; tip.style.top = y + 'px'; }
+const hideTip = () => { tip.style.opacity = 0; };
+let toastT;
+function toast(msg, ms = 3800) { const t = $('#toast'); t.innerHTML = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms); }
+
+// ---------- Graphiques SVG (barres groupées / empilées) ----------
+// series: [{key,label,color}], cats: [{label,sub}], data[catIdx][key]
+function barChart({ cats, series, data, stacked = false, unit = '', fmt = n0, height = 240 }) {
+  const W = 640, H = height, ml = 44, mr = 8, mt = 18, mb = 38;
+  const iw = W - ml - mr, ih = H - mt - mb;
+  const totals = data.map(d => stacked ? sum(series, s => d[s.key]) : Math.max(0, ...series.map(s => d[s.key] || 0)));
+  let max = Math.max(1, ...totals);
+  const step = niceStep(max / 4); max = Math.ceil(max / step) * step;
+  const y = v => mt + ih - (v / max) * ih;
+  const bw = iw / cats.length;
+  let g = '';
+  for (let v = 0; v <= max + 1e-9; v += step) g += `<line class="gridline" x1="${ml}" x2="${W - mr}" y1="${y(v)}" y2="${y(v)}"/><text class="axis-t" x="${ml - 6}" y="${y(v) + 4}" text-anchor="end">${fmt(v)}</text>`;
+  let bars = '', hits = '';
+  cats.forEach((c, i) => {
+    const x0 = ml + i * bw;
+    g += `<text class="axis-t" x="${x0 + bw / 2}" y="${H - mb + 16}" text-anchor="middle">${esc(c.label)}</text>`;
+    if (c.sub) g += `<text class="axis-t" x="${x0 + bw / 2}" y="${H - mb + 30}" text-anchor="middle" opacity=".8">${esc(c.sub)}</text>`;
+    const d = data[i];
+    if (stacked) {
+      const w = Math.min(46, bw * .5); let acc = 0; const xs = x0 + (bw - w) / 2;
+      series.forEach((s, si) => {
+        const v = d[s.key] || 0; if (v <= 0) return;
+        const y1 = y(acc + v), y0 = y(acc); const hgt = Math.max(0, y0 - y1 - (acc > 0 ? 2 : 0));
+        const top = si === series.length - 1 || series.slice(si + 1).every(t => !(d[t.key] > 0));
+        bars += roundedBar(xs, y1, w, hgt, top ? 4 : 0, s.color);
+        acc += v;
+      });
+      if (acc > 0) bars += `<text class="val-t" x="${xs + w / 2}" y="${y(acc) - 5}" text-anchor="middle">${fmt(acc)}</text>`;
+    } else {
+      const n = series.length, gap = 2, w = Math.min(30, (bw * .7 - gap * (n - 1)) / n);
+      const xs = x0 + (bw - (w * n + gap * (n - 1))) / 2;
+      series.forEach((s, si) => {
+        const v = d[s.key] || 0; const x = xs + si * (w + gap);
+        if (v > 0) { bars += roundedBar(x, y(v), w, y(0) - y(v), 4, s.color); bars += `<text class="val-t" x="${x + w / 2}" y="${y(v) - 5}" text-anchor="middle">${fmt(v)}</text>`; }
+      });
+    }
+    const tipHtml = `<b>${esc(c.tip || c.label)}</b>` + series.map(s => `<div><i style="background:${s.color}"></i>${esc(s.label)} : <b style="display:inline">${fmt(d[s.key] || 0)}${unit}</b></div>`).join('') + (stacked ? `<div>Total : <b style="display:inline">${fmt(totals[i])}${unit}</b></div>` : '');
+    hits += `<rect x="${x0}" y="${mt}" width="${bw}" height="${ih}" fill="transparent" data-tip="${esc(tipHtml)}"/>`;
+  });
+  g += `<line x1="${ml}" x2="${W - mr}" y1="${y(0)}" y2="${y(0)}" stroke="var(--axis)"/>`;
+  const legend = `<div class="legend">${series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.label)}</span>`).join('')}</div>`;
+  return `${legend}<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img">${g}${bars}${hits}</svg></div>`;
+}
+function roundedBar(x, y, w, h, r, color) {
+  if (h <= 0) return '';
+  r = Math.min(r, h, w / 2);
+  if (!r) return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${color}"/>`;
+  return `<path d="M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z" fill="${color}"/>`;
+}
+function niceStep(v) { const p = Math.pow(10, Math.floor(Math.log10(v || 1))); const f = v / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; }
+document.addEventListener('mousemove', e => {
+  const t = e.target.closest && e.target.closest('[data-tip]');
+  if (t) showTip(t.getAttribute('data-tip'), e); else hideTip();
+});
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+// ---------- Tables triables ----------
+// cols: [{k, label, num, fmt, cls, html}] ; rows: objects
+function table(id, cols, rows, { total = null, limit = 2000, rowAttr = null, after = null } = {}) {
+  const st = S.ui.sort[id];
+  if (st) {
+    const c = cols.find(c => c.k === st.k);
+    if (c) rows = [...rows].sort((a, b) => { const va = c.sv ? c.sv(a) : a[c.k], vb = c.sv ? c.sv(b) : b[c.k]; return (typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va ?? '').localeCompare(String(vb ?? ''), 'fr', { numeric: true })) * st.d; });
+  }
+  const shown = rows.slice(0, limit);
+  const th = cols.map(c => `<th class="${c.num ? 'num' : ''}" data-sort="${id}|${c.k}" scope="col">${esc(c.label)}${st && st.k === c.k ? `<span class="sort-ind">${st.d > 0 ? '▲' : '▼'}</span>` : ''}</th>`).join('');
+  const td = r => cols.map(c => `<td class="${c.num ? 'num' : ''} ${c.cls || ''}">${c.html ? c.html(r) : esc(c.fmt ? c.fmt(r[c.k], r) : r[c.k])}</td>`).join('');
+  const body = shown.map(r => `<tr ${rowAttr ? rowAttr(r) : ''}>${td(r)}</tr>${after ? after(r) : ''}`).join('');
+  const tot = total ? `<tr class="tot">${cols.map((c, i) => `<td class="${c.num ? 'num' : ''}">${i === 0 ? 'Total' : (c.k in total ? esc(c.fmt ? c.fmt(total[c.k], total) : total[c.k]) : '')}</td>`).join('')}</tr>` : '';
+  const more = rows.length > limit ? `<div class="meta" style="padding:8px 12px">${rows.length - limit} lignes supplémentaires non affichées — affinez les filtres.</div>` : '';
+  return `<div class="tbl-wrap"><table class="t"><thead><tr>${th}</tr></thead><tbody>${body || `<tr><td colspan="${cols.length}" class="empty">Aucune donnée</td></tr>`}${tot}</tbody></table>${more}</div>`;
+}
+document.addEventListener('click', e => {
+  const th = e.target.closest('th[data-sort]'); if (!th) return;
+  const [id, k] = th.dataset.sort.split('|'); const cur = S.ui.sort[id];
+  S.ui.sort[id] = cur && cur.k === k ? (cur.d > 0 ? { k, d: -1 } : null) : { k, d: 1 };
+  render();
+});
+
+// ---------- Semaine courante ----------
+function weekDays() {
+  const { y, w } = S.ui.week; const mon = mondayOf(y, w);
+  return Array.from({ length: 7 }, (_, i) => addDays(mon, i));
+}
+const inWeek = iso => { if (!iso) return false; const k = isoWeek(iso); return k.y === S.ui.week.y && k.w === S.ui.week.w; };
+function shiftWeek(n) { const mon = addDays(mondayOf(S.ui.week.y, S.ui.week.w), 7 * n); S.ui.week = isoWeek(mon); render(); }
+
+// ---------- Navigation ----------
+const TABS = [
+  ['dash', 'Tableau de bord', 'dash'],
+  ['prep', 'Préparation', 'prep'],
+  ['out', 'Expéditions', 'out'],
+  ['interco', 'Intercos', 'interco'],
+  ['rapat', 'Rapatriements', 'rapat'],
+  ['sst', 'Réceptions SST', 'sst'],
+  ['set', 'Paramètres', 'set'],
+];
+function renderNav() {
+  $('#nav').innerHTML = `<div class="brand"><div class="logo">FX</div><div><b>Flux Hebdo</b><small>Dépôt ${esc(S.settings.site)}</small></div></div>` +
+    TABS.map(([k, l, i], n) => (n === 6 ? '<div class="sep"></div>' : '') + `<button class="${S.ui.tab === k ? 'on' : ''}" data-tab="${k}" ${S.ui.tab === k ? 'aria-current="page"' : ''}>${icon(i)}<span>${l}</span></button>`).join('') +
+    `<div class="foot">${S.prep ? `VL06O : ${esc(new Date(S.prep.importedAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }))}` : 'VL06O : non importé'}<br>Données locales au navigateur</div>`;
+}
+$('#nav').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) { S.ui.tab = b.dataset.tab; render(); window.scrollTo({ top: 0 }); } });
+$('#wPrev').onclick = () => shiftWeek(-1);
+$('#wNext').onclick = () => shiftWeek(1);
+$('#wToday').onclick = () => { S.ui.week = isoWeek(today()); render(); };
+$('#themeBtn').onclick = () => {
+  const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const nxt = cur === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = nxt;
+  try { localStorage.setItem('flux-theme', nxt); } catch (e) {}
+  render();
+};
+
+// ---------- Données de la semaine ----------
+function weekData() {
+  const days = weekDays();
+  const prep = prepLines().filter(l => inWeek(l.dc));
+  const aff = Object.values(S.affret.rows).filter(r => inWeek(r.date));
+  const rap = Object.values(S.rapat.loads).filter(l => inWeek(l.date));
+  const sst = S.sst.rows.filter(r => inWeek(r.date));
+  return { days, prep, aff, rap, sst };
+}
+
+// ============================================================
+//   VUE : TABLEAU DE BORD
+// ============================================================
+function viewDash() {
+  const { days, prep, aff, rap, sst } = weekData();
+  const rin = rap.filter(l => l.sens === 'in'), rout = rap.filter(l => l.sens === 'out');
+  const A = agg(prep), fait = agg(prep.filter(l => l.sgp === 'C'));
+  const palIn = sum(rin, l => l.pal) + sum(sst, r => r.pal);
+  const palOut = sum(aff, r => r.pal);
+  const hrs = A.hrSilo + A.hrPick, hrsFait = fait.hrSilo + fait.hrPick;
+  const livIdx = livIndex();
+  const intercoAff = aff.filter(r => isInterco(r.nom, livIdx.get(r.liv)?.prio));
+
+  const perDay = days.map(d => {
+    const p = prep.filter(l => l.dc === d), pa = agg(p);
+    const a = aff.filter(r => r.date === d), ri = rin.filter(l => l.date === d), ro = rout.filter(l => l.date === d), s = sst.filter(r => r.date === d);
+    return {
+      d, palRap: sum(ri, l => l.pal), camRap: ri.length, palSst: sum(s, r => r.pal), nbSst: s.length,
+      palIn: sum(ri, l => l.pal) + sum(s, r => r.pal), palOut: sum(a, r => r.pal), blocs: sum(a, r => r.blocs), livOut: a.length,
+      poids: sum(a, r => r.poids), palExt: sum(ro, l => l.pal),
+      palInterco: sum(a.filter(r => isInterco(r.nom, livIdx.get(r.liv)?.prio)), r => r.pal),
+      hrSilo: pa.hrSilo, hrPick: pa.hrPick, hrs: pa.hrSilo + pa.hrPick, codes: pa.codes, livPrep: pa.liv,
+      hrsFait: sum(p.filter(l => l.sgp === 'C'), l => l.hrSilo + l.hrPick),
+    };
+  });
+  const showSun = perDay[6].palIn || perDay[6].palOut || perDay[6].hrs;
+  const pd = showSun ? perDay : perDay.slice(0, 6);
+  const cats = pd.map(r => ({ label: DAYS[dayIdx(r.d)].slice(0, 3) + '.', sub: fdate(r.d), tip: `${DAYS[dayIdx(r.d)]} ${fdate(r.d)}` }));
+
+  const empty = !prep.length && !aff.length && !rap.length && !sst.length;
+  const kpi = (lab, val, unit, det, color) => `<div class="kpi"><div class="lab">${color ? `<i style="background:${color}"></i>` : ''}${lab}</div><div class="val">${val}${unit ? `<small>${unit}</small>` : ''}</div>${det ? `<div class="det">${det}</div>` : ''}</div>`;
+
+  const alerts = buildAlerts(aff, prep);
+  return `
+  ${empty ? `<section class="card glass"><div class="empty"><b>Aucune donnée pour cette semaine</b>Importez la VL06O (Préparation), collez la base affrètement (Expéditions) et déposez les fichiers de rapatriement pour alimenter le tableau de bord.</div></section>` : ''}
+  <section class="card glass">
+    <div class="group-title">Entrées</div>
+    <div class="kpis">
+      ${kpi('Palettes entrantes', n0(palIn), 'pal', `Rapatriements ${n0(sum(rin, l => l.pal))} · SST ${n0(sum(sst, r => r.pal))}`, 'var(--in)')}
+      ${kpi('Camions rapatriement', n0(rin.length), '', uniq(rin.map(l => l.entrepot)).join(' · ') || '—')}
+      ${kpi('Réceptions SST', n0(sst.length), '', `${n0(sst.filter(r => r.recu).length)} réceptionnées`)}
+      ${kpi('Transferts vers externes', n0(sum(rout, l => l.pal)), 'pal', `${rout.length} navette(s)`)}
+    </div>
+    <div class="group-title" style="margin-top:18px">Sorties</div>
+    <div class="kpis">
+      ${kpi('Palettes expédiées', n0(palOut), 'pal', `${n0(aff.length)} livraisons · ${tons(sum(aff, r => r.poids))} t`, 'var(--out)')}
+      ${kpi('Blocs sol', n0(sum(aff, r => r.blocs)), '', `${uniq(aff.map(r => r.transp)).length} transporteurs`)}
+      ${kpi('Intercos', n0(sum(intercoAff, r => r.pal)), 'pal', `${intercoAff.length} livraisons`)}
+    </div>
+    <div class="group-title" style="margin-top:18px">Préparation (VL06O, date de chargement)</div>
+    <div class="kpis">
+      ${kpi('Charge totale', nf1.format(hrs), 'h', `SILO ${n1(A.hrSilo)} h · Picking ${n1(A.hrPick)} h`)}
+      ${kpi('Livraisons', n0(A.liv), '', `${n0(A.codes)} codes · ${n0(A.total)} colis`)}
+      ${kpi('Palettes SILO', n0(A.palSilo), '', `Colis picking ${n0(A.colisPick)}`)}
+      <div class="kpi"><div class="lab">Avancement (heures faites)</div><div class="val">${pct(hrs ? hrsFait / hrs : NaN)}</div><div class="bar"><span style="width:${hrs ? Math.round(hrsFait / hrs * 100) : 0}%"></span></div><div class="det">${n1(hrsFait)} h faites / ${n1(hrs)} h</div></div>
+    </div>
+  </section>
+  <div class="grid g2">
+    <section class="card glass"><h2>Flux palettes par jour</h2><p class="hint">Entrées = rapatriements + réceptions SST · Sorties = base affrètement (date d’enlèvement).</p>
+      ${barChart({ cats, series: [{ key: 'palIn', label: 'Entrées', color: cssVar('--in') }, { key: 'palOut', label: 'Sorties', color: cssVar('--out') }], data: pd, unit: ' pal' })}
+    </section>
+    <section class="card glass"><h2>Charge préparation par jour</h2><p class="hint">Heures SILO (palettes complètes ÷ ${S.settings.cadSilo}/h) + heures picking (colis ÷ cadence du circuit).</p>
+      ${barChart({ cats, series: [{ key: 'hrSilo', label: 'Heures SILO', color: cssVar('--silo') }, { key: 'hrPick', label: 'Heures picking', color: cssVar('--pick') }], data: pd, stacked: true, unit: ' h', fmt: n1 })}
+    </section>
+  </div>
+  <section class="card glass"><h2>Semaine jour par jour</h2><p class="hint">Vue consolidée de tous les flux du dépôt.</p>
+    ${dayMatrix(pd)}
+  </section>
+  <section class="card glass"><h2>Points d’attention</h2><p class="hint">Contrôles croisés affrètement × VL06O.</p>
+    <div class="alerts">${alerts || `<div class="alert info">${icon('info')}<div>Rien à signaler pour cette semaine.</div></div>`}</div>
+  </section>`;
+}
+function dayMatrix(pd) {
+  const rowsDef = [
+    ['Rapatriements (pal)', 'palRap', n0], ['Camions rapatriement', 'camRap', n0], ['Réceptions SST (pal)', 'palSst', n0],
+    ['Total entrées (pal)', 'palIn', n0, true], ['Livraisons expédiées', 'livOut', n0], ['Palettes expédiées', 'palOut', n0, true],
+    ['Blocs sol', 'blocs', n0], ['dont intercos (pal)', 'palInterco', n0], ['Poids expédié (t)', 'poids', tons],
+    ['Transferts vers externes (pal)', 'palExt', n0], ['Livraisons à préparer', 'livPrep', n0], ['Codes (lignes)', 'codes', n0],
+    ['Heures préparation', 'hrs', n1, true], ['dont faites', 'hrsFait', n1],
+  ];
+  const th = `<th scope="col">Indicateur</th>` + pd.map(r => `<th class="num dayhead" scope="col">${DAYS[dayIdx(r.d)]}<small>${fdate(r.d)}</small></th>`).join('') + '<th class="num" scope="col">Semaine</th>';
+  const body = rowsDef.map(([lab, k, f, hl]) => `<tr${hl ? ' class="sub"' : ''}><td>${lab}</td>${pd.map(r => `<td class="num">${r[k] ? f(r[k]) : '<span class="muted">·</span>'}</td>`).join('')}<td class="num"><b>${f(sum(pd, r => r[k]))}</b></td></tr>`).join('');
+  return `<div class="tbl-wrap matrix"><table class="t"><thead><tr>${th}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+function buildAlerts(aff, prep) {
+  const idx = livIndex(); const out = [];
+  const t = today(), tomorrow = addDays(t, dayIdx(t) === 4 ? 3 : 1);
+  if (S.prep) {
+    const prepDates = new Set(prepLines().map(l => l.dc));
+    const late = aff.filter(r => r.date <= tomorrow && idx.has(r.liv) && idx.get(r.liv).prep !== 'C');
+    if (late.length) out.push(['crit', `<b>${late.length} livraison(s) à enlever d’ici ${fdateL(tomorrow)} non terminées en préparation</b><div class="x">${late.slice(0, 12).map(r => `${r.liv} ${esc(r.nom)} (${PREP_LABEL[idx.get(r.liv).prep][0]})`).join(' · ')}${late.length > 12 ? ' …' : ''}</div>`]);
+    const missing = aff.filter(r => !idx.has(r.liv) && prepDates.has(r.date));
+    if (missing.length) out.push(['warn', `<b>${missing.length} livraison(s) de l’affrètement absentes de la VL06O</b><div class="x">Déjà sorties ou hors extraction : ${missing.slice(0, 12).map(r => r.liv).join(' · ')}${missing.length > 12 ? ' …' : ''}</div>`]);
+    const noRef = prep.filter(l => l.noRef);
+    if (noRef.length) out.push(['warn', `<b>${noRef.length} ligne(s) VL06O sans fiche article (UQ/PAL)</b><div class="x">Non comptées en SILO/picking, comme dans le fichier Excel. Articles : ${uniq(noRef.map(l => l.art)).slice(0, 15).join(', ')}</div>`]);
+    const affLivs = new Set(Object.keys(S.affret.rows));
+    const notPlanned = [...idx.values()].filter(l => inWeek(l.dc) && !affLivs.has(l.liv) && Object.keys(S.affret.rows).length);
+    if (notPlanned.length) out.push(['info', `<b>${notPlanned.length} livraison(s) VL06O pas encore dans la base affrètement</b><div class="x">${notPlanned.slice(0, 12).map(l => `${l.liv} ${esc(l.nom)}`).join(' · ')}${notPlanned.length > 12 ? ' …' : ''}</div>`]);
+  } else out.push(['info', '<b>VL06O non importée</b><div class="x">Importez l’extraction dans l’onglet Préparation pour activer les contrôles.</div>']);
+  const approx = Object.values(S.rapat.loads).filter(l => l.approx && inWeek(l.date));
+  if (approx.length) out.push(['info', `<b>${approx.length} chargement(s) de rapatriement sans jour identifié</b><div class="x">Placés au lundi : ${approx.map(l => esc(l.entrepot + ' / ' + l.sheet)).join(' · ')}</div>`]);
+  return out.map(([c, h]) => `<div class="alert ${c}">${icon(c === 'info' ? 'info' : 'warn')}<div>${h}</div></div>`).join('');
+}
+
+// ============================================================
+//   VUE : PRÉPARATION (Analyse_Activité_Préparation)
+// ============================================================
+function prepFiltered(all) {
+  const f = S.ui.pf;
+  const q = (f.q || '').trim().toUpperCase();
+  return all.filter(l =>
+    (!f.dates || !f.dates.length || f.dates.includes(l.dc)) &&
+    (!f.circ || !f.circ.length || f.circ.includes(l.circuit)) &&
+    (!f.lieu || !f.lieu.length || f.lieu.includes(l.lieu)) &&
+    (!f.sgp || !f.sgp.length || f.sgp.includes(l.sgp || 'A')) &&
+    (!f.vp || !f.vp.length || f.vp.includes(l.vp || '–')) &&
+    (!f.swm || !f.swm.length || f.swm.includes(l.swm || '–')) &&
+    (!q || l.liv.includes(q) || l.nom.toUpperCase().includes(q) || l.art.includes(q) || l.des.toUpperCase().includes(q) || l.ville.toUpperCase().includes(q))
+  );
+}
+function chips(group, values, labels = {}) {
+  const sel = S.ui.pf[group] || [];
+  return values.map(v => `<button class="chip ${sel.includes(v) ? 'on' : ''}" data-chip="pf|${group}|${esc(v)}">${esc(labels[v] || v)}</button>`).join('');
+}
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-chip]'); if (!c) return;
+  const [store, group, v] = c.dataset.chip.split('|');
+  const f = S.ui[store]; const a = f[group] || [];
+  f[group] = a.includes(v) ? a.filter(x => x !== v) : [...a, v];
+  render();
+});
+function viewPrep() {
+  const all = prepLines();
+  const imp = `
+  <section class="card glass">
+    <div class="card-head"><div><h2>Extraction SAP VL06O</h2>
+      <p class="hint">Même méthode que <i>Analyse_Activité_Préparation</i> : Pal SILO = arrondi inférieur (colis ÷ UQ/PAL) · Colis picking = reste · Heures SILO = pal ÷ ${S.settings.cadSilo} · Heures picking = colis ÷ cadence (Entrepôt/Interco/GMS ${S.settings.cadEntrepot}, Export ${S.settings.cadExport}, MDD ${S.settings.cadMdd}).</p></div>
+      ${S.prep ? `<div class="meta" style="text-align:right">${esc(S.prep.file)}<br>importé le ${esc(new Date(S.prep.importedAt).toLocaleString('fr-FR'))} · ${n0(S.prep.rows.length)} postes</div>` : ''}
+    </div>
+    <div class="drop" data-drop="vl06o">${icon('upload')}<div><b>Déposez VL06O.XLSX ici</b> ou <button class="btn sm" data-pick="vl06o">choisir le fichier</button><small>L’import remplace la photo précédente (comme l’actualisation du fichier Excel).</small></div></div>
+  </section>`;
+  if (!S.prep) return imp;
+
+  const f = S.ui.pf;
+  const dates = uniq(all.map(l => l.dc)).filter(Boolean).sort();
+  const lines = prepFiltered(all);
+  const circs = uniq(all.map(l => l.circuit)).sort();
+  const lieux = uniq(all.map(l => l.lieu)).filter(Boolean).sort();
+  const filters = `
+  <div class="filters">
+    <div class="fgroup"><label>Date chrgt</label>${dates.map(d => `<button class="chip ${(f.dates || []).includes(d) ? 'on' : ''}" data-chip="pf|dates|${d}">${fdateL(d)}</button>`).join('')}</div>
+    <div class="fgroup"><label>Circuit</label>${chips('circ', circs)}</div>
+    ${lieux.length > 1 ? `<div class="fgroup"><label>Lieu</label>${chips('lieu', lieux)}</div>` : ''}
+  </div>
+  <div class="filters">
+    <div class="fgroup"><label title="Statut global prélèvement">Prépa terminée ?</label>${chips('sgp', ['A', 'B', 'C'], { A: 'A · Non', B: 'B · Partiel', C: 'C · Oui' })}</div>
+    <div class="fgroup"><label title="Validation prélèvement">Prépa commencée ?</label>${chips('vp', ['–', 'C'], { '–': 'Vide', C: 'C' })}</div>
+    <div class="fgroup"><label title="Statut activité WM">OT créés ?</label>${chips('swm', ['A', 'B', 'C'], { A: 'A · Non', B: 'B · Partiel', C: 'C · Oui' })}</div>
+    <div class="spacer"></div>
+    <input class="search" type="search" placeholder="Livraison, client, article…" value="${esc(f.q || '')}" data-q="pf" aria-label="Rechercher">
+    <button class="btn sm" data-act="pf-reset">Supprimer les filtres</button>
+  </div>`;
+  const tabs = `<div class="tabs" role="tablist">${[['synth', 'Synthèse'], ['liv', 'Par N° livraison'], ['codes', 'Livraisons & codes']].map(([k, l]) => `<button role="tab" class="${S.ui.prepView === k ? 'on' : ''}" data-prepview="${k}">${l}</button>`).join('')}</div>`;
+  const noRef = lines.filter(l => l.noRef).length;
+  let body = '';
+  if (S.ui.prepView === 'synth') body = prepSynth(lines);
+  else if (S.ui.prepView === 'liv') body = prepByLiv(lines);
+  else body = prepCodes(lines);
+  return imp + `<section class="card glass">${filters}${tabs}${noRef ? `<div class="alert warn" style="margin-bottom:12px">${icon('warn')}<div><b>${noRef} ligne(s) sans fiche article</b> — non comptées en SILO / picking (identique au fichier Excel). Mettez à jour le Fichier Article dans Paramètres.</div></div>` : ''}${body}</section>`;
+}
+const PREP_COLS = [
+  { k: 'liv', label: 'Livraisons', num: true, fmt: n0 }, { k: 'codes', label: 'Codes', num: true, fmt: n0 },
+  { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'hrSilo', label: 'Hr SILO', num: true, fmt: hr },
+  { k: 'nbPick', label: 'Nb Pick', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis Picking', num: true, fmt: n0 },
+  { k: 'hrPick', label: 'Hr Pick', num: true, fmt: hr }, { k: 'total', label: 'Total Colis', num: true, fmt: n0 },
+];
+function prepSynth(lines) {
+  const dates = uniq(lines.map(l => l.dc)).sort();
+  const block = (title, sub, ls, ratioOf) => {
+    const rows = dates.map(d => Object.assign({ d }, agg(ls.filter(l => l.dc === d)))).filter(r => r.codes);
+    const T = agg(ls);
+    const ratio = ratioOf ? `<tr class="pct"><td>% du total</td>${PREP_COLS.map(c => `<td class="num">${c.k === 'hrSilo' || c.k === 'hrPick' ? '' : pct(ratioOf[c.k] ? T[c.k] / ratioOf[c.k] : NaN)}</td>`).join('')}</tr>` : '';
+    return `<div><h2 style="margin-top:6px">${title}</h2><p class="hint">${sub}</p>
+      <div class="tbl-wrap"><table class="t"><thead><tr><th>Date chargement</th>${PREP_COLS.map(c => `<th class="num">${c.label}</th>`).join('')}</tr></thead><tbody>
+      ${rows.map(r => `<tr><td>${fdateL(r.d)}</td>${PREP_COLS.map(c => `<td class="num">${c.fmt(r[c.k])}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="9" class="empty">Aucune ligne</td></tr>`}
+      ${ratio}<tr class="tot"><td>Total général</td>${PREP_COLS.map(c => `<td class="num">${c.fmt(T[c.k])}</td>`).join('')}</tr></tbody></table></div></div>`;
+  };
+  const T = agg(lines), F = agg(lines.filter(l => l.sgp === 'C'));
+  const hrsT = T.hrSilo + T.hrPick, hrsF = F.hrSilo + F.hrPick;
+  const cats = dates.map(d => ({ label: fdateL(d) }));
+  const data = dates.map(d => { const ls = lines.filter(l => l.dc === d); const a = agg(ls.filter(l => l.sgp === 'C')), b = agg(ls.filter(l => l.sgp !== 'C')); return { fait: a.hrSilo + a.hrPick, afaire: b.hrSilo + b.hrPick }; });
+  return `
+  <div class="kpis" style="margin-bottom:18px">
+    <div class="kpi"><div class="lab">Heures à produire</div><div class="val">${n1(hrsT)}<small>h</small></div><div class="det">SILO ${n1(T.hrSilo)} h · Picking ${n1(T.hrPick)} h</div></div>
+    <div class="kpi"><div class="lab">Reste à faire</div><div class="val">${n1(hrsT - hrsF)}<small>h</small></div><div class="det">${n0(agg(lines.filter(l => l.sgp !== 'C')).liv)} livraisons · ${n0(T.codes - F.codes)} codes</div></div>
+    <div class="kpi"><div class="lab">Avancement</div><div class="val">${pct(hrsT ? hrsF / hrsT : NaN)}</div><div class="bar"><span style="width:${hrsT ? Math.round(hrsF / hrsT * 100) : 0}%"></span></div><div class="det">Lignes « Prépa terminée = C »</div></div>
+    <div class="kpi"><div class="lab">Volume</div><div class="val">${n0(T.total)}<small>colis</small></div><div class="det">${n0(T.palSilo)} pal SILO · ${n0(T.colisPick)} colis picking</div></div>
+  </div>
+  <div class="grid g2" style="margin-bottom:18px">
+    <div>${barChart({ cats, series: [{ key: 'fait', label: 'Heures faites', color: cssVar('--pick') }, { key: 'afaire', label: 'Heures à faire', color: cssVar('--silo') }], data, stacked: true, unit: ' h', fmt: n1, height: 220 })}</div>
+    <div>${circuitSplit(lines)}</div>
+  </div>
+  <div class="grid" style="gap:22px">
+    ${block('Fait', 'Postes dont la préparation est terminée (Statut global prélèvement = C).', lines.filter(l => l.sgp === 'C'), T)}
+    ${block('A faire', 'Postes non commencés ou partiellement préparés (A ou B).', lines.filter(l => l.sgp !== 'C'), T)}
+    ${block('Total', 'Ensemble des postes filtrés.', lines, null)}
+  </div>`;
+}
+function circuitSplit(lines) {
+  const circs = uniq(lines.map(l => l.circuit));
+  const rows = circs.map(c => Object.assign({ c }, agg(lines.filter(l => l.circuit === c)))).sort((a, b) => (b.hrSilo + b.hrPick) - (a.hrSilo + a.hrPick));
+  return `<div class="tbl-wrap"><table class="t"><thead><tr><th>Circuit</th><th class="num">Livr.</th><th class="num">Pal SILO</th><th class="num">Colis pick</th><th class="num">Heures</th><th class="num">Cadence</th></tr></thead><tbody>
+  ${rows.map(r => `<tr><td>${esc(r.c)}</td><td class="num">${n0(r.liv)}</td><td class="num">${n0(r.palSilo)}</td><td class="num">${n0(r.colisPick)}</td><td class="num">${hr(r.hrSilo + r.hrPick)}</td><td class="num muted">${n0(cadencePick(r.c))} colis/h</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+function prepByLiv(lines) {
+  const byLiv = new Map();
+  for (const l of lines) { const k = l.dc + '|' + l.liv; if (!byLiv.has(k)) byLiv.set(k, []); byLiv.get(k).push(l); }
+  const rows = [...byLiv.values()].map(ls => {
+    const af = S.affret.rows[ls[0].liv];
+    return Object.assign({ dc: ls[0].dc, livNo: ls[0].liv, nom: ls[0].nom, ville: ls[0].ville, circuit: ls[0].circuit, itin: ls[0].itin, af }, agg(ls), livStatus(ls));
+  });
+  const open = S.ui.openLiv;
+  const cols = [
+    { k: 'dc', label: 'Date chrgt', fmt: fdateL }, { k: 'livNo', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' },
+    { k: 'circuit', label: 'Circuit' }, { k: 'codes', label: 'Codes', num: true, fmt: n0 },
+    ...PREP_COLS.slice(2),
+    { k: 'prep', label: 'Prépa', html: r => prepBadge(r.prep) }, { k: 'ot', label: 'OT', html: r => badge(...OT_LABEL[r.ot]) },
+    { k: 'enl', label: 'Enlèvement', sv: r => r.af ? r.af.date : '', html: r => r.af ? `${fdateL(r.af.date)} · T${esc(r.af.transp)}${r.af.rdv ? ' · ' + esc(r.af.rdv) : ''}` : '<span class="muted">—</span>' },
+  ];
+  const T = agg(lines);
+  return `<p class="hint">${n0(rows.length)} livraisons — cliquez une ligne pour voir les codes.</p>` + table('prepLiv', cols, rows, {
+    total: Object.assign({ codes: T.codes }, T), limit: 1500,
+    rowAttr: r => `class="clickable" data-openliv="${r.livNo}"`,
+    after: r => open === r.livNo ? `<tr class="detail"><td colspan="${cols.length}"><div style="padding:10px">${codesTable(r.livNo + 'd', lines.filter(l => l.liv === r.livNo), 400)}</div></td></tr>` : '',
+  });
+}
+document.addEventListener('click', e => { const r = e.target.closest('[data-openliv]'); if (!r) return; S.ui.openLiv = S.ui.openLiv === r.dataset.openliv ? null : r.dataset.openliv; render(); });
+function codesTable(id, lines, limit) {
+  const cols = [
+    { k: 'art', label: 'Article' }, { k: 'des', label: 'Désignation' }, { k: 'format', label: 'Format' },
+    { k: 'sgp', label: 'SGP' }, { k: 'vp', label: 'VP' }, { k: 'swm', label: 'SWM' }, { k: 'picking', label: 'Picking' },
+    { k: 'uqpal', label: 'UQ/PAL', num: true, fmt: (v, r) => r.noRef ? '⚠ inconnu' : n0(v) },
+    { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'hrSilo', label: 'Hr SILO', num: true, fmt: hr },
+    { k: 'nbPick', label: 'Nb Pick', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis Picking', num: true, fmt: n0 },
+    { k: 'hrPick', label: 'Hr Pick', num: true, fmt: hr }, { k: 'pk', label: 'Total Colis', num: true, fmt: n0 },
+  ];
+  const T = agg(lines);
+  return table(id, cols, lines, { total: { palSilo: T.palSilo, hrSilo: T.hrSilo, nbPick: T.nbPick, colisPick: T.colisPick, hrPick: T.hrPick, pk: T.total }, limit });
+}
+function prepCodes(lines) {
+  const cols = [
+    { k: 'dc', label: 'Date chrgt', fmt: fdateL }, { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire' },
+    { k: 'art', label: 'Article' }, { k: 'des', label: 'Désignation' }, { k: 'sgp', label: 'SGP' }, { k: 'vp', label: 'VP' }, { k: 'swm', label: 'SWM' },
+    { k: 'picking', label: 'Picking' }, { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'hrSilo', label: 'Hr SILO', num: true, fmt: hr },
+    { k: 'nbPick', label: 'Nb Pick', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis Picking', num: true, fmt: n0 }, { k: 'hrPick', label: 'Hr Pick', num: true, fmt: hr },
+    { k: 'pk', label: 'Total Colis', num: true, fmt: n0 },
+  ];
+  const T = agg(lines);
+  return `<p class="hint">${n0(lines.length)} postes · SGP = statut global prélèvement, VP = validation prélèvement, SWM = statut activité WM.</p>` +
+    table('prepCodes', cols, lines, { total: { palSilo: T.palSilo, hrSilo: T.hrSilo, nbPick: T.nbPick, colisPick: T.colisPick, hrPick: T.hrPick, pk: T.total }, limit: 2500 });
+}
+
+// ============================================================
+//   VUE : EXPÉDITIONS (base affrètement)
+// ============================================================
+const transpName = c => S.settings.transporteurs[c] ? `${S.settings.transporteurs[c]}` : `Transp. ${c}`;
+function viewOut() {
+  const { days } = weekData();
+  const idx = livIndex();
+  const f = S.ui.af;
+  let rows = Object.values(S.affret.rows).filter(r => inWeek(r.date));
+  const transps = uniq(rows.map(r => r.transp)).sort((a, b) => num(a) - num(b));
+  const q = (f.q || '').trim().toUpperCase();
+  const filt = rows.filter(r =>
+    (!f.days || !f.days.length || f.days.includes(r.date)) && (!f.tr || !f.tr.length || f.tr.includes(r.transp)) &&
+    (!f.st || !f.st.length || f.st.includes(idx.has(r.liv) ? idx.get(r.liv).prep : 'X')) &&
+    (!q || r.liv.includes(q) || r.nom.toUpperCase().includes(q) || r.ville.toUpperCase().includes(q) || r.comm.toUpperCase().includes(q)));
+  const pasteCard = `
+  <section class="card glass">
+    <details class="paste" ${Object.keys(S.affret.rows).length ? '' : 'open'}>
+      <summary>${icon('paste')} Coller l’export de la base affrètement <span class="meta" style="font-weight:400">— ${n0(Object.keys(S.affret.rows).length)} livraisons en mémoire</span></summary>
+      <p class="hint" style="margin-top:10px">Copiez les lignes depuis Access (avec ou sans en-têtes) et collez-les ci-dessous. Les livraisons déjà connues sont mises à jour, la ligne de totaux est ignorée.</p>
+      <textarea class="inp" id="affPaste" placeholder="Date Enl&#9;Livraison&#9;Client&#9;Prep&#9;Transp&#9;nom&#9;ville&#9;cp&#9;Poids brut&#9;…"></textarea>
+      <div class="row" style="margin-top:10px"><button class="btn primary" data-act="aff-import">${icon('upload')} Importer</button>
+      <label class="row meta"><input type="checkbox" id="affReplace"> remplacer les jours présents dans le collage</label></div>
+    </details>
+  </section>`;
+  if (!rows.length) return pasteCard + `<section class="card glass"><div class="empty"><b>Aucune expédition cette semaine</b>Collez l’export de la base affrètement ci-dessus.</div></section>`;
+
+  // matrice transporteur × jour
+  const dshow = days.filter((d, i) => i < 6 || rows.some(r => r.date === d));
+  const mtx = `<div class="tbl-wrap matrix"><table class="t"><thead><tr><th>Transporteur</th>${dshow.map(d => `<th class="num dayhead">${DAYS[dayIdx(d)]}<small>${fdate(d)}</small></th>`).join('')}<th class="num">Semaine</th></tr></thead><tbody>
+    ${transps.map(t => { const rs = rows.filter(r => r.transp === t); return `<tr><td>${esc(transpName(t))}</td>${dshow.map(d => { const x = rs.filter(r => r.date === d); return `<td class="num">${x.length ? `<b>${n0(sum(x, r => r.pal))}</b> <span class="muted">pal · ${n0(sum(x, r => r.blocs))} bl</span>` : '<span class="muted">·</span>'}</td>`; }).join('')}<td class="num"><b>${n0(sum(rs, r => r.pal))}</b> <span class="muted">pal · ${n0(sum(rs, r => r.blocs))} bl</span></td></tr>`; }).join('')}
+    <tr class="tot"><td>Total</td>${dshow.map(d => { const x = rows.filter(r => r.date === d); return `<td class="num">${x.length ? `${n0(sum(x, r => r.pal))} pal · ${n0(sum(x, r => r.blocs))} bl` : '·'}</td>`; }).join('')}<td class="num">${n0(sum(rows, r => r.pal))} pal · ${n0(sum(rows, r => r.blocs))} bl</td></tr>
+  </tbody></table></div>`;
+
+  const cols = [
+    { k: 'date', label: 'Enlèvement', fmt: fdateL }, { k: 'transp', label: 'Transp.', fmt: v => transpName(v), sv: r => num(r.transp) },
+    { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Destinataire', cls: 'wrap', html: r => `${esc(r.nom)}${isInterco(r.nom, idx.get(r.liv)?.prio) ? ' <span class="badge b-info b-nodot">Interco</span>' : ''}` },
+    { k: 'ville', label: 'Ville' }, { k: 'cp', label: 'Dépt', fmt: v => String(v).slice(0, 2) },
+    { k: 'pal', label: 'Pal', num: true, fmt: n0 }, { k: 'blocs', label: 'Blocs', num: true, fmt: n0 }, { k: 'palEnt', label: 'Pal ent.', num: true, fmt: n0 },
+    { k: 'couches', label: 'Couches', num: true, fmt: n0 }, { k: 'cartPk', label: 'Cartons', num: true, fmt: n0 },
+    { k: 'poids', label: 'Poids kg', num: true, fmt: n0 },
+    { k: 'rdv', label: 'RDV' }, { k: 'camion', label: 'Camion' },
+    { k: 'prepst', label: 'Prépa', sv: r => idx.get(r.liv)?.prep || 'X', html: r => prepBadge(idx.get(r.liv)?.prep) },
+    { k: 'comm', label: 'Commentaire', cls: 'wrap muted' },
+  ];
+  const filters = `<div class="filters">
+    <div class="fgroup"><label>Jour</label>${dshow.filter(d => rows.some(r => r.date === d)).map(d => `<button class="chip ${(f.days || []).includes(d) ? 'on' : ''}" data-chip="af|days|${d}">${fdateL(d)}</button>`).join('')}</div>
+    <div class="fgroup"><label>Transporteur</label>${transps.map(t => `<button class="chip ${(f.tr || []).includes(t) ? 'on' : ''}" data-chip="af|tr|${esc(t)}">${esc(transpName(t))}</button>`).join('')}</div>
+  </div><div class="filters">
+    <div class="fgroup"><label>Prépa</label>${[['C', 'Terminée'], ['B', 'En cours'], ['A', 'Non commencée'], ['X', 'Hors VL06O']].map(([k, l]) => `<button class="chip ${(f.st || []).includes(k) ? 'on' : ''}" data-chip="af|st|${k}">${l}</button>`).join('')}</div>
+    <div class="spacer"></div><input class="search" type="search" placeholder="Livraison, destinataire, ville…" value="${esc(f.q || '')}" data-q="af" aria-label="Rechercher">
+  </div>`;
+  const T = { pal: sum(filt, r => r.pal), blocs: sum(filt, r => r.blocs), palEnt: sum(filt, r => r.palEnt), couches: sum(filt, r => r.couches), cartPk: sum(filt, r => r.cartPk), poids: sum(filt, r => r.poids) };
+  const ready = filt.filter(r => idx.get(r.liv)?.prep === 'C').length;
+  return pasteCard + `
+  <section class="card glass">
+    <div class="kpis" style="margin-bottom:16px">
+      <div class="kpi"><div class="lab"><i style="background:var(--out)"></i>Palettes</div><div class="val">${n0(T.pal)}</div><div class="det">${n0(filt.length)} livraisons</div></div>
+      <div class="kpi"><div class="lab">Blocs sol</div><div class="val">${n0(T.blocs)}</div><div class="det">${n0(T.palEnt)} pal entières · ${n0(T.couches)} couches</div></div>
+      <div class="kpi"><div class="lab">Poids brut</div><div class="val">${tons(T.poids)}<small>t</small></div><div class="det">taxable ${tons(sum(filt, r => r.poidsTax))} t</div></div>
+      <div class="kpi"><div class="lab">Prêtes (prépa terminée)</div><div class="val">${n0(ready)}<small>/ ${n0(filt.length)}</small></div><div class="bar"><span style="width:${filt.length ? Math.round(ready / filt.length * 100) : 0}%"></span></div></div>
+    </div>
+    <h2>Palettes et blocs par transporteur</h2><p class="hint">« bl » = blocs sol. Les noms de transporteurs se renseignent dans Paramètres.</p>
+    ${mtx}
+  </section>
+  <section class="card glass"><div class="card-head"><div><h2>Livraisons à expédier</h2><p class="hint">Statut de préparation rapproché de la VL06O par numéro de livraison.</p></div>
+    <button class="btn sm danger" data-act="aff-clear-week">${icon('trash')} Vider la semaine</button></div>
+    ${filters}${table('aff', cols, filt, { total: T })}
+  </section>`;
+}
+
+// ============================================================
+//   VUE : INTERCOS
+// ============================================================
+function viewInterco() {
+  const idx = livIndex();
+  const map = new Map();
+  for (const l of idx.values()) if (isInterco(l.nom, l.prio)) map.set(l.liv, { liv: l.liv, nom: l.nom, ville: l.ville, date: l.dc, v: l });
+  for (const r of Object.values(S.affret.rows)) if (isInterco(r.nom, idx.get(r.liv)?.prio)) { const e = map.get(r.liv) || { liv: r.liv, nom: r.nom, ville: r.ville, v: idx.get(r.liv) }; e.a = r; e.date = r.date; map.set(r.liv, e); }
+  const rows = [...map.values()].filter(e => inWeek(e.date)).map(e => ({
+    date: e.date, liv: e.liv, nom: e.nom, ville: e.ville, dest: destGroup(e.nom),
+    pal: e.a ? e.a.pal : null, palSilo: e.v ? e.v.palSilo : null, colis: e.v ? e.v.total : null, colisPick: e.v ? e.v.colisPick : null,
+    hrs: e.v ? e.v.hrSilo + e.v.hrPick : null, prep: e.v?.prep, ot: e.v?.ot, transp: e.a ? e.a.transp : '', poids: e.a ? e.a.poids : null, circuit: e.v?.circuit || '',
+  }));
+  const dests = uniq(rows.map(r => r.dest)).sort();
+  const cards = dests.map(d => {
+    const rs = rows.filter(r => r.dest === d); const done = rs.filter(r => r.prep === 'C').length;
+    return `<div class="kpi"><div class="lab">${esc(d)}</div><div class="val">${n0(sum(rs, r => r.pal ?? r.palSilo))}<small>pal</small></div>
+      <div class="det">${rs.length} livraison(s) · ${n0(sum(rs, r => r.colis))} colis · ${n1(sum(rs, r => r.hrs))} h prépa</div>
+      <div class="bar"><span style="width:${rs.length ? Math.round(done / rs.length * 100) : 0}%"></span></div><div class="det">${done}/${rs.length} prêtes</div></div>`;
+  }).join('');
+  const cols = [
+    { k: 'date', label: 'Date', fmt: fdateL }, { k: 'dest', label: 'Destination' }, { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' },
+    { k: 'circuit', label: 'Circuit' }, { k: 'pal', label: 'Pal (affrèt.)', num: true, fmt: n0 }, { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 },
+    { k: 'colisPick', label: 'Colis picking', num: true, fmt: n0 }, { k: 'colis', label: 'Total colis', num: true, fmt: n0 }, { k: 'hrs', label: 'Heures', num: true, fmt: hr },
+    { k: 'poids', label: 'Poids kg', num: true, fmt: n0 }, { k: 'transp', label: 'Transp.', fmt: v => v ? transpName(v) : '' },
+    { k: 'prep', label: 'Prépa', html: r => prepBadge(r.prep) }, { k: 'ot', label: 'OT', html: r => r.ot ? badge(...OT_LABEL[r.ot]) : '' },
+  ];
+  return `<section class="card glass"><h2>Intercos de la semaine</h2>
+    <p class="hint">Livraisons de priorité 9 (circuit Interco) ou dont le réceptionnaire contient : ${S.settings.intercoKeys.map(k => `<kbd>${esc(k)}</kbd>`).join(' ')} (modifiable dans Paramètres). Palettes = base affrètement si disponible, sinon pal SILO.</p>
+    ${rows.length ? `<div class="kpis" style="margin-bottom:16px">${cards}</div>${table('interco', cols, rows, { total: { pal: sum(rows, r => r.pal), palSilo: sum(rows, r => r.palSilo), colisPick: sum(rows, r => r.colisPick), colis: sum(rows, r => r.colis), hrs: sum(rows, r => r.hrs), poids: sum(rows, r => r.poids) } })}` : '<div class="empty"><b>Aucun interco cette semaine</b>Importez la VL06O ou la base affrètement.</div>'}
+  </section>`;
+}
+function destGroup(nom) {
+  const u = String(nom || '').toUpperCase();
+  const k = S.settings.intercoKeys.find(k => k && u.includes(k.toUpperCase()));
+  if (!k) return nom || '—';
+  if (/MCCORMICK/.test(k.toUpperCase())) return nom; // plusieurs sites McCormick : garder le nom complet
+  return k.charAt(0) + k.slice(1).toLowerCase();
+}
+
+// ============================================================
+//   VUE : RAPATRIEMENTS
+// ============================================================
+const KIND = { DT: 'Transfert (DT)', DESTO: 'Déstockage', NAV: 'Navette détournée' };
+function viewRapat() {
+  const { days } = weekData();
+  const all = Object.values(S.rapat.loads);
+  const loads = all.filter(l => inWeek(l.date));
+  const f = S.ui.rf;
+  const ents = uniq(loads.map(l => l.entrepot)).sort();
+  const filt = loads.filter(l => (!f.ent || !f.ent.length || f.ent.includes(l.entrepot)) && (!f.sens || !f.sens.length || f.sens.includes(l.sens)))
+    .sort((a, b) => a.date.localeCompare(b.date) || a.entrepot.localeCompare(b.entrepot) || a.sheet.localeCompare(b.sheet));
+  const files = uniq(all.map(l => l.file));
+  const imp = `<section class="card glass">
+    <div class="card-head"><div><h2>Fichiers de rapatriement</h2><p class="hint">Un classeur par entrepôt externe et par semaine (ex. <kbd>2026_S40_FM.xlsx</kbd>). Chaque onglet après « LUNDI&gt;&gt; », « MARDI&gt;&gt; »… est un camion : palettes, poids et articles sont calculés automatiquement.</p></div>
+    ${files.length ? `<div class="meta" style="text-align:right">${files.length} fichier(s) en mémoire</div>` : ''}</div>
+    <div class="drop" data-drop="rapat">${icon('upload')}<div><b>Déposez un ou plusieurs fichiers ici</b> ou <button class="btn sm" data-pick="rapat">choisir</button><small>Un fichier ré-importé remplace sa version précédente.</small></div></div>
+  </section>`;
+  if (!loads.length) return imp + `<section class="card glass"><div class="empty"><b>Aucun rapatriement pour cette semaine</b>${all.length ? 'Des données existent sur d’autres semaines : ' + uniq(all.map(l => 'S' + isoWeek(l.date).w)).sort().join(', ') : ''}</div></section>`;
+  const dshow = days.filter((d, i) => i < 6 || loads.some(l => l.date === d));
+  const lin = loads.filter(l => l.sens === 'in'), lout = loads.filter(l => l.sens === 'out');
+  const mtx = `<div class="tbl-wrap matrix"><table class="t"><thead><tr><th>Entrepôt</th><th>Sens</th>${dshow.map(d => `<th class="num dayhead">${DAYS[dayIdx(d)]}<small>${fdate(d)}</small></th>`).join('')}<th class="num">Semaine</th></tr></thead><tbody>
+    ${ents.flatMap(e => ['in', 'out'].map(s => { const rs = loads.filter(l => l.entrepot === e && l.sens === s); if (!rs.length) return ''; return `<tr><td>${esc(e)}</td><td>${s === 'in' ? badge('Entrée', 'b-info') : badge('Sortie', 'b-warn')}</td>${dshow.map(d => { const x = rs.filter(l => l.date === d); return `<td class="num">${x.length ? `<b>${n0(sum(x, l => l.pal))}</b> <span class="muted">pal · ${x.length} cam.</span>` : '<span class="muted">·</span>'}</td>`; }).join('')}<td class="num"><b>${n0(sum(rs, l => l.pal))}</b> <span class="muted">pal · ${rs.length} cam.</span></td></tr>`; })).join('')}
+  </tbody></table></div>`;
+  const open = S.ui.openLoad;
+  const cols = [
+    { k: 'date', label: 'Date', html: r => `${fdateL(r.date)}${r.approx ? ' <span class="badge b-warn b-nodot" title="Jour non identifié dans le fichier">?</span>' : ''}` },
+    { k: 'entrepot', label: 'Entrepôt' }, { k: 'kind', label: 'Type', fmt: v => KIND[v] || v }, { k: 'ref', label: 'N° DT / onglet' },
+    { k: 'remorque', label: 'Remorque' }, { k: 'usine', label: 'Usine' },
+    { k: 'pal', label: 'Palettes', num: true, fmt: n0 }, { k: 'poids', label: 'Poids kg', num: true, fmt: n0 }, { k: 'qte', label: 'Qté (UQB)', num: true, fmt: n0 }, { k: 'nbArt', label: 'Articles', num: true, fmt: n0 },
+    { k: 'sens', label: 'Sens', html: r => `<button class="chip" data-sens="${esc(r.id)}" title="Inverser le sens">${r.sens === 'in' ? '→ Entrée dépôt' : '← Sortie vers externe'}</button>` },
+  ];
+  return imp + `
+  <section class="card glass">
+    <div class="kpis" style="margin-bottom:16px">
+      <div class="kpi"><div class="lab"><i style="background:var(--in)"></i>Palettes rapatriées</div><div class="val">${n0(sum(lin, l => l.pal))}</div><div class="det">${lin.length} camion(s) · ${tons(sum(lin, l => l.poids))} t</div></div>
+      <div class="kpi"><div class="lab">Transferts vers externes</div><div class="val">${n0(sum(lout, l => l.pal))}</div><div class="det">${lout.length} navette(s)</div></div>
+      ${ents.map(e => { const x = lin.filter(l => l.entrepot === e); return `<div class="kpi"><div class="lab">${esc(e)}</div><div class="val">${n0(sum(x, l => l.pal))}<small>pal</small></div><div class="det">${x.length} camion(s) entrant(s)</div></div>`; }).join('')}
+    </div>
+    <h2>Par entrepôt et par jour</h2><p class="hint">Palettes = colonne « Pal » / « Nb Pal » si présente, sinon une ligne = une unité de stock = une palette.</p>${mtx}
+  </section>
+  <section class="card glass"><div class="card-head"><div><h2>Camions</h2><p class="hint">Cliquez une ligne pour le détail des palettes. Les navettes détournées (onglets avec « Date Détournement ») sont classées en sortie par défaut.</p></div>
+    <button class="btn sm danger" data-act="rap-clear-week">${icon('trash')} Vider la semaine</button></div>
+    <div class="filters"><div class="fgroup"><label>Entrepôt</label>${ents.map(e => `<button class="chip ${(f.ent || []).includes(e) ? 'on' : ''}" data-chip="rf|ent|${esc(e)}">${esc(e)}</button>`).join('')}</div>
+    <div class="fgroup"><label>Sens</label><button class="chip ${(f.sens || []).includes('in') ? 'on' : ''}" data-chip="rf|sens|in">Entrées</button><button class="chip ${(f.sens || []).includes('out') ? 'on' : ''}" data-chip="rf|sens|out">Sorties</button></div></div>
+    ${table('rapat', cols, filt, {
+      total: { pal: sum(filt, l => l.pal), poids: sum(filt, l => l.poids), qte: sum(filt, l => l.qte) },
+      rowAttr: r => `class="clickable" data-openload="${esc(r.id)}"`,
+      after: r => open === r.id ? `<tr class="detail"><td colspan="${cols.length}"><div style="padding:10px">${table('rapl', [{ k: 'art', label: 'Article' }, { k: 'des', label: 'Désignation' }, { k: 'sscc', label: 'Unité de stock' }, { k: 'lot', label: 'Lot' }, { k: 'dlc', label: 'DLC', fmt: fdate }, { k: 'qte', label: 'Qté', num: true, fmt: n0 }, { k: 'pal', label: 'Pal', num: true, fmt: n0 }, { k: 'poids', label: 'Poids', num: true, fmt: n0 }], r.lines, { total: { qte: r.qte, pal: r.pal, poids: r.poids } })}</div></td></tr>` : '',
+    })}
+  </section>`;
+}
+document.addEventListener('click', e => {
+  const s = e.target.closest('[data-sens]');
+  if (s) { e.stopPropagation(); const l = S.rapat.loads[s.dataset.sens]; if (l) { l.sens = l.sens === 'in' ? 'out' : 'in'; save('rapat'); render(); } return; }
+  const r = e.target.closest('[data-openload]'); if (!r) return; S.ui.openLoad = S.ui.openLoad === r.dataset.openload ? null : r.dataset.openload; render();
+}, true);
+
+// ============================================================
+//   VUE : RÉCEPTIONS SOUS-TRAITANTS
+// ============================================================
+function viewSST() {
+  const { days } = weekData();
+  const rows = S.sst.rows.filter(r => inWeek(r.date)).sort((a, b) => a.date.localeCompare(b.date) || a.heure.localeCompare(b.heure));
+  const dshow = days.filter((d, i) => i < 6 || rows.some(r => r.date === d));
+  const cols = [
+    { k: 'date', label: 'Date', fmt: fdateL }, { k: 'heure', label: 'Heure' }, { k: 'sst', label: 'Sous-traitant' }, { k: 'ref', label: 'Référence' },
+    { k: 'pal', label: 'Palettes', num: true, fmt: n0 }, { k: 'quai', label: 'Quai' }, { k: 'comm', label: 'Commentaire', cls: 'wrap muted' },
+    { k: 'recu', label: 'Réception', html: r => `<button class="chip ${r.recu ? 'on' : ''}" data-recu="${r.id}">${r.recu ? '✓ Réceptionné' : 'À recevoir'}</button>` },
+    { k: 'x', label: '', html: r => `<button class="iconbtn" data-delsst="${r.id}" aria-label="Supprimer">${icon('trash')}</button>` },
+  ];
+  const ssts = uniq(rows.map(r => r.sst)).sort();
+  return `<section class="card glass">
+    <h2>Planning de réception sous-traitants</h2>
+    <p class="hint">Import du fichier <kbd>Planning_Reception_SST</kbd> (colonnes date, heure, sous-traitant, palettes… détectées automatiquement) ou saisie manuelle.</p>
+    <div class="drop" data-drop="sst">${icon('upload')}<div><b>Déposez le planning ici</b> ou <button class="btn sm" data-pick="sst">choisir</button><small>Un fichier ré-importé remplace ses lignes précédentes.</small></div></div>
+    <div class="form" style="margin-top:14px">
+      <label>Date<input class="inp" type="date" id="sDate" value="${weekDays()[Math.min(4, dayIdx(today()))]}"></label>
+      <label>Heure<input class="inp" type="time" id="sHeure"></label>
+      <label>Sous-traitant<input class="inp" id="sSst" list="sstList"><datalist id="sstList">${uniq(S.sst.rows.map(r => r.sst)).map(s => `<option value="${esc(s)}">`).join('')}</datalist></label>
+      <label>Référence<input class="inp" id="sRef"></label>
+      <label>Palettes<input class="inp" type="number" min="0" id="sPal"></label>
+      <label>Quai<input class="inp" id="sQuai"></label>
+      <button class="btn primary" data-act="sst-add">Ajouter</button>
+    </div>
+  </section>
+  <section class="card glass"><h2>Semaine</h2>
+    ${rows.length ? `<div class="tbl-wrap matrix" style="margin-bottom:16px"><table class="t"><thead><tr><th>Sous-traitant</th>${dshow.map(d => `<th class="num dayhead">${DAYS[dayIdx(d)]}<small>${fdate(d)}</small></th>`).join('')}<th class="num">Semaine</th></tr></thead><tbody>
+      ${ssts.map(s => { const rs = rows.filter(r => r.sst === s); return `<tr><td>${esc(s || '—')}</td>${dshow.map(d => { const x = rs.filter(r => r.date === d); return `<td class="num">${x.length ? `<b>${n0(sum(x, r => r.pal))}</b> <span class="muted">pal · ${x.length}</span>` : '<span class="muted">·</span>'}</td>`; }).join('')}<td class="num"><b>${n0(sum(rs, r => r.pal))}</b></td></tr>`; }).join('')}
+    </tbody></table></div>${table('sst', cols, rows, { total: { pal: sum(rows, r => r.pal) } })}` : '<div class="empty"><b>Aucune réception planifiée cette semaine</b></div>'}
+  </section>`;
+}
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-recu]'); if (a) { const r = S.sst.rows.find(x => x.id === a.dataset.recu); if (r) { r.recu = !r.recu; save('sst'); render(); } return; }
+  const d = e.target.closest('[data-delsst]'); if (d) { S.sst.rows = S.sst.rows.filter(x => x.id !== d.dataset.delsst); save('sst'); render(); }
+});
+
+// ============================================================
+//   VUE : PARAMÈTRES
+// ============================================================
+function viewSettings() {
+  const st = S.settings, R = ref();
+  const transps = uniq([...Object.keys(st.transporteurs), ...Object.values(S.affret.rows).map(r => r.transp)]).filter(Boolean).sort((a, b) => num(a) - num(b));
+  return `<section class="card glass"><h2>Cadences de préparation</h2><p class="hint">Reprises de la feuille « Synthèse Activité Préparat° ».</p>
+    <div class="set-grid">
+      <label>Cadence SILO (pal/h)<input class="inp" type="number" data-set="cadSilo" value="${st.cadSilo}"></label>
+      <label>Picking Entrepôt / Interco / GMS (colis/h)<input class="inp" type="number" data-set="cadEntrepot" value="${st.cadEntrepot}"></label>
+      <label>Picking Export (colis/h)<input class="inp" type="number" data-set="cadExport" value="${st.cadExport}"></label>
+      <label>Picking MDD (colis/h)<input class="inp" type="number" data-set="cadMdd" value="${st.cadMdd}"></label>
+      <label>Nom du site<input class="inp" data-set="site" value="${esc(st.site)}"></label>
+    </div>
+  </section>
+  <section class="card glass"><h2>Intercos</h2><p class="hint">Mots-clés recherchés dans le nom du réceptionnaire (un par ligne). La priorité de livraison 9 est toujours considérée comme interco.</p>
+    <textarea class="inp" style="min-height:90px;font-family:inherit" data-setlist="intercoKeys">${esc(st.intercoKeys.join('\n'))}</textarea>
+  </section>
+  <section class="card glass"><h2>Transporteurs</h2><p class="hint">Libellé affiché pour chaque code « Transp » de la base affrètement.</p>
+    ${transps.length ? `<div class="set-grid">${transps.map(t => `<label>Code ${esc(t)}<input class="inp" data-transp="${esc(t)}" value="${esc(st.transporteurs[t] || '')}" placeholder="Nom du transporteur"></label>`).join('')}</div>` : '<div class="meta">Les codes apparaîtront après le premier collage de la base affrètement.</div>'}
+  </section>
+  <section class="card glass"><h2>Référentiels</h2>
+    <p class="hint">Fichier Article (UQ/PAL, marque, format), MLGT (emplacements picking) et magasins. Déposez <kbd>FichierArticle.XLSX</kbd>, <kbd>MLGT.XLSX</kbd> ou directement <kbd>Analyse_Activité_Préparation.xlsb</kbd>.</p>
+    <div class="kpis" style="margin-bottom:14px">
+      <div class="kpi"><div class="lab">Articles palettisés</div><div class="val">${n0(Object.keys(R.articles).length)}</div><div class="det">${S.ref ? 'importé le ' + esc(new Date(S.ref.importedAt || Date.now()).toLocaleDateString('fr-FR')) : 'référentiel par défaut du ' + fdate(R.date) + '/' + (R.date || '').slice(0, 4)}</div></div>
+      <div class="kpi"><div class="lab">Emplacements picking</div><div class="val">${n0(Object.keys(R.mlgt).length)}</div></div>
+      <div class="kpi"><div class="lab">Magasins</div><div class="val">${n0(Object.keys(R.magasins).length)}</div><div class="det">${Object.entries(R.magasins).map(([k, v]) => esc(k + ' ' + v)).join(' · ')}</div></div>
+    </div>
+    <div class="drop" data-drop="ref">${icon('upload')}<div><b>Déposez un référentiel</b> ou <button class="btn sm" data-pick="ref">choisir</button></div></div>
+    ${S.ref ? `<div class="row" style="margin-top:10px"><button class="btn sm" data-act="ref-reset">Revenir au référentiel par défaut</button></div>` : ''}
+  </section>
+  <section class="card glass"><h2>Sauvegarde</h2><p class="hint">Toutes les données sont stockées dans ce navigateur. Exportez une sauvegarde pour les transférer sur un autre poste.</p>
+    <div class="row">
+      <button class="btn" data-act="backup">${icon('dl')} Exporter une sauvegarde</button>
+      <button class="btn" data-pick="restore">${icon('upload')} Restaurer</button>
+      <button class="btn" data-act="export-week">${icon('dl')} Exporter la semaine (Excel)</button>
+      <div class="spacer"></div>
+      <button class="btn danger" data-act="wipe">${icon('trash')} Tout effacer</button>
+    </div>
+  </section>`;
+}
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.set) { const k = t.dataset.set; S.settings[k] = k === 'site' ? t.value : (num(t.value) || DEFAULT_SETTINGS[k]); save('settings'); render(); }
+  if (t.dataset.setlist) { S.settings[t.dataset.setlist] = t.value.split('\n').map(s => s.trim()).filter(Boolean); save('settings'); render(); }
+  if (t.dataset.transp) { const v = t.value.trim(); if (v) S.settings.transporteurs[t.dataset.transp] = v; else delete S.settings.transporteurs[t.dataset.transp]; save('settings'); }
+});
+let qT;
+document.addEventListener('input', e => {
+  const t = e.target; if (!t.dataset.q) return;
+  S.ui[t.dataset.q].q = t.value; clearTimeout(qT);
+  qT = setTimeout(() => { const pos = t.selectionStart; render(); const n = document.querySelector(`[data-q="${t.dataset.q}"]`); if (n) { n.focus(); n.setSelectionRange(pos, pos); } }, 250);
+});
+
+// ---------- Actions ----------
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act;
+  if (a === 'pf-reset') { S.ui.pf = {}; render(); }
+  if (a === 'aff-import') {
+    try {
+      const rows = parseAffret($('#affPaste').value);
+      if (!rows.length) return toast('Aucune ligne reconnue : vérifiez que la colonne « Livraison » et la date sont présentes.');
+      if ($('#affReplace').checked) { const ds = new Set(rows.map(r => r.date)); for (const [k, r] of Object.entries(S.affret.rows)) if (ds.has(r.date)) delete S.affret.rows[k]; }
+      let nw = 0; for (const r of rows) { if (!S.affret.rows[r.liv]) nw++; S.affret.rows[r.liv] = r; }
+      await save('affret');
+      const w = isoWeek(rows[0].date); S.ui.week = w;
+      toast(`<b>${rows.length} livraisons importées</b> (${nw} nouvelles) — ${uniq(rows.map(r => fdate(r.date))).join(', ')}`);
+      render();
+    } catch (err) { toast('Erreur : ' + esc(err.message)); }
+  }
+  if (a === 'aff-clear-week' && confirm('Supprimer les livraisons affrètement de la semaine affichée ?')) {
+    for (const [k, r] of Object.entries(S.affret.rows)) if (inWeek(r.date)) delete S.affret.rows[k];
+    await save('affret'); render();
+  }
+  if (a === 'rap-clear-week' && confirm('Supprimer les rapatriements de la semaine affichée ?')) {
+    for (const [k, l] of Object.entries(S.rapat.loads)) if (inWeek(l.date)) delete S.rapat.loads[k];
+    await save('rapat'); render();
+  }
+  if (a === 'sst-add') {
+    const d = $('#sDate').value; if (!d) return toast('Date obligatoire');
+    S.sst.rows.push({ id: 'm' + Date.now().toString(36), date: d, heure: $('#sHeure').value, sst: $('#sSst').value.trim(), ref: $('#sRef').value.trim(), pal: num($('#sPal').value), quai: $('#sQuai').value.trim(), comm: '', recu: false, src: 'saisie' });
+    await save('sst'); render();
+  }
+  if (a === 'ref-reset' && confirm('Revenir au référentiel par défaut ?')) { S.ref = null; await save('ref'); render(); }
+  if (a === 'backup') {
+    const blob = new Blob([JSON.stringify({ app: 'flux-hebdo', v: 1, at: new Date().toISOString(), settings: S.settings, ref: S.ref, prep: S.prep, affret: S.affret, rapat: S.rapat, sst: S.sst })], { type: 'application/json' });
+    download(blob, `flux-hebdo-sauvegarde-${today()}.json`);
+  }
+  if (a === 'export-week') exportWeek();
+  if (a === 'wipe' && confirm('Effacer toutes les données (VL06O, affrètement, rapatriements, SST) ?')) {
+    S.prep = null; S.affret = { rows: {} }; S.rapat = { loads: {} }; S.sst = { rows: [] };
+    await Promise.all(['prep', 'affret', 'rapat', 'sst'].map(save)); render();
+  }
+});
+document.addEventListener('click', e => { const p = e.target.closest('[data-prepview]'); if (p) { S.ui.prepView = p.dataset.prepview; render(); } });
+function download(blob, name) { const u = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 2000); }
+function exportWeek() {
+  if (!window.XLSX) return toast('SheetJS non chargé');
+  const { prep, aff, rap, sst } = weekData(); const wb = XLSX.utils.book_new();
+  const add = (name, rows) => XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows.length ? rows : [{ info: 'aucune donnée' }]), name);
+  add('Préparation', prep.map(l => ({ 'Date chargement': l.dc, Livraison: l.liv, Réceptionnaire: l.nom, Circuit: l.circuit, Article: l.art, Désignation: l.des, SGP: l.sgp, VP: l.vp, SWM: l.swm, 'UQ/PAL': l.uqpal, 'Pal SILO': l.palSilo, 'Hr SILO': +l.hrSilo.toFixed(4), 'Colis Picking': l.colisPick, 'Hr Pick': +l.hrPick.toFixed(4), 'Total Colis': l.pk, Picking: l.picking })));
+  add('Expéditions', aff.map(r => ({ 'Date Enl': r.date, Livraison: r.liv, Transporteur: transpName(r.transp), Destinataire: r.nom, Ville: r.ville, CP: r.cp, Palettes: r.pal, Blocs: r.blocs, 'Poids brut': r.poids, RDV: r.rdv, Prépa: PREP_LABEL[livIndex().get(r.liv)?.prep]?.[0] || 'Hors VL06O', Commentaire: r.comm })));
+  add('Rapatriements', rap.map(l => ({ Date: l.date, Entrepôt: l.entrepot, Type: KIND[l.kind], Sens: l.sens === 'in' ? 'Entrée' : 'Sortie', 'N° DT': l.ref, Remorque: l.remorque, Palettes: l.pal, 'Poids kg': Math.round(l.poids), Articles: l.nbArt })));
+  add('Réceptions SST', sst.map(r => ({ Date: r.date, Heure: r.heure, 'Sous-traitant': r.sst, Référence: r.ref, Palettes: r.pal, Quai: r.quai, Réceptionné: r.recu ? 'oui' : 'non' })));
+  XLSX.writeFile(wb, `Flux_${S.ui.week.y}_S${pad(S.ui.week.w)}.xlsx`);
+}
+
+// ---------- Import fichiers (drop + sélection) ----------
+let pickKind = null;
+document.addEventListener('click', e => { const p = e.target.closest('[data-pick]'); if (!p) return; pickKind = p.dataset.pick; const fi = $('#fileInput'); fi.value = ''; fi.accept = pickKind === 'restore' ? '.json' : '.xlsx,.xlsb,.xls,.xlsm,.csv'; fi.click(); });
+$('#fileInput').addEventListener('change', e => handleFiles(pickKind, [...e.target.files]));
+document.addEventListener('dragover', e => { const d = e.target.closest('[data-drop]'); if (d) { e.preventDefault(); d.classList.add('over'); } });
+document.addEventListener('dragleave', e => { const d = e.target.closest('[data-drop]'); if (d) d.classList.remove('over'); });
+document.addEventListener('drop', e => { const d = e.target.closest('[data-drop]'); if (!d) return; e.preventDefault(); d.classList.remove('over'); handleFiles(d.dataset.drop, [...e.dataTransfer.files]); });
+async function handleFiles(kind, files) {
+  if (!files.length) return;
+  try {
+    if (kind === 'restore') {
+      const j = JSON.parse(await files[0].text()); if (j.app !== 'flux-hebdo') throw new Error('Fichier de sauvegarde non reconnu');
+      Object.assign(S, { settings: Object.assign(structuredClone(DEFAULT_SETTINGS), j.settings), ref: j.ref || null, prep: j.prep || null, affret: j.affret || { rows: {} }, rapat: j.rapat || { loads: {} }, sst: j.sst || { rows: [] } });
+      await Promise.all(['settings', 'ref', 'prep', 'affret', 'rapat', 'sst'].map(save)); toast('Sauvegarde restaurée'); return render();
+    }
+    toast('Lecture en cours…', 1500);
+    if (kind === 'vl06o') {
+      const wb = await readWorkbook(files[0]); const rows = parseVL06O(wb);
+      S.prep = { file: files[0].name, importedAt: Date.now(), rows }; await save('prep');
+      S.ui.pf = {};
+      const ds = uniq(rows.map(r => r.dc)).filter(Boolean).sort(); if (ds.length && !weekData().prep.length) S.ui.week = isoWeek(ds[0]);
+      toast(`<b>VL06O importée</b> : ${n0(rows.length)} postes, ${n0(uniq(rows.map(r => r.liv)).length)} livraisons (${ds.map(fdate).join(', ')})`);
+    }
+    if (kind === 'rapat') {
+      let n = 0, pal = 0; const msgs = [];
+      for (const f of files) {
+        const wb = await readWorkbook(f); const res = parseRapatWorkbook(wb, f.name);
+        for (const [k, l] of Object.entries(S.rapat.loads)) if (l.file === f.name) delete S.rapat.loads[k];
+        for (const l of res.loads) S.rapat.loads[l.id] = l;
+        n += res.loads.length; pal += sum(res.loads, l => l.pal); msgs.push(`${esc(res.entrepot)} S${res.week ?? '?'} : ${res.loads.length} camion(s)`);
+        if (res.loads.length && files.length === 1) S.ui.week = isoWeek(res.loads[res.loads.length - 1].date);
+      }
+      await save('rapat'); toast(`<b>${n} chargements · ${n0(pal)} palettes</b><br>${msgs.join('<br>')}`, 5000);
+    }
+    if (kind === 'sst') {
+      let n = 0;
+      for (const f of files) { const wb = await readWorkbook(f); const rows = parseSST(wb, f.name); S.sst.rows = S.sst.rows.filter(r => !r.src.startsWith(f.name + ' / ')).concat(rows); n += rows.length; }
+      await save('sst'); toast(n ? `<b>${n} réceptions importées</b>` : 'Aucune ligne reconnue — envoyez le fichier pour adapter la lecture (colonne « Date » requise).', 5000);
+    }
+    if (kind === 'ref') {
+      const cur = S.ref ? structuredClone(S.ref) : structuredClone(window.REF_DEFAULT || { articles: {}, mlgt: {}, magasins: {} });
+      const got = [];
+      for (const f of files) { const r = parseRefs(await readWorkbook(f)); if (r.articles) { cur.articles = r.articles; got.push(`${n0(Object.keys(r.articles).length)} articles`); } if (r.mlgt) { cur.mlgt = r.mlgt; got.push(`${n0(Object.keys(r.mlgt).length)} emplacements`); } if (r.magasins) { cur.magasins = r.magasins; got.push('magasins'); } }
+      if (!got.length) throw new Error('Aucun référentiel reconnu (Fichier Article, MLGT ou Data_Magasins).');
+      cur.date = today(); cur.importedAt = Date.now(); S.ref = cur; await save('ref'); toast('Référentiel mis à jour : ' + got.join(', '));
+    }
+    render();
+  } catch (err) { console.error(err); toast('<b>Import impossible</b><br>' + esc(err.message || err), 6000); }
+}
+
+// ---------- Rendu ----------
+const TITLES = {
+  dash: ['Tableau de bord', 'Vision hebdomadaire des flux entrants, sortants et de la préparation'],
+  prep: ['Activité préparation', 'Avancement par date de chargement, livraison et code'],
+  out: ['Expéditions', 'Base affrètement : livraisons, palettes et blocs sol par transporteur'],
+  interco: ['Intercos', 'Plateforme 38, Compans, McCormick… livrés en tant que plateforme'],
+  rapat: ['Rapatriements', 'Flux avec les entrepôts externes'],
+  sst: ['Réceptions sous-traitants', 'Planning de réception'],
+  set: ['Paramètres', 'Cadences, référentiels et sauvegarde'],
+};
+function render() {
+  const { y, w } = S.ui.week; const mon = mondayOf(y, w);
+  $('#wLabel').innerHTML = `Semaine ${w}<small>${fdate(mon)} → ${fdate(addDays(mon, 6))}/${y}</small>`;
+  const [t, s] = TITLES[S.ui.tab]; $('#pageTitle').textContent = t; $('#pageSub').textContent = s;
+  document.title = `${t} · Flux Hebdo`;
+  renderNav();
+  const v = { dash: viewDash, prep: viewPrep, out: viewOut, interco: viewInterco, rapat: viewRapat, sst: viewSST, set: viewSettings }[S.ui.tab];
+  try { $('#view').innerHTML = v(); } catch (err) { console.error(err); $('#view').innerHTML = `<section class="card glass"><div class="empty"><b>Erreur d’affichage</b>${esc(err.message)}</div></section>`; }
+  const stored = { tab: S.ui.tab, prepView: S.ui.prepView };
+  try { localStorage.setItem('flux-ui', JSON.stringify(stored)); } catch (e) {}
+}
+
+// ---------- Démarrage ----------
+(async function init() {
+  try { const th = localStorage.getItem('flux-theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
+  try { const u = JSON.parse(localStorage.getItem('flux-ui') || '{}'); if (u.tab && TITLES[u.tab]) S.ui.tab = u.tab; if (u.prepView) S.ui.prepView = u.prepView; } catch (e) {}
+  S.ui.week = isoWeek(today());
+  const [settings, refd, prep, affret, rapat, sst] = await Promise.all(['settings', 'ref', 'prep', 'affret', 'rapat', 'sst'].map(k => DB.get(k)));
+  if (settings) S.settings = Object.assign(structuredClone(DEFAULT_SETTINGS), settings);
+  if (refd) S.ref = refd; if (prep) S.prep = prep; if (affret) S.affret = affret; if (rapat) S.rapat = rapat; if (sst) S.sst = sst;
+  render();
+  if (!window.XLSX) toast('⚠ SheetJS n’a pas pu être chargé : gardez le dossier lib/ à côté de index.html.', 8000);
+})();
+</script>
+</body>
+</html>
