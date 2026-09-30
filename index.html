@@ -16,66 +16,69 @@ window.REF_DEFAULT = {"date":"2026-08-24","articles":{"13316003":["VERP","PAL","
 <style>
 :root{
   color-scheme: light;
-  --bg-1:#dfe8f5; --bg-2:#f3eaf6; --bg-3:#e6f4ef;
-  --blob-1:#7fb2ff; --blob-2:#ffb38a; --blob-3:#8fe3c4; --blob-4:#c5b6ff;
-  --glass: rgba(255,255,255,.52);
-  --glass-strong: rgba(255,255,255,.72);
-  --glass-soft: rgba(255,255,255,.34);
-  --glass-border: rgba(255,255,255,.75);
+  --bg-1:#e6e9ee; --bg-2:#eceaef; --bg-3:#e7ecea;
+  --blob-1:#a9bfdc; --blob-2:#dcc3b2; --blob-3:#b5d3c7; --blob-4:#c6c1dc;
+  --glass: rgba(255,255,255,.58);
+  --glass-strong: rgba(255,255,255,.78);
+  --glass-soft: rgba(255,255,255,.4);
+  --glass-border: rgba(255,255,255,.7);
   --glass-edge: rgba(20,30,60,.08);
   --glass-shine: rgba(255,255,255,.9);
-  --shadow: 0 10px 40px rgba(30,45,90,.14), 0 1px 3px rgba(30,45,90,.08);
-  --text-1:#0e1422; --text-2:#46506a; --text-3:#6c7590;
-  --grid:#d6dae4; --axis:#a8afbf;
-  --accent:#2a78d6; --accent-ink:#fff;
-  --in:#2a78d6; --out:#eb6834; --silo:#4a3aa7; --pick:#1baf7a; --c4:#eda100; --c5:#e87ba4; --c6:#008300;
-  --good:#0ca30c; --good-ink:#006300; --warn:#fab219; --warn-ink:#8a5a00; --serious:#ec835a; --crit:#d03b3b; --crit-ink:#b12a2a;
+  --shadow: 0 8px 28px rgba(30,40,60,.09), 0 1px 2px rgba(30,40,60,.06);
+  --text-1:#1b2230; --text-2:#4b5366; --text-3:#6e7587;
+  --grid:#dcdfe6; --axis:#adb3c0;
+  --accent:#4a78b0; --accent-ink:#fff;
+  --in:#4a78b0; --out:#c9683f; --silo:#5e56a0; --pick:#289b7f; --c4:#cf9f3a; --c5:#c96f97; --c6:#3f8a45;
+  --good:#3f9a4a; --good-ink:#2f6e36; --warn:#d6a23c; --warn-ink:#80570f; --serious:#d08a66; --crit:#c24e4e; --crit-ink:#a33a3a;
   --chip:rgba(255,255,255,.55); --chip-on:#0e1422; --chip-on-ink:#fff;
   --input:rgba(255,255,255,.7);
-  --row-hover:rgba(42,120,214,.07);
-  --radius:22px;
+  --row-hover:rgba(74,120,176,.07);
+  --row-alt:rgba(30,40,60,.022);
+  --radius:20px;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme: dark;
-    --bg-1:#0b1020; --bg-2:#141026; --bg-3:#0b1a1a;
-    --blob-1:#1d4d9a; --blob-2:#8a3a1c; --blob-3:#0f6b4e; --blob-4:#3d2f8f;
-    --glass: rgba(28,34,52,.48);
-    --glass-strong: rgba(34,40,60,.72);
+    --bg-1:#151922; --bg-2:#181820; --bg-3:#141b1c;
+    --blob-1:#2a3f5e; --blob-2:#4d3a30; --blob-3:#264740; --blob-4:#353257;
+    --glass: rgba(30,34,46,.62);
+    --glass-strong: rgba(36,41,55,.82);
     --glass-soft: rgba(255,255,255,.05);
     --glass-border: rgba(255,255,255,.14);
     --glass-edge: rgba(0,0,0,.3);
     --glass-shine: rgba(255,255,255,.22);
     --shadow: 0 12px 44px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.4);
-    --text-1:#f3f5fa; --text-2:#b9c0d2; --text-3:#8a93a8;
+    --text-1:#e7eaf1; --text-2:#b3b9c8; --text-3:#8a91a3;
     --grid:#2e3446; --axis:#4a5266;
-    --accent:#3987e5;
-    --in:#3987e5; --out:#d95926; --silo:#9085e9; --pick:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300;
-    --good-ink:#3fcf3f; --warn-ink:#fab219; --crit-ink:#ff7b7b;
+    --accent:#5d8dca;
+    --in:#5d8dca; --out:#cc6c42; --silo:#8c85cf; --pick:#26a083; --c4:#b58c2c; --c5:#c9698f; --c6:#4c9453;
+    --good:#4fae59; --warn:#d0a042; --crit:#d06060; --good-ink:#7cc884; --warn-ink:#dcb55e; --crit-ink:#e88a8a;
     --chip:rgba(255,255,255,.08); --chip-on:#f3f5fa; --chip-on-ink:#0e1422;
     --input:rgba(10,14,26,.55);
-    --row-hover:rgba(57,135,229,.12);
+    --row-hover:rgba(93,141,202,.12);
+    --row-alt:rgba(255,255,255,.025);
   }
 }
 :root[data-theme="dark"]{
     color-scheme: dark;
-    --bg-1:#0b1020; --bg-2:#141026; --bg-3:#0b1a1a;
-    --blob-1:#1d4d9a; --blob-2:#8a3a1c; --blob-3:#0f6b4e; --blob-4:#3d2f8f;
-    --glass: rgba(28,34,52,.48);
-    --glass-strong: rgba(34,40,60,.72);
+    --bg-1:#151922; --bg-2:#181820; --bg-3:#141b1c;
+    --blob-1:#2a3f5e; --blob-2:#4d3a30; --blob-3:#264740; --blob-4:#353257;
+    --glass: rgba(30,34,46,.62);
+    --glass-strong: rgba(36,41,55,.82);
     --glass-soft: rgba(255,255,255,.05);
     --glass-border: rgba(255,255,255,.14);
     --glass-edge: rgba(0,0,0,.3);
     --glass-shine: rgba(255,255,255,.22);
     --shadow: 0 12px 44px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.4);
-    --text-1:#f3f5fa; --text-2:#b9c0d2; --text-3:#8a93a8;
+    --text-1:#e7eaf1; --text-2:#b3b9c8; --text-3:#8a91a3;
     --grid:#2e3446; --axis:#4a5266;
-    --accent:#3987e5;
-    --in:#3987e5; --out:#d95926; --silo:#9085e9; --pick:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300;
-    --good-ink:#3fcf3f; --warn-ink:#fab219; --crit-ink:#ff7b7b;
+    --accent:#5d8dca;
+    --in:#5d8dca; --out:#cc6c42; --silo:#8c85cf; --pick:#26a083; --c4:#b58c2c; --c5:#c9698f; --c6:#4c9453;
+    --good:#4fae59; --warn:#d0a042; --crit:#d06060; --good-ink:#7cc884; --warn-ink:#dcb55e; --crit-ink:#e88a8a;
     --chip:rgba(255,255,255,.08); --chip-on:#f3f5fa; --chip-on-ink:#0e1422;
     --input:rgba(10,14,26,.55);
-    --row-hover:rgba(57,135,229,.12);
+    --row-hover:rgba(93,141,202,.12);
+    --row-alt:rgba(255,255,255,.025);
 }
 *{box-sizing:border-box}
 svg[aria-hidden="true"]{width:18px;height:18px;flex:none}
@@ -90,7 +93,7 @@ body{
   overflow-x:hidden;
 }
 .blobs{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-.blobs i{position:absolute;border-radius:50%;filter:blur(80px);opacity:.55}
+.blobs i{position:absolute;border-radius:50%;filter:blur(90px);opacity:.32}
 .blobs i:nth-child(1){width:46vw;height:46vw;left:-10vw;top:-12vw;background:var(--blob-1)}
 .blobs i:nth-child(2){width:38vw;height:38vw;right:-8vw;top:8vh;background:var(--blob-2);opacity:.45}
 .blobs i:nth-child(3){width:42vw;height:42vw;left:25vw;bottom:-18vw;background:var(--blob-3);opacity:.45}
@@ -99,16 +102,16 @@ body{
 .glass{
   position:relative;
   background:var(--glass);
-  -webkit-backdrop-filter:blur(26px) saturate(170%);
-  backdrop-filter:blur(26px) saturate(170%);
+  -webkit-backdrop-filter:blur(22px) saturate(120%);
+  backdrop-filter:blur(22px) saturate(120%);
   border:1px solid var(--glass-border);
   border-radius:var(--radius);
   box-shadow:var(--shadow), inset 0 1px 0 var(--glass-shine), inset 0 -1px 0 var(--glass-edge);
 }
 .glass::before{
   content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
-  background:linear-gradient(160deg,rgba(255,255,255,.35),rgba(255,255,255,0) 38%);
-  opacity:.55;
+  background:linear-gradient(160deg,rgba(255,255,255,.28),rgba(255,255,255,0) 38%);
+  opacity:.4;
 }
 :root[data-theme="dark"] .glass::before{opacity:.12}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .glass::before{opacity:.12}}
@@ -133,6 +136,14 @@ main{min-width:0;display:flex;flex-direction:column;gap:18px}
 #view > *{min-width:0}
 header.top{display:flex;align-items:center;gap:14px;padding:14px 18px;flex-wrap:wrap}
 header.top h1{font-size:20px;margin:0;font-weight:700;letter-spacing:-.01em}
+.sources{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.src{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600;color:var(--text-2);background:var(--chip);border:1px solid var(--glass-border)}
+.src:hover{color:var(--text-1)} .src:focus-visible{outline:2px solid var(--accent)}
+.src i{width:7px;height:7px;border-radius:50%;background:var(--text-3);opacity:.5}
+.src.ok i{background:var(--good);opacity:1} .src.old i{background:var(--warn);opacity:1}
+.src small{font-weight:500;color:var(--text-3)}
+.navb{margin-left:auto;font-style:normal;font-size:11px;font-weight:700;min-width:20px;height:20px;padding:0 6px;border-radius:999px;display:inline-grid;place-items:center;color:#fff}
+.navb.crit{background:var(--crit)} .navb.warn{background:var(--warn);color:#3a2a00}
 header.top .sub{color:var(--text-3);font-size:13px}
 .spacer{flex:1}
 .weekpick{display:flex;align-items:center;gap:6px;background:var(--glass-soft);border:1px solid var(--glass-border);border-radius:999px;padding:4px}
@@ -197,6 +208,7 @@ table.t{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;font
 .t th{position:sticky;top:0;z-index:2;background:var(--glass-strong);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);text-align:left;font-weight:600;font-size:12px;color:var(--text-2);padding:9px 10px;border-bottom:1px solid var(--glass-border);white-space:nowrap;cursor:pointer;user-select:none}
 .t th.num,.t td.num{text-align:right}
 .t td{padding:7px 10px;border-bottom:1px solid color-mix(in srgb,var(--grid) 60%,transparent);white-space:nowrap}
+.t tbody tr:nth-child(even):not(.detail):not(.sub):not(.tot) td{background:var(--row-alt)}
 .t tbody tr:hover td{background:var(--row-hover)}
 .t tr.sub td{font-weight:600;background:color-mix(in srgb,var(--glass-strong) 60%,transparent)}
 .t tr.tot td{font-weight:700;background:var(--glass-strong);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);position:sticky;bottom:0;z-index:1;border-top:1px solid var(--glass-border)}
@@ -209,9 +221,9 @@ table.t{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;font
 
 .badge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600;border:1px solid transparent;white-space:nowrap}
 .badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
-.b-good{color:var(--good-ink);background:color-mix(in srgb,var(--good) 14%,transparent)}
+.b-good{color:var(--good-ink);background:color-mix(in srgb,var(--good) 12%,transparent)}
 .b-warn{color:var(--warn-ink);background:color-mix(in srgb,var(--warn) 18%,transparent)}
-.b-crit{color:var(--crit-ink);background:color-mix(in srgb,var(--crit) 13%,transparent)}
+.b-crit{color:var(--crit-ink);background:color-mix(in srgb,var(--crit) 11%,transparent)}
 .b-neutral{color:var(--text-2);background:var(--chip)}
 .b-info{color:var(--accent);background:color-mix(in srgb,var(--accent) 13%,transparent)}
 .b-nodot::before{display:none}
@@ -308,6 +320,7 @@ i.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:7
 .reel-line b{font-size:15px}
 .reel-line b.ok{color:var(--good-ink)} .reel-line b.ko{color:var(--crit-ink)}
 .reel-line small{grid-column:2;font-size:11.5px;color:var(--text-3)}
+.reel-line small strong.late{color:var(--crit-ink);font-weight:700}
 .plan{display:flex;flex-direction:column;gap:16px}
 .timeline{margin:4px 0 12px;padding:8px 10px 4px;border-radius:14px;background:var(--glass-strong);border:1px solid var(--glass-border)}
 .timeline svg{display:block;width:100%;height:auto;overflow:visible}
@@ -360,6 +373,7 @@ body.modal-open{overflow:hidden}
       <div>
         <h1 id="pageTitle">Tableau de bord</h1>
         <div class="sub" id="pageSub"></div>
+        <div class="sources" id="sources"></div>
       </div>
       <div class="spacer"></div>
       <div class="weekpick" role="group" aria-label="Semaine">
@@ -387,9 +401,10 @@ body.modal-open{overflow:hidden}
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.15.0';
+const APP_VERSION = '1.16.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.16.0', '30/09/2026', 'Couleurs plus sobres (palette atténuée validée), état des sources dans l’en-tête, pastilles dans le menu, points d’attention remontés, tableaux zébrés ; corrections : réglage à 0, cadences nulles.'],
   ['1.15.0', '30/09/2026', 'Planning : frise horaire par jour (équipes, créneaux, fins estimées), traits de capacité visibles sur les barres, détail des livraisons par jour trié par créneau, saisie manuelle de l’heure de chargement, liste des livraisons sans créneau ; équipe SILO de nuit 20h–3h30.'],
   ['1.14.0', '30/09/2026', 'Créneaux fixes par client : Plateforme 38 6h–8h, Compans 6h–15h (prioritaires sur la LIKP, réglables).'],
   ['1.13.1', '30/09/2026', 'Sans heure LIKP : échéance estimée le jour même avant 12h (au lieu de la veille au soir, trop pessimiste) ; heure par défaut réglable.'],
@@ -556,9 +571,8 @@ function normMap(obj) {
 const CIRCUITS = { 1: 'Entrepot', 2: 'GMS', 3: 'Export', 4: 'Allotie', 6: 'MDD', 9: 'Interco' };
 function cadencePick(circuit) {
   const st = S.settings;
-  if (circuit === 'Export') return st.cadExport;
-  if (circuit === 'MDD') return st.cadMdd;
-  return st.cadEntrepot;
+  const v = circuit === 'Export' ? st.cadExport : circuit === 'MDD' ? st.cadMdd : st.cadEntrepot;
+  return Math.max(1, num(v));
 }
 let prepCache = null, prepCacheKey = '';
 function prepLines() {
@@ -583,7 +597,7 @@ function prepLines() {
       lieu: R.magasins[r.mag] || (r.mag ? 'Mag. ' + r.mag : ''),
       nbPick: colisPick > 0 ? 1 : 0,
       hrPick: colisPick / cadencePick(circuit),
-      hrSilo: palSilo / st.cadSilo,
+      hrSilo: palSilo / Math.max(1, num(st.cadSilo)),
       picking: colisPick > 0 ? (MM.get(artNorm(r.art)) || '') : '',
     });
   });
@@ -984,9 +998,30 @@ const TABS = [
   ['sst', 'Réceptions SST', 'sst'],
   ['set', 'Paramètres', 'set'],
 ];
+// Fraîcheur des sources (vert < 12 h, orange plus ancien, gris absent) — clic = onglet concerné
+function renderSources() {
+  const age = ts => ts ? (Date.now() - ts) / H : null;
+  const src = [
+    ['VL06O', snapTs(), 'prep', S.prep ? `extraite ${fdt(snapTs())}` : 'non importée'],
+    ['LIKP', S.likp?.importedAt, 'prep', S.likp ? `${n0(Object.keys(S.likp.map).length)} créneaux` : 'non collée'],
+    ['Affrètement', S.affret.importedAt || (Object.keys(S.affret.rows).length ? 1 : null), 'out', Object.keys(S.affret.rows).length ? `${n0(Object.keys(S.affret.rows).length)} livraisons` : 'non collé'],
+    ['Rapatriements', Object.keys(S.rapat.loads).length ? 1 : null, 'rapat', `${n0(Object.keys(S.rapat.loads).length)} camions`],
+    ['SST', S.sst.rows.length ? 1 : null, 'sst', `${n0(S.sst.rows.length)} RDV`],
+  ];
+  $('#sources').innerHTML = src.map(([n, ts, tab, det]) => { const a = age(ts); const cls = ts == null ? 'off' : ts > 1 && a > 12 ? 'old' : 'ok';
+    return `<button class="src ${cls}" data-tab="${tab}" title="${esc(det)}"><i></i>${n}${ts > 1 ? `<small>${esc(ts === snapTs() ? new Date(ts).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }))}</small>` : ''}</button>`; }).join('');
+}
+$('#sources').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) { S.ui.tab = b.dataset.tab; S.ui.modal = null; render(); } });
+// pastilles du menu : livraisons en retard prévu, RDV SST passés non pointés
+function navBadges() {
+  const out = {};
+  const P = projection(); if (P) { const n = P.items.filter(i => !i.okP || !i.okS).length; if (n) out.prep = [n, 'crit', `${n} livraison(s) en retard prévu`]; }
+  const t = today(); const nb = S.sst.rows.filter(r => !r.recu && r.date <= t && inWeek(r.date)).length; if (nb) out.sst = [nb, 'warn', `${nb} RDV passé(s) non pointé(s)`];
+  return out;
+}
 function renderNav() {
   $('#nav').innerHTML = `<div class="brand"><div class="logo">FX</div><div><b>Flux Hebdo</b><small>Dépôt ${esc(S.settings.site)}</small></div></div>` +
-    TABS.map(([k, l, i], n) => (n === 6 ? '<div class="sep"></div>' : '') + `<button class="${S.ui.tab === k ? 'on' : ''}" data-tab="${k}" ${S.ui.tab === k ? 'aria-current="page"' : ''}>${icon(i)}<span>${l}</span></button>`).join('') +
+    (() => { const nb = navBadges(); return TABS.map(([k, l, i], n) => (n === 6 ? '<div class="sep"></div>' : '') + `<button class="${S.ui.tab === k ? 'on' : ''}" data-tab="${k}" ${S.ui.tab === k ? 'aria-current="page"' : ''}>${icon(i)}<span>${l}</span>${nb[k] ? `<em class="navb ${nb[k][1]}" title="${esc(nb[k][2])}">${nb[k][0]}</em>` : ''}</button>`).join(''); })() +
     `<div class="foot">${S.prep ? `VL06O : ${esc(new Date(S.prep.importedAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }))}` : 'VL06O : non importé'}<br>Données locales au navigateur<br><button class="linkbtn" data-detail="version">v${APP_VERSION}</button> · Développé par ${APP_AUTHOR}</div>`;
 }
 $('#nav').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) { S.ui.tab = b.dataset.tab; S.ui.modal = null; render(); window.scrollTo({ top: 0 }); } });
@@ -1079,6 +1114,7 @@ function viewDash() {
     </div>
     ${reelTiles()}
   </section>
+  ${alerts ? `<section class="card glass"><h2>Points d’attention</h2><p class="hint">Contrôles croisés affrètement × VL06O.</p><div class="alerts">${alerts}</div></section>` : ''}
   <div class="grid g2">
     <section class="card glass clickcard" data-detail="flux" role="button" tabindex="0"><span class="expand">Agrandir ⤢</span><h2>Flux palettes par jour</h2><p class="hint">Entrées = rapatriements + réceptions SST · Sorties = expéditions affrétées + transferts vers externes. Pointillés : capacité quai (${n0(S.settings.capaInWeek)} pal/sem. en entrée, ${n0(S.settings.capaOutWeek)} en sortie, sur ${nbWorkDays()} jours).</p>
       ${barChart({ cats, series: [{ key: 'palIn', label: 'Entrées', color: cssVar('--in') }, { key: 'palOutAll', label: 'Sorties', color: cssVar('--out') }], data: pd, unit: ' pal', ref: [{ value: num(S.settings.capaInWeek) / nbWorkDays(), label: `cap. entrées ${n0(num(S.settings.capaInWeek) / nbWorkDays())}`, legend: 'Capacité entrées / jour', color: cssVar('--in') }, { value: num(S.settings.capaOutWeek) / nbWorkDays(), label: `cap. sorties ${n0(num(S.settings.capaOutWeek) / nbWorkDays())}`, legend: 'Capacité sorties / jour', color: cssVar('--out') }] })}
@@ -1090,9 +1126,7 @@ function viewDash() {
   <section class="card glass"><h2>Semaine jour par jour</h2><p class="hint">Vue consolidée de tous les flux du dépôt — cliquez un chiffre ou une ligne pour le détail.</p>
     ${dayMatrix(pd)}
   </section>
-  <section class="card glass"><h2>Points d’attention</h2><p class="hint">Contrôles croisés affrètement × VL06O.</p>
-    <div class="alerts">${alerts || `<div class="alert info">${icon('info')}<div>Rien à signaler pour cette semaine.</div></div>`}</div>
-  </section>`;
+`;
 }
 const MATRIX_DETAIL = { palRap: 'rapin', camRap: 'rapin', palSst: 'sst', camSst: 'sst', palIntercoBack: 'sst', palIn: 'in', livOut: 'out', livNA: 'out', palOut: 'out', palOutAll: 'flux', capIn: 'flux', capOut: 'flux', tIn: 'flux', tOut: 'flux', blocs: 'blocs', palInterco: 'interco', poids: 'poids', palExt: 'ext', livPrep: 'livprep', codes: 'livprep', hrs: 'charge', hrsFait: 'avanc', hrSilo: 'charge', capaS: 'charge', tauxS: 'charge', hrPick: 'charge', capa: 'charge', taux: 'charge', prepNeed: 'charge', dureeEq: 'charge' };
 const MATRIX_WEEK = { hrSilo: 'prepxl', capaS: 'prepxl', tauxS: 'prepxl', palIn: 'flux', palOut: 'flux', palOutAll: 'flux', capIn: 'flux', capOut: 'flux', tIn: 'flux', tOut: 'flux', hrs: 'prepxl', hrPick: 'prepxl', capa: 'prepxl', taux: 'prepxl', prepNeed: 'prepxl', dureeEq: 'prepxl' };
@@ -1675,7 +1709,7 @@ function viewSettings() {
 }
 document.addEventListener('change', e => {
   const t = e.target;
-  if (t.dataset.set) { const k = t.dataset.set; S.settings[k] = (k === 'site' || k === 'siteExt') ? t.value : (num(t.value) || DEFAULT_SETTINGS[k]); save('settings'); render(); }
+  if (t.dataset.set) { const k = t.dataset.set; S.settings[k] = (k === 'site' || k === 'siteExt') ? t.value : t.value.trim() === '' ? DEFAULT_SETTINGS[k] : num(t.value); save('settings'); render(); }   // 0 autorisé
   if (t.dataset.setlist) { S.settings[t.dataset.setlist] = t.value.split('\n').map(s => s.trim()).filter(Boolean); save('settings'); render(); }
   if (t.dataset.likpset) { const [liv, D] = t.dataset.likpset.split('|'); S.likp = S.likp || { importedAt: Date.now(), map: {} };
     if (t.value) S.likp.map[liv] = { d: D, t: t.value, route: (S.likp.map[liv] || {}).route || '', manual: true }; else delete S.likp.map[liv];
@@ -1707,7 +1741,7 @@ document.addEventListener('click', async e => {
       const rows = parseAffret($('#affPaste').value);
       if (!rows.length) return toast('Aucune ligne reconnue : vérifiez que la colonne « Livraison » et la date sont présentes.');
       if ($('#affReplace').checked) { const ds = new Set(rows.map(r => r.date)); for (const [k, r] of Object.entries(S.affret.rows)) if (ds.has(r.date)) delete S.affret.rows[k]; }
-      let nw = 0; S.affret.tnames = S.affret.tnames || {};
+      let nw = 0; S.affret.tnames = S.affret.tnames || {}; S.affret.importedAt = Date.now();
       for (const r of rows) { if (!S.affret.rows[r.liv]) nw++; S.affret.rows[r.liv] = r; if (r.transp && r.transpNom) S.affret.tnames[r.transp] = r.transpNom; }
       await save('affret');
       const w = isoWeek(rows[0].date); S.ui.week = w;
@@ -2224,8 +2258,8 @@ function reelTiles() {
   const eff = P.R.p ? `rendement réel picking ${pct(P.R.p)}${P.R.s ? ` · SILO ${pct(P.R.s)}` : ''} (${P.R.n} mesure${P.R.n > 1 ? 's' : ''})` : 'rendement réel : disponible après 2 actualisations de la VL06O';
   return `<div class="group-title" style="margin-top:18px">Réel — VL06O du ${esc(fdt(P.at))}</div>
     <div class="kpis">${rows.map(r => `<div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Chargement ${fdateL(r.D)}</div>
-      <div class="reel-line"><span>Picking</span>${r.okP ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumP)} h à faire / ${n1(r.capP)} h dispo · taux ${isFinite(r.tP) ? pct(r.tP) : '∞'}${r.nLateP ? ` · <b style="color:var(--crit-ink)">${r.nLateP} livr. en retard</b>` : ''}</small></div>
-      <div class="reel-line"><span>SILO</span>${r.okS ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumS)} h à faire / ${n1(r.capS)} h dispo · taux ${isFinite(r.tS) ? pct(r.tS) : '∞'}${r.nLateS ? ` · <b style="color:var(--crit-ink)">${r.nLateS} livr. en retard</b>` : ''}</small></div>
+      <div class="reel-line"><span>Picking</span>${r.okP ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumP)} h à faire / ${n1(r.capP)} h dispo · taux ${isFinite(r.tP) ? pct(r.tP) : '∞'}${r.nLateP ? ` · <strong class="late">${r.nLateP} livr. en retard</strong>` : ''}</small></div>
+      <div class="reel-line"><span>SILO</span>${r.okS ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumS)} h à faire / ${n1(r.capS)} h dispo · taux ${isFinite(r.tS) ? pct(r.tS) : '∞'}${r.nLateS ? ` · <strong class="late">${r.nLateS} livr. en retard</strong>` : ''}</small></div>
       <div class="det">${r.withT ? `${r.withT}/${r.nLiv} livr. avec créneau · ` : ''}dernière échéance ${esc(fdt(r.dl))}${r.finP ? ` · fin picking estimée ${esc(fdt(r.finP))}` : ''}</div></div>`).join('')}
       <div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Rendement réel</div><div class="val">${P.R.p ? pct(P.R.p) : '–'}</div><div class="det">${eff}${P.R.colisH ? ` · ${n0(P.R.colisH)} colis/h réels (cadence ${S.settings.cadEntrepot})` : ''}</div></div>
     </div>`;
@@ -2602,6 +2636,7 @@ function render() {
   const [t, s] = TITLES[S.ui.tab]; $('#pageTitle').textContent = t; $('#pageSub').textContent = s;
   document.title = `${t} · Flux Hebdo`;
   renderNav();
+  renderSources();
   $('#footVer').textContent = 'v' + APP_VERSION;
   const v = { dash: viewDash, prep: viewPrep, out: viewOut, interco: viewInterco, rapat: viewRapat, sst: viewSST, set: viewSettings }[S.ui.tab];
   try { $('#view').innerHTML = v(); } catch (err) { console.error(err); $('#view').innerHTML = `<section class="card glass"><div class="empty"><b>Erreur d’affichage</b>${esc(err.message)}</div></section>`; }
