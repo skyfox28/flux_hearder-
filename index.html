@@ -420,7 +420,7 @@ body.modal-open{overflow:hidden}
 .sp-info{position:relative;width:min(440px,100%);padding:16px 18px 12px;border-radius:20px;background:var(--glass-strong);border:1px solid var(--glass-border);box-shadow:var(--shadow);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);animation:spUp .8s .25s cubic-bezier(.2,.8,.2,1) both}
 @keyframes spUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 .sp-brand{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.sp-logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--accent),var(--silo));box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 35%,transparent)}
+.sp-logo{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--accent),var(--silo));box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 35%,transparent)}
 .sp-brand b{display:block;font-size:19px;letter-spacing:-.01em}.sp-brand small{color:var(--text-3);font-size:12.5px}
 .sp-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px}
 .sp-steps li{display:flex;align-items:center;gap:9px;color:var(--text-3)}
@@ -439,7 +439,7 @@ body.modal-open{overflow:hidden}
 .sp-foot b{color:var(--text-2)}
 .sp-login{margin-top:4px;padding-top:12px;border-top:1px solid var(--grid)}
 .sp-lhead{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13.5px}
-.sp-soon{margin-left:auto;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;color:var(--c5);background:color-mix(in srgb,var(--c5) 14%,transparent);border:1px solid color-mix(in srgb,var(--c5) 35%,transparent)}
+.sp-soon{position:absolute;top:-11px;right:16px;white-space:nowrap;backdrop-filter:blur(8px);font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;color:var(--c5);background:linear-gradient(color-mix(in srgb,var(--c5) 14%,transparent),color-mix(in srgb,var(--c5) 14%,transparent)),var(--bg-1);border:1px solid color-mix(in srgb,var(--c5) 35%,transparent)}
 .sp-lrow{display:flex;gap:8px}
 .sp-lrow .inp{flex:1;min-width:0}
 .sp-lerr{min-height:16px;margin-top:6px;font-size:12px;color:var(--crit-ink)}
@@ -460,12 +460,12 @@ body.modal-open{overflow:hidden}
 <div id="splash" class="splash" role="dialog" aria-modal="true" aria-label="Ouverture de Flux Hebdo">
   <div class="sp-stage" aria-hidden="true"><div class="sp-cam" id="spCam"><div class="sp-world" id="spWorld"></div></div></div>
   <div class="sp-info">
-    <div class="sp-brand"><span class="sp-logo">FX</span><div><b>Flux Hebdo</b><small>Dépôt Monteux3 · entrées, préparation, expéditions</small></div></div>
+    <div class="sp-brand"><span class="sp-logo">FX</span><div><b>Flux Hebdo</b><small>Dépôt Monteux3 · entrées, préparation, expéditions</small></div><span class="sp-soon">Coming soon · en développement</span></div>
     <ol class="sp-steps" id="spSteps"></ol>
     <div class="sp-act" id="spAct"></div>
     <div class="sp-bar"><span id="spBar"></span></div>
     <form class="sp-login" id="spLogin" autocomplete="off">
-      <div class="sp-lhead"><b>Connexion</b><span class="sp-soon">Coming soon · comptes utilisateurs</span></div>
+      <div class="sp-lhead"><b>Connexion</b></div>
       <div class="sp-lrow">
         <input class="inp" id="spUser" placeholder="Identifiant" autocomplete="username" aria-label="Identifiant">
         <input class="inp" id="spPass" type="password" placeholder="Mot de passe" autocomplete="current-password" aria-label="Mot de passe">
@@ -526,7 +526,7 @@ const SPLASH = (() => {
   [[70, 225], [96, 225], [70, 225, 20], [96, 225, 20], [70, 251], [96, 251]].forEach(([x, y, z], i) => pallet(W, x, y, z || 0, COL[(i + 2) % COL.length]));
   // panneau « COMING SOON » au bord du parking
   { const bb = G(W, 650, 290, '', 'width:150px;height:6px'); B(bb, 20, 0, 0, 5, 5, 34, 'sp-mast'); B(bb, 125, 0, 0, 5, 5, 34, 'sp-mast');
-    const pn = div(bb, 'sp-billboard'); pn.style.transform = 'translateZ(30px) translateY(-41px) rotateX(-90deg)'; pn.innerHTML = '<div>COMING SOON<small>COMPTES UTILISATEURS</small></div>'; }
+    const pn = div(bb, 'sp-billboard'); pn.style.transform = 'translateZ(30px) translateY(-41px) rotateX(-90deg)'; pn.innerHTML = '<div>COMING SOON<small>EN DÉVELOPPEMENT</small></div>'; }
   // arbres
   for (const [x, y] of [[-40, 60], [-30, 150], [650, 40], [660, 150], [-60, 280]]) { B(W, x + 8, y + 8, 0, 6, 6, 14, 'sp-trunk'); B(W, x, y, 14, 22, 22, 26, 'sp-tree'); }
   // échelle (téléphone)
@@ -612,9 +612,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.21.0';
+const APP_VERSION = '1.21.1';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.21.1', '30/09/2026', 'Mention « Coming soon · en développement » portée par l’app elle-même (panneau de la scène et en-tête de l’écran d’ouverture).'],
   ['1.21.0', '30/09/2026', 'Écran d’ouverture = étape de connexion (compte de test temporaire) : il ne se ferme plus tout seul ; mention « Coming soon » (comptes utilisateurs) dans l’animation.'],
   ['1.20.0', '30/09/2026', 'Écran d’ouverture animé en 3D (entrepôt, quais, camions en manœuvre, chariot, palettes) qui suit les étapes du démarrage : données locales, calcul, sauvegarde partagée (reconnexion du dossier en un clic).'],
   ['1.19.0', '30/09/2026', 'Sauvegarde partagée automatique dans le dossier WeDeliver « Flux_hebdo\\Sauvegarde » : chargement de la plus récente à l’ouverture, copie horodatée après chaque modification et à la fermeture, la plus récente l’emporte entre utilisateurs.'],

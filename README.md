@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.21.0** · Développé par **Galaad Poivey**
+Version **1.21.1** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre `index.html` dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -212,7 +212,7 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
 2. **Calcul des flux de la semaine.**
 3. **Sauvegarde partagée** : lecture du dossier et chargement de la sauvegarde la plus récente. Si le navigateur demande de reconfirmer l'accès au dossier, l'écran propose « Charger la dernière sauvegarde » (il faut un clic) ou « Continuer sans ».
 
-**Connexion (temporaire, le temps des tests) :** l'écran ne se ferme pas tout seul. On entre dans l'app en se connectant avec l'identifiant `admin` et le mot de passe de test (communiqué à part). Le nom de l'utilisateur connecté s'affiche en bas du menu, avec un lien « déconnexion ». Il s'agit d'un simple contrôle dans le navigateur, **pas d'une vraie sécurité** : les données restent lisibles par qui ouvre le fichier. Un panneau et un badge « Coming soon · comptes utilisateurs » annoncent les vrais comptes à venir.
+**Connexion (temporaire, le temps des tests) :** l'écran ne se ferme pas tout seul. On entre dans l'app en se connectant avec l'identifiant `admin` et le mot de passe de test (communiqué à part). Le nom de l'utilisateur connecté s'affiche en bas du menu, avec un lien « déconnexion ». Il s'agit d'un simple contrôle dans le navigateur, **pas d'une vraie sécurité** : les données restent lisibles par qui ouvre le fichier. Un panneau dans la scène et un badge à côté du nom de l'app indiquent « Coming soon · en développement » : c'est l'app elle-même qui est en cours de développement.
 
 Paramètres → À propos → « Animer l'écran d'ouverture » : décoché, la scène reste figée, mais la connexion reste demandée. L'animation est aussi réduite si le système demande de limiter les animations.
 
