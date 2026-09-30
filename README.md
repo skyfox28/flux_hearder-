@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.12.0** · Développé par **Galaad Poivey**
+Version **1.13.1** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre `index.html` dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -162,4 +162,16 @@ L'heure LIKP est le **début d'un créneau de chargement de 2 h** (8h → 8h–1
 - le reste à faire est ordonné par échéance, livraison par livraison ;
 - l'app donne pour chacune sa fin de préparation estimée et son éventuel retard, dans le tableau « Livraisons en retard prévu ».
 
-La durée du créneau, le calage (début ou fin du créneau) et la marge se règlent dans Paramètres. Sans heure LIKP, la règle du jour s'applique (veille ou jour même).
+La durée du créneau, le calage (début ou fin du créneau) et la marge se règlent dans Paramètres. Sans heure LIKP, l'échéance est **estimée le jour même avant 12h00**. L'heure et la règle se règlent dans Paramètres : jour même avant une heure, veille au soir ou fin de journée.
+
+## Planning de chargement (onglet Préparation)
+
+C'est la vue par défaut de l'onglet Préparation. Elle se lit **jour par jour**.
+
+- **En-tête du jour :** volume, avancement, verdict picking et SILO (passe / ne passe pas, marge ou manque) et nombre de livraisons en retard.
+- **Une ligne par créneau de chargement LIKP** (6h–8h, 8h–10h… puis « Sans créneau LIKP ») :
+  - livraisons prêtes, palettes SILO et colis de picking (reste compris) ;
+  - reste à faire SILO et picking, échéance de préparation et fin estimée ;
+  - statut : ✓ tout est prêt, ✓ passe (avec la marge) ou ✗ en retard (avec le nombre de livraisons et le retard maximal).
+- **Un clic sur un créneau** déplie ses livraisons : reste à faire, fin estimée, statut prépa / OT et verdict.
+- Les filtres de l'onglet (date, circuit, statuts, recherche) s'appliquent.
