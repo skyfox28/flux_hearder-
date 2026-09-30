@@ -385,9 +385,10 @@ body.modal-open{overflow:hidden}
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.13.1';
+const APP_VERSION = '1.14.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.14.0', '30/09/2026', 'Créneaux fixes par client : Plateforme 38 6h–8h, Compans 6h–15h (prioritaires sur la LIKP, réglables).'],
   ['1.13.1', '30/09/2026', 'Sans heure LIKP : échéance estimée le jour même avant 12h (au lieu de la veille au soir, trop pessimiste) ; heure par défaut réglable.'],
   ['1.13.0', '30/09/2026', 'Préparation : vue « Planning de chargement » par jour et créneau (passe / en retard) ; correction de l’affichage des traits de capacité.'],
   ['1.12.0', '30/09/2026', 'Créneaux de chargement LIKP (collage ou Excel, 2 h par défaut) : projection réelle livraison par livraison, livraisons en retard prévu.'],
@@ -516,6 +517,8 @@ const DEFAULT_SETTINGS = {
   likpRef: 0,          // échéance calée sur 0 = début du créneau, 1 = fin du créneau
   prepDelai: 0,        // sans heure LIKP : 0 = le jour même avant l'heure par défaut, 1 = la veille au soir, 2 = fin du jour même
   likpDefaut: '12:00', // heure de chargement estimée quand la LIKP ne donne pas l'heure
+  // créneaux fixes par client (prioritaires sur la LIKP) ; ref : 0 = prêt au début du créneau, 1 = à la fin
+  creneauxClients: [{ key: 'PLATEFORME 38', debut: '06:00', fin: '08:00', ref: 0 }, { key: 'COMPANS', debut: '06:00', fin: '15:00', ref: 1 }],
   settingsV: 2,
   projAjust: true,     // ajuster la capacité restante au rendement réel mesuré   // capacité du quai en palettes par semaine
   intercoKeys: ['PLATEFORME 38', 'COMPANS', 'MCCORMICK'],
@@ -1621,6 +1624,9 @@ function viewSettings() {
     <div class="set-grid">
       <label>Sans heure LIKP, échéance de préparation<select class="inp" data-setsel="prepDelai"><option value="0" ${+st.prepDelai === 0 ? 'selected' : ''}>le jour même, avant l’heure par défaut</option><option value="1" ${+st.prepDelai === 1 ? 'selected' : ''}>la veille au soir (prudent)</option><option value="2" ${+st.prepDelai === 2 ? 'selected' : ''}>le jour même, en fin de journée</option></select></label>
       <label>Heure par défaut sans LIKP<input class="inp" type="time" data-setstr="likpDefaut" value="${esc(st.likpDefaut || '12:00')}"></label>
+      <label style="grid-column:1/-1">Créneaux fixes par client (prioritaires sur la LIKP)
+        <div class="grid" style="gap:8px;margin-top:6px">${(st.creneauxClients || []).map((r, i) => `<div class="form"><label>Client (mot-clé)<input class="inp" data-crule="${i}|key" value="${esc(r.key)}"></label><label>Début<input class="inp" type="time" data-crule="${i}|debut" value="${esc(r.debut)}"></label><label>Fin<input class="inp" type="time" data-crule="${i}|fin" value="${esc(r.fin)}"></label><label>Prêt pour<select class="inp" data-crule="${i}|ref"><option value="0" ${+r.ref === 0 ? 'selected' : ''}>le début du créneau</option><option value="1" ${+r.ref === 1 ? 'selected' : ''}>la fin du créneau</option></select></label><button class="btn sm danger" data-act="crule-del" data-i="${i}">${icon('trash')}</button></div>`).join('')}</div>
+        <div class="row" style="margin-top:6px"><button class="btn sm" data-act="crule-add">+ Ajouter un client</button></div></label>
       <label>Durée d’un créneau de chargement LIKP (h)<input class="inp" type="number" min="0" step="0.5" data-setsel="likpSlot" value="${num(st.likpSlot)}"></label>
       <label>Échéance de préparation calée sur<select class="inp" data-setsel="likpRef"><option value="0" ${+st.likpRef !== 1 ? 'selected' : ''}>le début du créneau (plus sûr)</option><option value="1" ${+st.likpRef === 1 ? 'selected' : ''}>la fin du créneau</option></select></label>
       <label>Préparation finie avant cette échéance (min)<input class="inp" type="number" min="0" data-setsel="likpMarge" value="${num(st.likpMarge)}"></label>
@@ -1667,6 +1673,7 @@ document.addEventListener('change', e => {
   const t = e.target;
   if (t.dataset.set) { const k = t.dataset.set; S.settings[k] = (k === 'site' || k === 'siteExt') ? t.value : (num(t.value) || DEFAULT_SETTINGS[k]); save('settings'); render(); }
   if (t.dataset.setlist) { S.settings[t.dataset.setlist] = t.value.split('\n').map(s => s.trim()).filter(Boolean); save('settings'); render(); }
+  if (t.dataset.crule) { const [i, k] = t.dataset.crule.split('|'); S.settings.creneauxClients[+i][k] = k === 'ref' ? +t.value : t.value; save('settings'); render(); }
   if (t.dataset.setstr) { S.settings[t.dataset.setstr] = t.value; save('settings'); render(); }
   if (t.dataset.setsel) { S.settings[t.dataset.setsel] = +t.value; save('settings'); render(); }
   if (t.dataset.setchk) { S.settings[t.dataset.setchk] = t.checked; save('settings'); render(); }
@@ -1716,6 +1723,8 @@ document.addEventListener('click', async e => {
   }
   if (a === 'ref-reset' && confirm('Revenir au référentiel par défaut ?')) { S.ref = null; await save('ref'); render(); }
   if (a === 'purge-run') return purgeRun();
+  if (a === 'crule-add') { S.settings.creneauxClients = [...(S.settings.creneauxClients || []), { key: '', debut: '06:00', fin: '08:00', ref: 0 }]; save('settings'); render(); }
+  if (a === 'crule-del') { S.settings.creneauxClients = S.settings.creneauxClients.filter((_, i) => i !== +b.dataset.i); save('settings'); render(); }
   if (a === 'likp-import') {
     const rows = $('#likpPaste').value.replace(/\r/g, '').split('\n').filter(l => l.trim()).map(l => l.split('\t'));
     const map = parseLIKP(rows); const n = Object.keys(map).length;
@@ -2133,13 +2142,25 @@ function parseLIKP(rows) {
   return out;
 }
 const likpOf = liv => (S.likp && S.likp.map[liv]) || null;
-function livDeadline(liv, dc) {
+// Créneau de chargement d'une livraison : règle client (ex. Plateforme 38 6h–8h), sinon heure LIKP (créneau de 2 h)
+const clientRule = nom => (S.settings.creneauxClients || []).find(r => r.key && compact(nom).includes(compact(r.key)));
+function slotInfo(liv, nom) {
+  if (nom == null) nom = livIndex().get(liv)?.nom || S.affret.rows[liv]?.nom || '';
+  const r = clientRule(nom);
+  if (r) return { start: r.debut, end: r.fin, ref: +r.ref, src: 'client', name: r.key };
   const k = likpOf(liv);
-  if (k && k.t) return dayStartTs(k.d) + (hm(k.t) + (+S.settings.likpRef === 1 ? num(S.settings.likpSlot) : 0)) * H - num(S.settings.likpMarge) * 60e3;
-  return deadlineTs(k ? k.d : dc);
+  if (k && k.t) { const e = hm(k.t) + num(S.settings.likpSlot); return { start: k.t, end: `${pad(Math.floor(e % 24))}:${pad(Math.round((e % 1) * 60))}`, ref: +S.settings.likpRef, src: 'likp' }; }
+  return null;
 }
-const slotLbl = t => { if (!t) return ''; const e = hm(t) + num(S.settings.likpSlot); const f = x => `${Math.floor(x % 24)}h${Math.round((x % 1) * 60) ? pad(Math.round((x % 1) * 60)) : ''}`; return num(S.settings.likpSlot) ? `${f(hm(t))}–${f(e)}` : t; };
-const likpLbl = liv => { const k = likpOf(liv); return k ? `${fdateL(k.d)}${k.t ? ' · ' + slotLbl(k.t) : ''}` : ''; };
+function livDeadline(liv, dc, nom) {
+  const k = likpOf(liv), D = k ? k.d : dc, si = slotInfo(liv, nom);
+  if (si) return dayStartTs(D) + hm(si.ref === 1 ? si.end : si.start) * H - num(S.settings.likpMarge) * 60e3;
+  return deadlineTs(D);
+}
+const hLbl = t => { const x = hm(t); return `${Math.floor(x % 24)}h${Math.round((x % 1) * 60) ? pad(Math.round((x % 1) * 60)) : ''}`; };
+const siLbl = si => si ? `${hLbl(si.start)}–${hLbl(si.end)}${si.src === 'client' ? ` · ${esc(si.name.charAt(0) + si.name.slice(1).toLowerCase())}` : ''}` : '';
+const slotLbl = t => { if (!t) return ''; const e = hm(t) + num(S.settings.likpSlot); return num(S.settings.likpSlot) ? `${hLbl(t)}–${hLbl(`${Math.floor(e)}:${pad(Math.round((e % 1) * 60))}`)}` : t; };
+const likpLbl = liv => { const k = likpOf(liv), si = slotInfo(liv); const D = k ? k.d : livIndex().get(liv)?.dc; return si || k ? `${fdateL(D)}${si ? ' · ' + siLbl(si) : ''}` : ''; };
 
 // Projection livraison par livraison : reste à faire trié par échéance (heure de chargement LIKP − marge,
 // sinon règle du jour), cumulé et comparé à la capacité restante des équipes depuis l'extraction VL06O
@@ -2153,7 +2174,7 @@ function projection() {
   const byLiv = new Map(); for (const l of open) { if (!byLiv.has(l.liv)) byLiv.set(l.liv, []); byLiv.get(l.liv).push(l); }
   const items = [...byLiv.values()].map(ls => {
     const l0 = ls[0], D = dayOf(l0);
-    return { liv: l0.liv, nom: l0.nom, circuit: l0.circuit, D, dc: l0.dc, hasT: !!(likpOf(l0.liv) || {}).t, dl: livDeadline(l0.liv, l0.dc),
+    return { liv: l0.liv, nom: l0.nom, circuit: l0.circuit, D, dc: l0.dc, hasT: !!slotInfo(l0.liv, l0.nom), dl: livDeadline(l0.liv, l0.dc, l0.nom),
       rS: sum(ls, l => l.hrSilo), rP: sum(ls, l => l.hrPick), rPal: sum(ls, l => l.palSilo), rColis: sum(ls, l => l.colisPick), prep: livIndex().get(l0.liv)?.prep };
   }).filter(i => i.D).sort((a, b) => a.dl - b.dl || a.liv.localeCompare(b.liv));
   let cS = 0, cP = 0;
@@ -2198,7 +2219,7 @@ function reelTiles() {
     <div class="kpis">${rows.map(r => `<div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Chargement ${fdateL(r.D)}</div>
       <div class="reel-line"><span>Picking</span>${r.okP ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumP)} h à faire / ${n1(r.capP)} h dispo · taux ${isFinite(r.tP) ? pct(r.tP) : '∞'}${r.nLateP ? ` · <b style="color:var(--crit-ink)">${r.nLateP} livr. en retard</b>` : ''}</small></div>
       <div class="reel-line"><span>SILO</span>${r.okS ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumS)} h à faire / ${n1(r.capS)} h dispo · taux ${isFinite(r.tS) ? pct(r.tS) : '∞'}${r.nLateS ? ` · <b style="color:var(--crit-ink)">${r.nLateS} livr. en retard</b>` : ''}</small></div>
-      <div class="det">${r.withT ? `${r.withT}/${r.nLiv} livr. avec heure LIKP · ` : ''}dernière échéance ${esc(fdt(r.dl))}${r.finP ? ` · fin picking estimée ${esc(fdt(r.finP))}` : ''}</div></div>`).join('')}
+      <div class="det">${r.withT ? `${r.withT}/${r.nLiv} livr. avec créneau · ` : ''}dernière échéance ${esc(fdt(r.dl))}${r.finP ? ` · fin picking estimée ${esc(fdt(r.finP))}` : ''}</div></div>`).join('')}
       <div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Rendement réel</div><div class="val">${P.R.p ? pct(P.R.p) : '–'}</div><div class="det">${eff}${P.R.colisH ? ` · ${n0(P.R.colisH)} colis/h réels (cadence ${S.settings.cadEntrepot})` : ''}</div></div>
     </div>`;
 }
@@ -2215,7 +2236,7 @@ function reelSection() {
   if (!P) return '';
   const R = P.R;
   const t = table('reelT', [
-    { k: 'D', label: 'Chargement', fmt: fdateL }, { k: 'withT', label: 'Heures LIKP', num: true, html: r => r.nLiv ? `${r.withT}/${r.nLiv}` : '–' }, { k: 'dl', label: 'Dernière échéance', fmt: v => fdt(v) },
+    { k: 'D', label: 'Chargement', fmt: fdateL }, { k: 'withT', label: 'Créneaux connus', num: true, html: r => r.nLiv ? `${r.withT}/${r.nLiv}` : '–' }, { k: 'dl', label: 'Dernière échéance', fmt: v => fdt(v) },
     { k: 'rS', label: 'SILO reste', num: true, html: r => `${hr(r.rS)}<br><span class="muted">${n0(r.rPal)} pal</span>` }, { k: 'capS', label: 'SILO dispo', num: true, fmt: hr },
     { k: 'tS', label: 'Taux réel SILO', num: true, html: r => tauxReel(r.tS) }, { k: 'okS', label: 'SILO', html: r => verdict(r.okS, r.mS, r.nLateS) }, { k: 'finS', label: 'Fin SILO estimée', fmt: v => fdt(v) },
     { k: 'rP', label: 'Picking reste', num: true, html: r => `${hr(r.rP)}<br><span class="muted">${n0(r.rColis)} colis</span>` }, { k: 'capP', label: 'Picking dispo', num: true, fmt: hr },
@@ -2248,7 +2269,7 @@ function prepPlanning(lines) {
   const P = projection();
   const itemBy = new Map((P ? P.items : []).map(i => [i.liv, i]));
   const dayOf = l => (likpOf(l.liv) || {}).d || l.dc;
-  const slotOf = l => (likpOf(l.liv) || {}).t || '';
+  const slotOf = l => { const si = slotInfo(l.liv, l.nom); return si ? `${si.start}|${si.end}|${si.src === 'client' ? si.name : ''}` : ''; };
   // livraisons (sur les postes filtrés)
   const livs = new Map();
   for (const l of lines) { if (!livs.has(l.liv)) livs.set(l.liv, []); livs.get(l.liv).push(l); }
@@ -2286,7 +2307,7 @@ function prepPlanning(lines) {
       <div class="pvs">${vd(row?.okP, row?.mP, 'Picking')}${vd(row?.okS, row?.mS, 'SILO')}${lateN ? `<div class="pv ko"><span>Livraisons</span><b>${lateN} en retard</b><small>sur ${xs.length}</small></div>` : `<div class="pv ok"><span>Livraisons</span><b>${xs.filter(x => x.st === 'ready').length} prêtes</b><small>sur ${xs.length}</small></div>`}</div>
     </div>`;
     const rows = slots.map(t => {
-      const ss = xs.filter(x => x.t === t), key = D + '|' + t, isOpen = open === key;
+      const ss = xs.filter(x => x.t === t), key = D + '|' + t.replace(/\|/g, '_'), isOpen = open === key;
       const done = ss.filter(x => x.st === 'ready').length;
       const finP = Math.max(0, ...ss.map(x => x.it?.finP || 0)), finS = Math.max(0, ...ss.map(x => x.it?.finS || 0));
       const dl = ss.some(x => x.it && x.st !== 'ready') ? Math.min(...ss.filter(x => x.it && x.st !== 'ready').map(x => x.it.dl)) : null;
@@ -2299,7 +2320,7 @@ function prepPlanning(lines) {
         { k: 'st', label: 'Statut', html: stBadge },
       ], ss)}</div></td></tr>` : '';
       return `<tr class="clickable ${ss.some(x => x.st === 'late') ? 'row-late' : ''}" data-openslot="${esc(key)}">
-        <td><span class="caret">${isOpen ? '▾' : '▸'}</span> <b>${t ? slotLbl(t) : 'Sans créneau LIKP'}</b>${t ? '' : `<br><span class="muted" style="font-size:11.5px">échéance estimée : ${[`avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'fin de journée'][+S.settings.prepDelai || 0]}</span>`}</td>
+        <td><span class="caret">${isOpen ? '▾' : '▸'}</span> <b>${t ? (() => { const [a1, b1, n1] = t.split('|'); return siLbl({ start: a1, end: b1, src: n1 ? 'client' : 'likp', name: n1 }); })() : 'Sans créneau'}</b>${t ? (t.split('|')[2] ? '<br><span class="muted" style="font-size:11.5px">créneau fixe client</span>' : '') : `<br><span class="muted" style="font-size:11.5px">échéance estimée : ${[`avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'fin de journée'][+S.settings.prepDelai || 0]}</span>`}</td>
         <td class="num">${done}/${ss.length}${pr(done, ss.length)}</td>
         <td class="num">${n0(sum(ss, x => x.palSilo))}${sum(ss, x => x.rPal) ? `<br><span class="muted">reste ${n0(sum(ss, x => x.rPal))}</span>` : ''}</td>
         <td class="num">${n0(sum(ss, x => x.colisPick))}${sum(ss, x => x.rColis) ? `<br><span class="muted">reste ${n0(sum(ss, x => x.rColis))}</span>` : ''}</td>
@@ -2311,7 +2332,7 @@ function prepPlanning(lines) {
     return `<div class="plan-day ${lateN ? 'late' : ''}">${head}
       <div class="tbl-wrap" style="max-height:none"><table class="t"><thead><tr><th>Créneau de chargement</th><th class="num">Livr. prêtes</th><th class="num">Pal SILO</th><th class="num">Colis picking</th><th class="num">Reste SILO</th><th class="num">Reste picking</th><th>Échéance prépa</th><th>Fin estimée</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
   }).join('');
-  const info = P ? `<div class="alert info" style="margin-bottom:14px">${icon('info')}<div><b>Comment lire :</b> chaque jour de chargement est découpé par créneau LIKP (${num(S.settings.likpSlot)} h). « Reste » = postes pas encore au statut C, en heures (cadences). La fin estimée enchaîne le travail restant dans l’ordre des créneaux avec les équipes (${esc(teamsLbl())} ; SILO : ${esc(siloLbl())})${P.R.p ? `, au rendement réel mesuré (${pct(P.R.p)})` : ''}, à partir de la VL06O extraite le <b>${esc(fdt(P.at))}</b>. « En retard » = la fin estimée dépasse l’échéance (début du créneau − ${num(S.settings.likpMarge)} min ; sans heure LIKP, échéance estimée ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}). Cliquez un créneau pour voir ses livraisons.${S.likp ? '' : ' <b>Collez la LIKP ci-dessus pour obtenir les créneaux.</b>'}</div></div>` : '';
+  const info = P ? `<div class="alert info" style="margin-bottom:14px">${icon('info')}<div><b>Comment lire :</b> chaque jour de chargement est découpé par créneau LIKP (${num(S.settings.likpSlot)} h). « Reste » = postes pas encore au statut C, en heures (cadences). La fin estimée enchaîne le travail restant dans l’ordre des créneaux avec les équipes (${esc(teamsLbl())} ; SILO : ${esc(siloLbl())})${P.R.p ? `, au rendement réel mesuré (${pct(P.R.p)})` : ''}, à partir de la VL06O extraite le <b>${esc(fdt(P.at))}</b>. « En retard » = la fin estimée dépasse l’échéance (début du créneau − ${num(S.settings.likpMarge)} min ; créneaux fixes : ${(S.settings.creneauxClients || []).map(r => `${esc(r.key)} ${hLbl(r.debut)}–${hLbl(r.fin)}`).join(', ')} ; sans heure LIKP, échéance estimée ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}). Cliquez un créneau pour voir ses livraisons.${S.likp ? '' : ' <b>Collez la LIKP ci-dessus pour obtenir les créneaux.</b>'}</div></div>` : '';
   return info + `<div class="plan">${dayCards}</div>`;
 }
 document.addEventListener('click', e => { const r = e.target.closest('[data-openslot]'); if (!r || e.target.closest('th')) return; S.ui.openSlot = S.ui.openSlot === r.dataset.openslot ? null : r.dataset.openslot; render(); });

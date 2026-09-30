@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.13.1** · Développé par **Galaad Poivey**
+Version **1.14.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre `index.html` dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -175,3 +175,11 @@ C'est la vue par défaut de l'onglet Préparation. Elle se lit **jour par jour**
   - statut : ✓ tout est prêt, ✓ passe (avec la marge) ou ✗ en retard (avec le nombre de livraisons et le retard maximal).
 - **Un clic sur un créneau** déplie ses livraisons : reste à faire, fin estimée, statut prépa / OT et verdict.
 - Les filtres de l'onglet (date, circuit, statuts, recherche) s'appliquent.
+
+## Créneaux fixes par client
+
+Certains clients ont un créneau de chargement fixe. Il **prime sur la LIKP** :
+- **Plateforme 38 : 6h–8h.** Prête au début du créneau, soit 5h30 avec la marge de 30 min.
+- **Compans : 6h–15h.** Chargement possible sur toute la fenêtre, donc prête pour la fin, soit 14h30.
+
+Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans Paramètres, section « Réel » : client (mot-clé), début, fin et « prêt pour le début / la fin du créneau ».
