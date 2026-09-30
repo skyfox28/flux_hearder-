@@ -401,9 +401,10 @@ body.modal-open{overflow:hidden}
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.17.1';
+const APP_VERSION = '1.18.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.18.0', '30/09/2026', 'Quai d’expédition dans son propre overlay : courbe d’occupation heure par heure sur tous les jours, plages saturées, détail du calcul par livraison.'],
   ['1.17.1', '30/09/2026', 'Quai d’expédition compté en blocs (places au sol) : blocs de l’affrètement, sinon estimation par le ratio blocs/palettes observé.'],
   ['1.17.0', '30/09/2026', 'Saturation du quai d’expédition (450 pal par défaut) : occupation simulée heure par heure, plages saturées, détail du calcul par livraison.'],
   ['1.16.0', '30/09/2026', 'Couleurs plus sobres (palette atténuée validée), état des sources dans l’en-tête, pastilles dans le menu, points d’attention remontés, tableaux zébrés ; corrections : réglage à 0, cadences nulles.'],
@@ -2084,7 +2085,7 @@ function prepXlDetail() {
   return { xl: true, title: 'Charge SILO / picking', sub: `${scopeLbl()} · par date de chargement VL06O · SILO : ${esc(siloLbl())} = ${n1(capaSiloDay())} h/jour · picking : ${esc(teamsLbl())} = ${n1(capaDay())} h/jour`, body:
     mini([['Charge totale', n1(hrsOf(lines)), 'h', `${n0(A.liv)} livraisons · ${n0(A.codes)} codes`], ['SILO', n0(A.palSilo), 'pal', `${n1(A.hrSilo)} h à ${S.settings.cadSilo} pal/h`], ['Picking', n0(A.colisPick), 'colis', `${n1(A.hrPick)} h de travail`], ['Taux de charge SILO', sum(days, capaSiloOf) ? pct(A.hrSilo / sum(days, capaSiloOf)) : '–', '', `${n1(A.hrSilo)} h / ${n1(sum(days, capaSiloOf))} h (${nbCar()} caristes)`], ['Taux de charge picking', cap ? pct(A.hrPick / cap) : '–', '', `${n1(A.hrPick)} h / ${n1(cap)} h · ≈ ${n1(A.hrPick / hPerPrep() / Math.max(1, days.length))} préparateurs / jour`], ['Reste à faire', n1(hrsOf(lines) - Fh), 'h', `avancement ${pct(hrsOf(lines) ? Fh / hrsOf(lines) : NaN)}`]]) +
     `<div class="grid g2 xlcharts"><div><h3 class="mh" style="margin-top:0">Heures de picking par circuit</h3>${pickChart}</div><div><h3 class="mh" style="margin-top:0">Palettes SILO : faites / à faire</h3>${siloChart}</div></div>` +
-    reelSection() + (projection() ? dockSection(projection()) : '') +
+    reelSection() + (projection() ? dockLink(projection()) : '') +
     h3('Charge par jour de chargement', `Hr picking = colis ÷ cadence du circuit (heures de travail d’un préparateur). Taux de charge : vert < 85 %, orange < 100 %, rouge au-delà de la capacité.`) + dayTable +
     `<div class="grid g2" style="margin-top:4px"><div>${h3('Heures de picking par circuit et par jour')}${circMtx}</div><div>${h3('Statut des livraisons')}${stTable}</div></div>` +
     h3('Livraisons non terminées', 'Triées par heures restantes (postes au statut A ou B).') + openTable };
@@ -2275,7 +2276,7 @@ function reelTiles() {
       <div class="reel-line"><span>Picking</span>${r.okP ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumP)} h à faire / ${n1(r.capP)} h dispo · taux ${isFinite(r.tP) ? pct(r.tP) : '∞'}${r.nLateP ? ` · <strong class="late">${r.nLateP} livr. en retard</strong>` : ''}</small></div>
       <div class="reel-line"><span>SILO</span>${r.okS ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumS)} h à faire / ${n1(r.capS)} h dispo · taux ${isFinite(r.tS) ? pct(r.tS) : '∞'}${r.nLateS ? ` · <strong class="late">${r.nLateS} livr. en retard</strong>` : ''}</small></div>
       <div class="det">${r.withT ? `${r.withT}/${r.nLiv} livr. avec créneau · ` : ''}dernière échéance ${esc(fdt(r.dl))}${r.finP ? ` · fin picking estimée ${esc(fdt(r.finP))}` : ''}</div></div>`).join('')}
-      ${(() => { const dk = dockSim(P); const nx = dk.sat[0]; const pk = Math.max(...P.rows.slice(0, 3).map(r => dk.dayPeak(r.D).peak), dk.now); return `<div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Quai expédition (blocs)</div><div class="val">${n0(dk.now)}<small>/ ${n0(dk.cap)} blocs</small></div><div class="bar"><span style="width:${Math.min(100, Math.round(dk.now / dk.cap * 100))}%;background:${dk.now > dk.cap ? 'var(--crit)' : dk.now > dk.cap * .85 ? 'var(--warn)' : 'var(--good)'}"></span></div><div class="det">${nx ? `<strong style="color:var(--crit-ink)">saturé ${esc(fdt(nx.from))} (pic ${n0(nx.peak)} blocs)</strong>` : `pic prévu ${n0(pk)} blocs · pas de saturation`}</div></div>`; })()}
+      ${(() => { const dk = dockSim(P); const nx = dk.sat[0]; const pk = Math.max(...P.rows.slice(0, 3).map(r => dk.dayPeak(r.D).peak), dk.now); return `<div class="kpi" data-detail="quai" role="button" tabindex="0"><div class="lab">Quai expédition (blocs)</div><div class="val">${n0(dk.now)}<small>/ ${n0(dk.cap)} blocs</small></div><div class="bar"><span style="width:${Math.min(100, Math.round(dk.now / dk.cap * 100))}%;background:${dk.now > dk.cap ? 'var(--crit)' : dk.now > dk.cap * .85 ? 'var(--warn)' : 'var(--good)'}"></span></div><div class="det">${nx ? `<strong style="color:var(--crit-ink)">saturé ${esc(fdt(nx.from))} (pic ${n0(nx.peak)} blocs)</strong>` : `pic prévu ${n0(pk)} blocs · pas de saturation`}</div></div>`; })()}
       <div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Rendement réel</div><div class="val">${P.R.p ? pct(P.R.p) : '–'}</div><div class="det">${eff}${P.R.colisH ? ` · ${n0(P.R.colisH)} colis/h réels (cadence ${S.settings.cadEntrepot})` : ''}</div></div>
     </div>`;
 }
@@ -2527,6 +2528,50 @@ function dockLane(dock, D, X, y, h) {
   const pk = dock.dayPeak(D); g += `<rect x="${X(d0)}" y="${y}" width="${X(d1) - X(d0)}" height="${h}" fill="transparent" data-tip="${esc(`<b>Quai expédition ${fdateL(D)}</b>pic ${n0(pk.peak)} blocs à ${new Date(pk.at).toTimeString().slice(0, 5)} · capacité ${n0(cap)} blocs`)}"/>`;
   return g;
 }
+// encart cliquable (overlay SILO / picking) qui renvoie vers l'overlay du quai
+function dockLink(P) {
+  const dock = dockSim(P), nx = dock.sat[0];
+  return `<div class="alert ${nx ? 'crit' : 'info'}" data-detail="quai" role="button" tabindex="0" style="margin:14px 0;cursor:pointer">${icon(nx ? 'warn' : 'info')}<div><b>Quai d’expédition : ${n0(dock.now)} / ${n0(dock.cap)} blocs à l’extraction</b> — ${nx ? `saturé à partir du ${esc(fdt(nx.from))} (pic ${n0(nx.peak)} blocs)` : 'pas de saturation prévue'}. <u>Voir le détail du quai ›</u></div></div>`;
+}
+// courbe d'occupation du quai sur tous les jours projetés
+function dockChart(dock, P) {
+  const days = P.rows.map(r => r.D); if (!days.length) return '';
+  const W = 1100, ml = 48, mr = 14, mt = 22, ch = 220, mb = 34, iw = W - ml - mr;
+  // axe compact : fin de la journée d'extraction puis uniquement les jours projetés (week-ends masqués)
+  const segs = []; if (P.at < dayStartTs(days[0])) segs.push([P.at, dayStartTs(days[0])]);
+  for (const D of days) segs.push([dayStartTs(D), dayStartTs(D) + 24 * H]);
+  const tot = sum(segs, s => s[1] - s[0]), t0 = segs[0][0], t1 = segs[segs.length - 1][1];
+  const X = ts => { let acc = 0; for (const [a, b] of segs) { if (ts < a) break; acc += Math.min(ts, b) - a; } return ml + Math.min(1, acc / tot) * iw; };
+  const cap = dock.cap, max = Math.max(cap * 1.15, ...dock.series.map(s => s[1]), 1) * 1.05;
+  const Y = v => mt + ch - (Math.max(0, v) / max) * ch;
+  let g = '';
+  const step = max > 800 ? 200 : max > 400 ? 100 : 50;
+  for (let v = 0; v <= max; v += step) g += `<line x1="${ml}" x2="${W - mr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text class="axis-t" x="${ml - 6}" y="${Y(v) + 4}" text-anchor="end">${n0(v)}</text>`;
+  for (const D of days) { const d0 = dayStartTs(D);
+    g += `<line x1="${X(d0)}" x2="${X(d0)}" y1="${mt}" y2="${mt + ch + 30}" stroke="var(--text-3)" stroke-width="1" opacity=".5"/><text x="${(X(d0) + X(d0 + 24 * H)) / 2}" y="${mt + ch + 28}" text-anchor="middle" style="font-size:11px;font-weight:700;fill:var(--text-2)">${esc(fdateL(D))}</text>`;
+    for (const hh of [6, 12, 18]) g += `<line x1="${X(d0 + hh * H)}" x2="${X(d0 + hh * H)}" y1="${mt + ch}" y2="${mt + ch + 4}" stroke="var(--text-3)"/><text x="${X(d0 + hh * H)}" y="${mt + ch + 14}" text-anchor="middle" style="font-size:9px;fill:var(--text-3)">${hh}h</text>`; }
+  for (const s of dock.sat) g += `<rect x="${X(s.from)}" y="${mt}" width="${Math.max(2, X(s.to) - X(s.from))}" height="${ch}" fill="var(--crit)" opacity=".13"/>`;
+  const pts = [[t0, dock.occAt(t0)], ...dock.series.filter(([t]) => t > t0 && t < t1), [t1, dock.occAt(t1 - 1)]];
+  let d = `M${X(pts[0][0])},${Y(0)}`, prev = null;
+  for (const [t, o] of pts) { if (prev != null) d += ` L${X(t)},${Y(prev)}`; d += ` L${X(t)},${Y(o)}`; prev = o; }
+  g += `<path d="${d} L${X(t1)},${Y(0)} Z" fill="var(--in)" opacity=".25"/><path d="${d.replace(/^M[^L]*/, 'M' + X(pts[0][0]) + ',' + Y(pts[0][1]))}" fill="none" stroke="var(--in)" stroke-width="1.8"/>`;
+  g += `<line x1="${ml}" x2="${W - mr}" y1="${Y(cap)}" y2="${Y(cap)}" stroke="#fff" stroke-width="4" opacity=".7"/><line x1="${ml}" x2="${W - mr}" y1="${Y(cap)}" y2="${Y(cap)}" stroke="var(--crit)" stroke-width="1.6" stroke-dasharray="6 4"/><text x="${W - mr - 4}" y="${Y(cap) - 5}" text-anchor="end" style="font-size:11px;font-weight:700;fill:var(--crit-ink)">capacité ${n0(cap)} blocs</text>`;
+  g += `<line x1="${X(P.at)}" x2="${X(P.at)}" y1="${mt - 6}" y2="${mt + ch}" stroke="var(--text-2)" stroke-width="1.6" stroke-dasharray="4 3"/><text x="${X(P.at) + 4}" y="${mt - 8}" style="font-size:10px;font-weight:700;fill:var(--text-2)">extraction ${new Date(P.at).toTimeString().slice(0, 5)} · ${n0(dock.now)} blocs</text>`;
+  // zones de survol par heure
+  for (let t = Math.floor(t0 / H) * H; t < t1; t += H) { if (!segs.some(([a, b]) => t + H > a && t < b)) continue; const pk = Math.max(dock.occAt(t), ...dock.series.filter(([ts]) => ts > t && ts < t + H).map(s => s[1]));
+    g += `<rect x="${X(t)}" y="${mt}" width="${Math.max(1, X(t + H) - X(t))}" height="${ch}" fill="transparent" data-tip="${esc(`<b>${esc(fdt(t))} → ${new Date(t + H).toTimeString().slice(0, 5)}</b>max ${n0(pk)} blocs au quai / ${n0(cap)}${pk > cap ? ' · <b style="display:inline;color:var(--crit-ink)">saturé</b>' : ''}`)}"/>`; }
+  return `<div class="timeline"><svg viewBox="0 0 ${W} ${mt + ch + mb + 4}" role="img" aria-label="Occupation du quai d’expédition">${g}</svg></div>`;
+}
+function dockDetail() {
+  const P = projection();
+  if (!P) return { title: 'Quai d’expédition', sub: 'Saturation du quai', body: none('Importez une extraction VL06O pour simuler l’occupation du quai.') };
+  const dock = dockSim(P), nx = dock.sat[0];
+  const pk = dock.series.reduce((m, s) => s[1] > m[1] ? s : m, [P.at, dock.now]);
+  return { xl: true, title: 'Quai d’expédition', sub: `Occupation simulée en blocs (1 bloc = 1 place au sol) · VL06O du ${esc(fdt(P.at))} · capacité ${n0(dock.cap)} blocs · départ au ${['début', 'milieu', 'fin'][+S.settings.quaiDepart] ?? 'milieu'} du créneau`, body:
+    mini([['Au quai à l’extraction', n0(dock.now), 'blocs', `taux ${pct(dock.now / dock.cap)}`], ['Pic prévu', n0(pk[1]), 'blocs', esc(fdt(pk[0]))], ['Capacité', n0(dock.cap), 'blocs', 'réglable dans Paramètres'], ['Saturation', dock.sat.length ? `${dock.sat.length} plage${dock.sat.length > 1 ? 's' : ''}` : 'aucune', '', nx ? `dès ${esc(fdt(nx.from))}` : 'le quai suit'], ['Livraisons suivies', n0(dock.rows.length), '', `${n0(sum(dock.rows, r => r.pal))} blocs au total`], ['Ratio bloc/palette', nf2.format(blocRatio().v), '', esc(blocRatio().src)]]) +
+    h3('Occupation du quai heure par heure', 'Surface = blocs posés au quai. Zones rouges = au-dessus de la capacité : la préparation risque d’être bloquée tant que les camions ne partent pas.') + dockChart(dock, P) +
+    dockSection(P) };
+}
 function dockSection(P) {
   const dock = dockSim(P); const days = P.rows.map(r => r.D);
   const t = table('dockDays', [
@@ -2611,6 +2656,7 @@ const DETAILS = {
   purge: () => purgeView(),
   flux: () => flowDetail(),
   prepxl: () => prepXlDetail(),
+  quai: () => dockDetail(),
   tr(d, code) {
     const aff = wk(d).aff.filter(r => r.transp === code);
     return { title: `Expéditions · ${esc(transpName(code))}`, sub: scopeLbl(d), body: mini([['Palettes', n0(sum(aff, r => r.pal))], ['Livraisons', n0(aff.length)], ['Blocs sol', n0(sum(aff, r => r.blocs))], ['Poids', tons(sum(aff, r => r.poids)), 't']]) + (d ? '' : h3('Par jour') + byDay('dTrD', aff, r => r.date, [{ label: 'Livraisons', f: x => x.length }, { label: 'Palettes', f: x => sum(x, r => r.pal) }, { label: 'Blocs', f: x => sum(x, r => r.blocs) }])) + h3('Livraisons') + affTable('dTrL', aff) };

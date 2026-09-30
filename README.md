@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.17.1** · Développé par **Galaad Poivey**
+Version **1.18.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre `index.html` dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -217,6 +217,7 @@ Le quai se compte en **blocs** : 1 bloc = 1 place au sol. Les livraisons prépar
 
 **Où le voir :**
 - **Réglages :** la capacité (**450 blocs** par défaut), le ratio blocs/palettes par défaut, les colis par palette de picking et le moment de départ du camion se règlent dans Paramètres, section « Quai d'expédition ».
+- **Overlay « Quai d'expédition » :** s'ouvre depuis la tuile « Quai expédition (blocs) » du tableau de bord, ou depuis l'encart du détail SILO / picking. Il regroupe les chiffres clés (blocs au quai à l'extraction, pic prévu, plages saturées, ratio), la courbe d'occupation heure par heure sur tous les jours projetés (week-ends masqués, survol pour le détail de chaque heure), le verdict par jour et le calcul par livraison.
 - **Planning :** chaque jour a un verdict « Quai exp. », fluide ou saturé avec les plages horaires. La frise montre la courbe d'occupation, la ligne de capacité et les plages saturées en rouge.
-- **Tableau de bord :** une tuile « Quai expédition (blocs) » donne l'occupation actuelle et la prochaine saturation.
-- **Grand détail Charge SILO / picking :** pic par jour, plages saturées et **calcul livraison par livraison** (blocs, origine du nombre, déjà au quai, à poser, heure de pose, heure de départ).
+- **Tableau de bord :** une tuile « Quai expédition (blocs) » donne l'occupation actuelle et la prochaine saturation ; un clic ouvre l'overlay du quai.
+- **Calcul livraison par livraison** (dans l'overlay du quai) : blocs, origine du nombre, déjà au quai, à poser, heure de pose, heure de départ. Le grand détail Charge SILO / picking n'affiche plus qu'un encart résumé qui renvoie vers cet overlay.
