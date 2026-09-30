@@ -401,9 +401,10 @@ body.modal-open{overflow:hidden}
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.16.0';
+const APP_VERSION = '1.17.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.17.0', '30/09/2026', 'Saturation du quai d’expédition (450 pal par défaut) : occupation simulée heure par heure, plages saturées, détail du calcul par livraison.'],
   ['1.16.0', '30/09/2026', 'Couleurs plus sobres (palette atténuée validée), état des sources dans l’en-tête, pastilles dans le menu, points d’attention remontés, tableaux zébrés ; corrections : réglage à 0, cadences nulles.'],
   ['1.15.0', '30/09/2026', 'Planning : frise horaire par jour (équipes, créneaux, fins estimées), traits de capacité visibles sur les barres, détail des livraisons par jour trié par créneau, saisie manuelle de l’heure de chargement, liste des livraisons sans créneau ; équipe SILO de nuit 20h–3h30.'],
   ['1.14.0', '30/09/2026', 'Créneaux fixes par client : Plateforme 38 6h–8h, Compans 6h–15h (prioritaires sur la LIKP, réglables).'],
@@ -530,6 +531,9 @@ const DEFAULT_SETTINGS = {
   joursTrav: [1, 1, 1, 1, 1, 0, 0],
   equipesSilo: [{ nom: 'Matin', debut: '05:00', fin: '12:30', prep: 1 }, { nom: 'Après-midi', debut: '12:30', fin: '20:00', prep: 1 }, { nom: 'Nuit', debut: '20:00', fin: '03:30', prep: 1 }],
   capaInWeek: 2250, capaOutWeek: 3000,
+  capaQuaiExp: 450,    // palettes max. posées au quai d'expédition
+  quaiDepart: 1,       // départ du camion : 0 = début du créneau, 1 = milieu, 2 = fin
+  colisParPalPick: 80, // estimation des palettes de picking quand la livraison n'est pas affrétée
   likpMarge: 30,       // préparation terminée X minutes avant l'heure de chargement LIKP
   likpSlot: 2,         // l'heure LIKP est le début d'un créneau de chargement de X heures (8h → 8h-10h)
   likpRef: 0,          // échéance calée sur 0 = début du créneau, 1 = fin du créneau
@@ -1650,6 +1654,13 @@ function viewSettings() {
       <label>Nom du site<input class="inp" data-set="site" value="${esc(st.site)}"></label>
     </div>
   </section>
+  <section class="card glass"><h2>Quai d’expédition (saturation)</h2><p class="hint">Palettes préparées posées au quai jusqu’au départ du camion. Au-delà de la capacité, la préparation est bloquée.</p>
+    <div class="set-grid">
+      <label>Capacité du quai d’expédition (pal)<input class="inp" type="number" min="0" data-set="capaQuaiExp" value="${num(st.capaQuaiExp)}"></label>
+      <label>Le camion part au<select class="inp" data-setsel="quaiDepart"><option value="0" ${+st.quaiDepart === 0 ? 'selected' : ''}>début du créneau (optimiste)</option><option value="1" ${+st.quaiDepart === 1 ? 'selected' : ''}>milieu du créneau</option><option value="2" ${+st.quaiDepart === 2 ? 'selected' : ''}>fin du créneau (prudent)</option></select></label>
+      <label>Colis par palette de picking (estimation hors affrètement)<input class="inp" type="number" min="1" data-set="colisParPalPick" value="${num(st.colisParPalPick)}"></label>
+    </div>
+  </section>
   <section class="card glass"><h2>Capacité quai (palettes)</h2><p class="hint">Capacité hebdomadaire, répartie sur les jours travaillés (${nbWorkDays()} j) : ${n0(num(st.capaInWeek) / nbWorkDays())} pal/jour en entrée, ${n0(num(st.capaOutWeek) / nbWorkDays())} pal/jour en sortie.</p>
     <div class="set-grid">
       <label>Entrées (pal / semaine)<input class="inp" type="number" min="0" data-set="capaInWeek" value="${st.capaInWeek}"></label>
@@ -2070,7 +2081,7 @@ function prepXlDetail() {
   return { xl: true, title: 'Charge SILO / picking', sub: `${scopeLbl()} · par date de chargement VL06O · SILO : ${esc(siloLbl())} = ${n1(capaSiloDay())} h/jour · picking : ${esc(teamsLbl())} = ${n1(capaDay())} h/jour`, body:
     mini([['Charge totale', n1(hrsOf(lines)), 'h', `${n0(A.liv)} livraisons · ${n0(A.codes)} codes`], ['SILO', n0(A.palSilo), 'pal', `${n1(A.hrSilo)} h à ${S.settings.cadSilo} pal/h`], ['Picking', n0(A.colisPick), 'colis', `${n1(A.hrPick)} h de travail`], ['Taux de charge SILO', sum(days, capaSiloOf) ? pct(A.hrSilo / sum(days, capaSiloOf)) : '–', '', `${n1(A.hrSilo)} h / ${n1(sum(days, capaSiloOf))} h (${nbCar()} caristes)`], ['Taux de charge picking', cap ? pct(A.hrPick / cap) : '–', '', `${n1(A.hrPick)} h / ${n1(cap)} h · ≈ ${n1(A.hrPick / hPerPrep() / Math.max(1, days.length))} préparateurs / jour`], ['Reste à faire', n1(hrsOf(lines) - Fh), 'h', `avancement ${pct(hrsOf(lines) ? Fh / hrsOf(lines) : NaN)}`]]) +
     `<div class="grid g2 xlcharts"><div><h3 class="mh" style="margin-top:0">Heures de picking par circuit</h3>${pickChart}</div><div><h3 class="mh" style="margin-top:0">Palettes SILO : faites / à faire</h3>${siloChart}</div></div>` +
-    reelSection() +
+    reelSection() + (projection() ? dockSection(projection()) : '') +
     h3('Charge par jour de chargement', `Hr picking = colis ÷ cadence du circuit (heures de travail d’un préparateur). Taux de charge : vert < 85 %, orange < 100 %, rouge au-delà de la capacité.`) + dayTable +
     `<div class="grid g2" style="margin-top:4px"><div>${h3('Heures de picking par circuit et par jour')}${circMtx}</div><div>${h3('Statut des livraisons')}${stTable}</div></div>` +
     h3('Livraisons non terminées', 'Triées par heures restantes (postes au statut A ou B).') + openTable };
@@ -2261,6 +2272,7 @@ function reelTiles() {
       <div class="reel-line"><span>Picking</span>${r.okP ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumP)} h à faire / ${n1(r.capP)} h dispo · taux ${isFinite(r.tP) ? pct(r.tP) : '∞'}${r.nLateP ? ` · <strong class="late">${r.nLateP} livr. en retard</strong>` : ''}</small></div>
       <div class="reel-line"><span>SILO</span>${r.okS ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumS)} h à faire / ${n1(r.capS)} h dispo · taux ${isFinite(r.tS) ? pct(r.tS) : '∞'}${r.nLateS ? ` · <strong class="late">${r.nLateS} livr. en retard</strong>` : ''}</small></div>
       <div class="det">${r.withT ? `${r.withT}/${r.nLiv} livr. avec créneau · ` : ''}dernière échéance ${esc(fdt(r.dl))}${r.finP ? ` · fin picking estimée ${esc(fdt(r.finP))}` : ''}</div></div>`).join('')}
+      ${(() => { const dk = dockSim(P); const nx = dk.sat[0]; const pk = Math.max(...P.rows.slice(0, 3).map(r => dk.dayPeak(r.D).peak), dk.now); return `<div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Quai expédition</div><div class="val">${n0(dk.now)}<small>/ ${n0(dk.cap)} pal</small></div><div class="bar"><span style="width:${Math.min(100, Math.round(dk.now / dk.cap * 100))}%;background:${dk.now > dk.cap ? 'var(--crit)' : dk.now > dk.cap * .85 ? 'var(--warn)' : 'var(--good)'}"></span></div><div class="det">${nx ? `<strong style="color:var(--crit-ink)">saturé ${esc(fdt(nx.from))} (pic ${n0(nx.peak)})</strong>` : `pic prévu ${n0(pk)} pal · pas de saturation`}</div></div>`; })()}
       <div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Rendement réel</div><div class="val">${P.R.p ? pct(P.R.p) : '–'}</div><div class="det">${eff}${P.R.colisH ? ` · ${n0(P.R.colisH)} colis/h réels (cadence ${S.settings.cadEntrepot})` : ''}</div></div>
     </div>`;
 }
@@ -2323,7 +2335,9 @@ function dayTimeline(D, xs, P) {
     const late = ss.filter(x => x.st === 'late').length, ready = ss.every(x => x.st === 'ready');
     return { st, en, ss, late, ready, lbl: `${hLbl(a)}–${hLbl(b)}${n ? ' ' + n.charAt(0) + n.slice(1).toLowerCase() : ''}` }; }).sort((a, b) => a.st - b.st || b.en - a.en);
   const lanesEnd = []; for (const gr of groups) { let k = lanesEnd.findIndex(e => e <= gr.st); if (k < 0) { k = lanesEnd.length; lanesEnd.push(0); } lanesEnd[k] = gr.en; gr.k = k; }
-  const y0 = 62, lh = 22;
+  const dock = P ? dockSim(P) : null;
+  if (dock) g += dockLane(dock, D, X, 60, 34);
+  const y0 = dock ? 104 : 62, lh = 22;
   g += `<text class="axis-t" x="4" y="${y0 + 14}">Chargements</text>`;
   for (const gr of groups) {
     const col = gr.late ? 'var(--crit)' : gr.ready ? 'var(--good)' : 'var(--c4)';
@@ -2376,11 +2390,12 @@ function prepPlanning(lines) {
     const hrsT = sum(xs, x => x.hrSilo + x.hrPick), hrsR = sum(xs, x => x.rS + x.rP);
     const slots = uniq(xs.map(x => x.t)).sort((a, b) => (a === '') - (b === '') || a.localeCompare(b));
     const lateN = xs.filter(x => x.st === 'late').length;
+    const dockV = P ? dockVerdict(dockSim(P), D) : null;
     const vd = (ok, m, lbl) => !row ? '' : `<div class="pv ${ok ? 'ok' : 'ko'}"><span>${lbl}</span><b>${ok ? '✓ passe' : '✗ ne passe pas'}</b><small>${ok ? `marge ${n1(m)} h` : `manque ${n1(-m)} h`}</small></div>`;
     const head = `<div class="plan-head">
       <div><h3>${DAYS[dayIdx(D)]} ${fdate(D)}</h3><div class="meta">${xs.length} livraisons · ${n0(sum(xs, x => x.palSilo))} pal SILO · ${n0(sum(xs, x => x.colisPick))} colis picking · ${n1(hrsT)} h de prépa</div>
         <div class="plan-prog"><span>Avancement ${pct(hrsT ? 1 - hrsR / hrsT : NaN)}</span>${pr(hrsT - hrsR, hrsT)}<span class="meta">reste ${n1(hrsR)} h (SILO ${n1(sum(xs, x => x.rS))} h · picking ${n1(sum(xs, x => x.rP))} h)</span></div></div>
-      <div class="pvs">${vd(row?.okP, row?.mP, 'Picking')}${vd(row?.okS, row?.mS, 'SILO')}${lateN ? `<div class="pv ko"><span>Livraisons</span><b>${lateN} en retard</b><small>sur ${xs.length}</small></div>` : `<div class="pv ok"><span>Livraisons</span><b>${xs.filter(x => x.st === 'ready').length} prêtes</b><small>sur ${xs.length}</small></div>`}</div>
+      <div class="pvs">${vd(row?.okP, row?.mP, 'Picking')}${vd(row?.okS, row?.mS, 'SILO')}${dockV ? `<div class="pv ${dockV.ok ? 'ok' : 'ko'}"><span>Quai exp.</span><b>${dockV.ok ? '✓ fluide' : '✗ saturé'}</b><small>${esc(dockV.lbl)}</small></div>` : ''}${lateN ? `<div class="pv ko"><span>Livraisons</span><b>${lateN} en retard</b><small>sur ${xs.length}</small></div>` : `<div class="pv ok"><span>Livraisons</span><b>${xs.filter(x => x.st === 'ready').length} prêtes</b><small>sur ${xs.length}</small></div>`}</div>
     </div>`;
     const rows = slots.map(t => {
       const ss = xs.filter(x => x.t === t), key = D + '|' + t.replace(/\|/g, '_'), isOpen = open === key;
@@ -2431,6 +2446,92 @@ function prepPlanning(lines) {
 }
 document.addEventListener('click', e => { const d = e.target.closest('[data-openday]'); if (d) { S.ui.openDay = S.ui.openDay === d.dataset.openday ? null : d.dataset.openday; render(); } });
 document.addEventListener('click', e => { if (e.target.closest('input,select')) return; const r = e.target.closest('[data-openslot]'); if (!r || e.target.closest('th')) return; S.ui.openSlot = S.ui.openSlot === r.dataset.openslot ? null : r.dataset.openslot; render(); });
+
+// ============================================================
+//   SATURATION DU QUAI D'EXPÉDITION
+//   palettes préparées posées au quai jusqu'au départ du camion (fin du créneau de chargement)
+// ============================================================
+// heure de départ d'une livraison : fin de son créneau (LIKP ou client), sinon heure par défaut + durée de créneau
+function departTs(liv, dc, nom) {
+  const k = likpOf(liv), D = k ? k.d : dc; if (!D) return null;
+  const si = slotInfo(liv, nom);
+  const f = [0, .5, 1][+S.settings.quaiDepart] ?? .5;
+  if (si) { let a = hm(si.start), e = hm(si.end); if (e <= a) e += 24; return dayStartTs(D) + (a + (e - a) * f) * H; }
+  return dayStartTs(D) + (hm(S.settings.likpDefaut || '12:00') + num(S.settings.likpSlot) * f) * H;
+}
+// palettes d'une livraison : affrètement si connu, sinon Pal SILO + colis picking ÷ colis/palette
+function livPal(l) {
+  const a = S.affret.rows[l.liv];
+  if (a && a.pal > 0) return { pal: a.pal, src: 'affrètement' };
+  const cpp = Math.max(1, num(S.settings.colisParPalPick));
+  return { pal: l.palSilo + (l.colisPick > 0 ? Math.ceil(l.colisPick / cpp) : 0), src: `estimé : ${n0(l.palSilo)} SILO + ⌈${n0(l.colisPick)} colis ÷ ${n0(cpp)}⌉` };
+}
+function dockSim(P) {
+  const cap = num(S.settings.capaQuaiExp), at = P.at, itemBy = new Map(P.items.map(i => [i.liv, i]));
+  const rows = [];
+  for (const l of livIndex().values()) {
+    if (isExtShip(l)) continue;
+    const it = itemBy.get(l.liv), { pal, src } = livPal(l);
+    if (!pal) continue;
+    const hT = l.hrSilo + l.hrPick, hR = it ? it.rS + it.rP : 0;
+    const frac = hT > 0 ? Math.max(0, Math.min(1, 1 - hR / hT)) : (l.prep === 'C' ? 1 : 0);
+    const palNow = Math.round(pal * frac), palLater = pal - palNow;
+    const fin = it ? Math.max(it.finS || at, it.finP || at) : at;
+    let dep = departTs(l.liv, l.dc, l.nom);
+    if (dep == null || dep < at) dep = palLater ? fin : at;   // créneau déjà passé : part dès que prête
+    const depEff = Math.max(dep, palLater ? fin : at);
+    rows.push({ liv: l.liv, nom: l.nom, D: (likpOf(l.liv) || {}).d || l.dc, pal, src, palNow, palLater, arr: palLater ? fin : at, dep: depEff, late: depEff > dep + 1 });
+  }
+  // événements : +palNow à t0, +palLater à la fin de prépa, −pal au départ
+  const ev = [];
+  for (const r of rows) { if (r.palNow) ev.push([at, r.palNow]); if (r.palLater) ev.push([r.arr, r.palLater]); ev.push([r.dep, -r.pal]); }
+  ev.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const series = []; let occ = 0;
+  for (const [t, d] of ev) { occ += d; if (series.length && series[series.length - 1][0] === t) series[series.length - 1][1] = occ; else series.push([t, occ]); }
+  // plages de saturation
+  const sat = []; let cur = null;
+  for (let i = 0; i < series.length; i++) { const [t, o] = series[i], tNext = series[i + 1] ? series[i + 1][0] : t;
+    if (o > cap) { if (!cur) cur = { from: t, to: tNext, peak: o }; else { cur.to = tNext; cur.peak = Math.max(cur.peak, o); } }
+    else if (cur) { sat.push(cur); cur = null; } }
+  if (cur) sat.push(cur);
+  const occAt = t => { let o = 0; for (const [ts, v] of series) { if (ts > t) break; o = v; } return o; };
+  const dayPeak = D => { const d0 = dayStartTs(D), d1 = d0 + 24 * H; let pk = occAt(d0), pt = d0; for (const [t, o] of series) if (t >= d0 && t < d1 && o > pk) { pk = o; pt = t; } return { peak: pk, at: pt }; };
+  return { cap, rows, series, sat, occAt, dayPeak, now: occAt(at) };
+}
+function dockVerdict(dock, D) {
+  const { peak, at } = dock.dayPeak(D), d0 = dayStartTs(D), s = dock.sat.filter(x => x.to > d0 && x.from < d0 + 24 * H);
+  return { peak, at, ok: !s.length, sat: s, lbl: s.length ? `saturé ${s.map(x => `${new Date(Math.max(x.from, d0)).toTimeString().slice(0, 5)}–${x.to >= d0 + 24 * H ? '24:00' : new Date(x.to).toTimeString().slice(0, 5)}`).join(', ')}` : `pic ${n0(peak)} / ${n0(dock.cap)} pal` };
+}
+// petite courbe d'occupation pour la frise d'une journée
+function dockLane(dock, D, X, y, h) {
+  const d0 = dayStartTs(D), d1 = d0 + 24 * H, cap = dock.cap, max = Math.max(cap * 1.15, ...dock.series.filter(([t]) => t >= d0 && t < d1).map(s => s[1]), dock.occAt(d0));
+  const Y = v => y + h - (v / max) * h;
+  let pts = [[d0, dock.occAt(d0)]]; for (const [t, o] of dock.series) if (t > d0 && t < d1) pts.push([t, o]); pts.push([d1, dock.occAt(d1 - 1)]);
+  let d = `M${X(pts[0][0])},${Y(0)}`; let prev = null;
+  for (const [t, o] of pts) { if (prev != null) d += ` L${X(t)},${Y(prev)}`; d += ` L${X(t)},${Y(o)}`; prev = o; }
+  d += ` L${X(d1)},${Y(0)} Z`;
+  let g = `<text class="axis-t" x="4" y="${y + h / 2 + 4}">Quai exp.</text><path d="${d}" fill="var(--in)" opacity=".28" stroke="var(--in)" stroke-width="1.2"/>`;
+  for (const s of dock.sat) { const a = Math.max(s.from, d0), b = Math.min(s.to, d1); if (b > a) g += `<rect x="${X(a)}" y="${y}" width="${Math.max(2, X(b) - X(a))}" height="${h}" fill="var(--crit)" opacity=".18"/>`; }
+  g += `<line x1="${X(d0)}" x2="${X(d1)}" y1="${Y(cap)}" y2="${Y(cap)}" stroke="var(--crit)" stroke-width="1.4" stroke-dasharray="5 3"/><text x="${X(d1) - 2}" y="${Y(cap) - 3}" text-anchor="end" style="font-size:10px;font-weight:700;fill:var(--crit-ink)">capacité quai ${n0(cap)} pal</text>`;
+  const pk = dock.dayPeak(D); g += `<rect x="${X(d0)}" y="${y}" width="${X(d1) - X(d0)}" height="${h}" fill="transparent" data-tip="${esc(`<b>Quai expédition ${fdateL(D)}</b>pic ${n0(pk.peak)} pal à ${new Date(pk.at).toTimeString().slice(0, 5)} · capacité ${n0(cap)} pal`)}"/>`;
+  return g;
+}
+function dockSection(P) {
+  const dock = dockSim(P); const days = P.rows.map(r => r.D);
+  const t = table('dockDays', [
+    { k: 'D', label: 'Jour', fmt: fdateL }, { k: 'peak', label: 'Pic au quai', num: true, html: r => `${n0(r.peak)} pal` }, { k: 'at', label: 'Heure du pic', fmt: v => new Date(v).toTimeString().slice(0, 5) },
+    { k: 'taux', label: 'Taux', num: true, html: r => tauxBadge(r.peak / dock.cap) }, { k: 'lbl', label: 'Saturation', html: r => r.ok ? badge('✓ quai non saturé', 'b-good') : badge(`✗ ${r.lbl}`, 'b-crit') },
+  ], days.map(D => Object.assign({ D }, dockVerdict(dock, D))));
+  const calc = table('dockCalc', [
+    { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' }, { k: 'D', label: 'Chargement', fmt: fdateL },
+    { k: 'pal', label: 'Palettes', num: true, fmt: n0 }, { k: 'src', label: 'Origine du nombre', cls: 'muted' },
+    { k: 'palNow', label: 'Déjà au quai', num: true, fmt: n0 }, { k: 'palLater', label: 'À poser', num: true, fmt: n0 },
+    { k: 'arr', label: 'Posées au quai', fmt: v => fdt(v) }, { k: 'dep', label: 'Départ du camion', html: r => `${esc(fdt(r.dep))}${r.late ? ' <span class="badge b-crit b-nodot">après créneau</span>' : ''}` },
+  ], dock.rows.sort((a, b) => a.dep - b.dep), { limit: 400 });
+  return h3(`Saturation du quai d’expédition — capacité ${n0(dock.cap)} palettes`, `Occupation simulée à partir de la VL06O du ${esc(fdt(P.at))} : au départ, palettes déjà préparées et pas encore parties (${n0(dock.now)} pal) ; chaque livraison pose ses palettes restantes à sa fin de préparation estimée et libère le quai au ${['début', 'milieu', 'fin'][+S.settings.quaiDepart] ?? 'milieu'} de son créneau de chargement (réglable). Palettes = base affrètement, sinon Pal SILO + colis picking ÷ ${n0(num(S.settings.colisParPalPick))} colis/palette.`)
+    + t + (dock.sat.length ? `<div class="alert crit" style="margin:8px 0">${icon('warn')}<div><b>Quai saturé</b> : ${dock.sat.map(s => `${esc(fdt(s.from))} → ${esc(fdt(s.to))} (pic ${n0(s.peak)} pal)`).join(' · ')}. Tant que des camions ne partent pas, la préparation risque d’être bloquée.</div></div>` : '')
+    + h3('Calcul par livraison', 'Palettes, moment où elles arrivent au quai et moment où elles en partent. « Après créneau » : la préparation finit après la fin du créneau, la livraison part dès qu’elle est prête.') + calc;
+}
 
 // ---------- Purge des données ----------
 function purgeCounts(before) {
