@@ -309,6 +309,8 @@ i.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:7
 .reel-line b.ok{color:var(--good-ink)} .reel-line b.ko{color:var(--crit-ink)}
 .reel-line small{grid-column:2;font-size:11.5px;color:var(--text-3)}
 .plan{display:flex;flex-direction:column;gap:16px}
+.timeline{margin:4px 0 12px;padding:8px 10px 4px;border-radius:14px;background:var(--glass-strong);border:1px solid var(--glass-border)}
+.timeline svg{display:block;width:100%;height:auto;overflow:visible}
 .plan-day{padding:14px;border-radius:18px;background:var(--glass-soft);border:1px solid var(--glass-border);border-left:5px solid var(--good)}
 .plan-day.late{border-left-color:var(--crit)}
 .plan-head{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px}
@@ -385,9 +387,10 @@ body.modal-open{overflow:hidden}
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.14.0';
+const APP_VERSION = '1.15.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.15.0', '30/09/2026', 'Planning : frise horaire par jour (équipes, créneaux, fins estimées), traits de capacité visibles sur les barres, détail des livraisons par jour trié par créneau, saisie manuelle de l’heure de chargement, liste des livraisons sans créneau ; équipe SILO de nuit 20h–3h30.'],
   ['1.14.0', '30/09/2026', 'Créneaux fixes par client : Plateforme 38 6h–8h, Compans 6h–15h (prioritaires sur la LIKP, réglables).'],
   ['1.13.1', '30/09/2026', 'Sans heure LIKP : échéance estimée le jour même avant 12h (au lieu de la veille au soir, trop pessimiste) ; heure par défaut réglable.'],
   ['1.13.0', '30/09/2026', 'Préparation : vue « Planning de chargement » par jour et créneau (passe / en retard) ; correction de l’affichage des traits de capacité.'],
@@ -510,7 +513,7 @@ const DEFAULT_SETTINGS = {
   cadSilo: 18, cadEntrepot: 400, cadExport: 750, cadMdd: 1300,
   equipes: [{ nom: 'Matin', debut: '05:00', fin: '12:30', prep: 2 }, { nom: 'Après-midi', debut: '12:30', fin: '20:00', prep: 2 }],
   joursTrav: [1, 1, 1, 1, 1, 0, 0],
-  equipesSilo: [{ nom: 'Matin', debut: '05:00', fin: '12:30', prep: 1 }, { nom: 'Après-midi', debut: '12:30', fin: '20:00', prep: 1 }],
+  equipesSilo: [{ nom: 'Matin', debut: '05:00', fin: '12:30', prep: 1 }, { nom: 'Après-midi', debut: '12:30', fin: '20:00', prep: 1 }, { nom: 'Nuit', debut: '20:00', fin: '03:30', prep: 1 }],
   capaInWeek: 2250, capaOutWeek: 3000,
   likpMarge: 30,       // préparation terminée X minutes avant l'heure de chargement LIKP
   likpSlot: 2,         // l'heure LIKP est le début d'un créneau de chargement de X heures (8h → 8h-10h)
@@ -519,7 +522,7 @@ const DEFAULT_SETTINGS = {
   likpDefaut: '12:00', // heure de chargement estimée quand la LIKP ne donne pas l'heure
   // créneaux fixes par client (prioritaires sur la LIKP) ; ref : 0 = prêt au début du créneau, 1 = à la fin
   creneauxClients: [{ key: 'PLATEFORME 38', debut: '06:00', fin: '08:00', ref: 0 }, { key: 'COMPANS', debut: '06:00', fin: '15:00', ref: 1 }],
-  settingsV: 2,
+  settingsV: 3,
   projAjust: true,     // ajuster la capacité restante au rendement réel mesuré   // capacité du quai en palettes par semaine
   intercoKeys: ['PLATEFORME 38', 'COMPANS', 'MCCORMICK'],
   // livraisons qui ne partent pas de Monteux3 (ex. COLRUYT, code dépôt 540 : départ direct de Compans)
@@ -922,8 +925,9 @@ function barChart({ cats, series, data, stacked = false, unit = '', fmt = n0, he
     hits += `<rect x="${x0}" y="${mt}" width="${bw}" height="${ih}" fill="transparent" data-tip="${esc(tipHtml)}"/>`;
   });
   g += `<line x1="${ml}" x2="${W - mr}" y1="${y(0)}" y2="${y(0)}" stroke="var(--axis)"/>`;
-  refs.forEach(r => { bars += `<line x1="${ml}" x2="${W - mr}" y1="${y(r.value)}" y2="${y(r.value)}" stroke="var(--glass-strong)" stroke-width="5"/>`; bars += `<line x1="${ml}" x2="${W - mr}" y1="${y(r.value)}" y2="${y(r.value)}" stroke="${r.color || 'var(--text-2)'}" stroke-width="1.5" stroke-dasharray="5 4"/><text class="val-t" x="${W - mr}" y="${y(r.value) - 5}" text-anchor="end" style="fill:${r.color || 'var(--text-2)'}">${esc(r.label)}</text>`; });
-  const legend = `<div class="legend">${series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.label)}</span>`).join('')}${refs.map(r => `<span><i style="background:none;border-top:2px dashed ${r.color || 'var(--text-2)'};height:0;width:14px;border-radius:0"></i>${esc(r.legend || r.label)}</span>`).join('')}${marks && marks.some(Boolean) ? `<span><i style="background:none;border-top:3px dashed var(--crit);height:0;width:14px;border-radius:0"></i>Limite réelle (VL06O ${esc(fdt(snapTs()))})</span>` : ''}</div>`;
+  // lignes de capacité : trait sombre sur liseré clair (visible même sur une barre de même couleur), repère coloré à gauche
+  refs.forEach(r => { const yy = y(r.value), c = r.color || 'var(--text-2)'; bars += `<line x1="${ml}" x2="${W - mr}" y1="${yy}" y2="${yy}" stroke="var(--glass-strong)" stroke-width="5"/><line x1="${ml}" x2="${W - mr}" y1="${yy}" y2="${yy}" stroke="var(--text-1)" stroke-width="1.6" stroke-dasharray="6 4"/><circle cx="${ml}" cy="${yy}" r="4" fill="${c}" stroke="var(--text-1)" stroke-width="1"/><text class="val-t" x="${W - mr}" y="${yy - 6}" text-anchor="end" style="fill:${c};paint-order:stroke;stroke:var(--glass-strong);stroke-width:4px">${esc(r.label)}</text>`; });
+  const legend = `<div class="legend">${series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.label)}</span>`).join('')}${refs.map(r => `<span><i style="background:${r.color || 'var(--text-2)'};width:8px;height:8px;border-radius:50%"></i><i style="background:none;border-top:2px dashed var(--text-1);height:0;width:14px;border-radius:0;margin-left:-4px"></i>${esc(r.legend || r.label)}</span>`).join('')}${marks && marks.some(Boolean) ? `<span><i style="background:none;border-top:3px dashed var(--crit);height:0;width:14px;border-radius:0"></i>Limite réelle (VL06O ${esc(fdt(snapTs()))})</span>` : ''}</div>`;
   return `${legend}<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img">${g}${bars}${hits}</svg></div>`;
 }
 function roundedBar(x, y, w, h, r, color) {
@@ -1673,6 +1677,9 @@ document.addEventListener('change', e => {
   const t = e.target;
   if (t.dataset.set) { const k = t.dataset.set; S.settings[k] = (k === 'site' || k === 'siteExt') ? t.value : (num(t.value) || DEFAULT_SETTINGS[k]); save('settings'); render(); }
   if (t.dataset.setlist) { S.settings[t.dataset.setlist] = t.value.split('\n').map(s => s.trim()).filter(Boolean); save('settings'); render(); }
+  if (t.dataset.likpset) { const [liv, D] = t.dataset.likpset.split('|'); S.likp = S.likp || { importedAt: Date.now(), map: {} };
+    if (t.value) S.likp.map[liv] = { d: D, t: t.value, route: (S.likp.map[liv] || {}).route || '', manual: true }; else delete S.likp.map[liv];
+    save('likp'); render(); }
   if (t.dataset.crule) { const [i, k] = t.dataset.crule.split('|'); S.settings.creneauxClients[+i][k] = k === 'ref' ? +t.value : t.value; save('settings'); render(); }
   if (t.dataset.setstr) { S.settings[t.dataset.setstr] = t.value; save('settings'); render(); }
   if (t.dataset.setsel) { S.settings[t.dataset.setsel] = +t.value; save('settings'); render(); }
@@ -2262,6 +2269,41 @@ function reelSection() {
     + t + h3(`Livraisons en retard prévu (${risk.length})`, `Ordonnancement par échéance : chaque livraison est préparée dans l’ordre de son heure de chargement${S.likp ? ` (LIKP, ${n0(Object.keys(S.likp.map).length)} livraisons connues, créneaux de ${num(S.settings.likpSlot)} h, préparation finie ${num(S.settings.likpMarge)} min avant le ${+S.settings.likpRef === 1 ? 'fin' : 'début'} du créneau)` : ''} ; sans heure LIKP, échéance estimée : ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')} (estimé)`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}.`) + riskT + h3('Rendement réel mesuré entre deux actualisations', 'Heures théoriques réalisées (postes passés au statut C ou sortis de la VL06O) ÷ heures d’équipe écoulées entre les deux extractions. 100 % = les équipes tiennent exactement les cadences.') + hist;
 }
 
+// Frise horaire d'une journée : équipes, créneaux de chargement (vert = passe, rouge = retard), fins estimées
+function dayTimeline(D, xs, P) {
+  const W = 1100, ml = 92, mr = 12, iw = W - ml - mr, d0 = dayStartTs(D);
+  const X = ts => ml + Math.max(0, Math.min(1, (ts - d0) / (24 * H))) * iw;
+  let g = '';
+  for (let h = 0; h <= 24; h += 2) g += `<line x1="${X(d0 + h * H)}" x2="${X(d0 + h * H)}" y1="16" y2="100%" stroke="var(--grid)" stroke-width="1"/><text class="axis-t" x="${X(d0 + h * H)}" y="11" text-anchor="middle">${h}h</text>`;
+  // équipes (fenêtres de la veille qui débordent sur la journée comprises)
+  const lane = (y, key, color, lbl) => {
+    let r = `<text class="axis-t" x="4" y="${y + 11}">${lbl}</text>`;
+    for (const iso of [addDays(D, -1), D]) { if (!workDay(iso)) continue; for (const e of teams(key)) {
+      const st = dayStartTs(iso) + hm(e.debut) * H, en = st + teamDur(e) * H; if (en <= d0 || st >= d0 + 24 * H) continue;
+      r += `<rect x="${X(st)}" y="${y}" width="${Math.max(1, X(en) - X(st))}" height="14" rx="4" fill="${color}" opacity=".35" data-tip="${esc(`<b>${esc(e.nom)}</b>${e.debut}–${e.fin} · ${e.prep} personne(s)`)}"/><text x="${X(st) + 5}" y="${y + 11}" style="font-size:10px;fill:var(--text-2)">${esc(e.nom)} · ${e.prep}</text>`; } }
+    return r;
+  };
+  g += lane(22, 'equipes', cssVar('--pick'), 'Picking') + lane(40, 'equipesSilo', cssVar('--silo'), 'SILO');
+  // créneaux : répartis en lignes pour éviter les chevauchements
+  const groups = uniq(xs.map(x => x.t)).filter(Boolean).map(t => { const [a, b, n] = t.split('|'); const ss = xs.filter(x => x.t === t); const st = d0 + hm(a) * H; let en = d0 + hm(b) * H; if (en <= st) en += 24 * H;
+    const late = ss.filter(x => x.st === 'late').length, ready = ss.every(x => x.st === 'ready');
+    return { st, en, ss, late, ready, lbl: `${hLbl(a)}–${hLbl(b)}${n ? ' ' + n.charAt(0) + n.slice(1).toLowerCase() : ''}` }; }).sort((a, b) => a.st - b.st || b.en - a.en);
+  const lanesEnd = []; for (const gr of groups) { let k = lanesEnd.findIndex(e => e <= gr.st); if (k < 0) { k = lanesEnd.length; lanesEnd.push(0); } lanesEnd[k] = gr.en; gr.k = k; }
+  const y0 = 62, lh = 22;
+  g += `<text class="axis-t" x="4" y="${y0 + 14}">Chargements</text>`;
+  for (const gr of groups) {
+    const col = gr.late ? 'var(--crit)' : gr.ready ? 'var(--good)' : 'var(--c4)';
+    const tip = `<b>Créneau ${esc(gr.lbl)}</b>${gr.ss.length} livraison(s) · ${gr.ss.filter(x => x.st === 'ready').length} prête(s)${gr.late ? `<br><b style="display:inline;color:var(--crit-ink)">${gr.late} en retard</b>` : ''}<br>${gr.ss.slice(0, 8).map(x => `${x.liv} ${esc(x.nom)}`).join('<br>')}${gr.ss.length > 8 ? '<br>…' : ''}`;
+    const w = Math.max(3, X(gr.en) - X(gr.st)), y = y0 + gr.k * lh;
+    g += `<rect x="${X(gr.st)}" y="${y}" width="${w}" height="${lh - 4}" rx="6" fill="${col}" opacity=".85" data-tip="${esc(tip)}"/><text x="${X(gr.st) + 6}" y="${y + 13}" style="font-size:10.5px;font-weight:600;fill:#fff;pointer-events:none">${esc(w > 60 ? gr.lbl : '')} ${w > 90 ? `· ${gr.ss.length} liv.` : ''}</text>`;
+  }
+  const hgt = y0 + Math.max(1, lanesEnd.length) * lh + 8;
+  // repères verticaux
+  const mark = (ts, color, lbl) => ts && ts >= d0 && ts <= d0 + 24 * H ? `<line x1="${X(ts)}" x2="${X(ts)}" y1="16" y2="${hgt}" stroke="${color}" stroke-width="2" stroke-dasharray="4 3"/><text x="${X(ts) + 3}" y="${hgt - 2}" style="font-size:10px;font-weight:700;fill:${color}">${esc(lbl)}</text>` : '';
+  const finP = Math.max(0, ...xs.map(x => x.it?.finP || 0)), finS = Math.max(0, ...xs.map(x => x.it?.finS || 0));
+  g += mark(P?.at, 'var(--text-2)', `extraction ${new Date(P?.at || 0).toTimeString().slice(0, 5)}`) + mark(finP || null, cssVar('--pick'), `fin picking ${new Date(finP).toTimeString().slice(0, 5)}`) + mark(finS || null, cssVar('--silo'), `fin SILO ${new Date(finS).toTimeString().slice(0, 5)}`);
+  return `<div class="timeline"><svg viewBox="0 0 ${W} ${hgt + 4}" role="img" aria-label="Frise horaire">${g}</svg></div>`;
+}
 // ============================================================
 //   PRÉPARATION : PLANNING DE CHARGEMENT (jour → créneau → livraisons)
 // ============================================================
@@ -2313,6 +2355,7 @@ function prepPlanning(lines) {
       const dl = ss.some(x => x.it && x.st !== 'ready') ? Math.min(...ss.filter(x => x.it && x.st !== 'ready').map(x => x.it.dl)) : null;
       const sub = isOpen ? `<tr class="detail"><td colspan="9"><div style="padding:8px 10px">${table('plan' + key.replace(/\W/g, ''), [
         { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' }, { k: 'itin', label: 'Itinéraire' }, { k: 'circuit', label: 'Circuit' },
+        { k: 'heure', label: 'Heure chargement', html: x => { const si = slotInfo(x.liv, x.nom); return si && si.src === 'client' ? `<span class="muted">${siLbl(si)}</span>` : `<input class="inp" type="time" style="padding:4px 8px" data-likpset="${esc(x.liv)}|${esc(x.D)}" value="${esc(likpOf(x.liv)?.t || '')}">`; } },
         { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis picking', num: true, fmt: n0 },
         { k: 'rS', label: 'Reste SILO', num: true, html: x => x.rS > 0 ? hr(x.rS) : '<span class="muted">—</span>' }, { k: 'rP', label: 'Reste picking', num: true, html: x => x.rP > 0 ? hr(x.rP) : '<span class="muted">—</span>' },
         { k: 'fin', label: 'Fin estimée', sv: x => Math.max(x.it?.finP || 0, x.it?.finS || 0), html: x => x.it && (x.it.finP || x.it.finS) ? esc(fdt(Math.max(x.it.finP || 0, x.it.finS || 0))) : '<span class="muted">—</span>' },
@@ -2329,13 +2372,31 @@ function prepPlanning(lines) {
         <td>${finP || finS ? esc(fdt(Math.max(finP, finS))) : '<span class="muted">—</span>'}</td>
         <td>${slotStatus(ss)}</td></tr>${sub}`;
     }).join('');
-    return `<div class="plan-day ${lateN ? 'late' : ''}">${head}
-      <div class="tbl-wrap" style="max-height:none"><table class="t"><thead><tr><th>Créneau de chargement</th><th class="num">Livr. prêtes</th><th class="num">Pal SILO</th><th class="num">Colis picking</th><th class="num">Reste SILO</th><th class="num">Reste picking</th><th>Échéance prépa</th><th>Fin estimée</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    const noSlot = xs.filter(x => !x.t && x.st !== 'ready');
+    const dayOpen = S.ui.openDay === D;
+    const sortKey = x => (x.t ? x.t.split('|')[0] : '99:99') + x.liv;
+    const dayTable = dayOpen ? `<div style="margin-top:12px">${table('pday' + D.replace(/\W/g, ''), [
+      { k: 'slot', label: 'Créneau', sv: sortKey, html: x => { const si = slotInfo(x.liv, x.nom); return si ? `<b>${siLbl(si)}</b>${si.src === 'likp' && likpOf(x.liv)?.manual ? ' <span class="muted">(saisi)</span>' : ''}` : '<span class="muted">sans créneau</span>'; } },
+      { k: 'heure', label: 'Heure de chargement', html: x => { const si = slotInfo(x.liv, x.nom); return si && si.src === 'client' ? '<span class="muted">créneau fixe client</span>' : `<input class="inp" type="time" style="padding:4px 8px" data-likpset="${esc(x.liv)}|${esc(D)}" value="${esc(likpOf(x.liv)?.t || '')}" title="Début du créneau de chargement">`; } },
+      { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' }, { k: 'itin', label: 'Itinéraire' }, { k: 'circuit', label: 'Circuit' },
+      { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis picking', num: true, fmt: n0 },
+      { k: 'rS', label: 'Reste SILO', num: true, html: x => x.rS > 0 ? hr(x.rS) : '<span class="muted">—</span>' }, { k: 'rP', label: 'Reste picking', num: true, html: x => x.rP > 0 ? hr(x.rP) : '<span class="muted">—</span>' },
+      { k: 'dl', label: 'Échéance', sv: x => x.it?.dl || 0, html: x => x.it ? esc(fdt(x.it.dl)) : '<span class="muted">—</span>' },
+      { k: 'fin', label: 'Fin estimée', sv: x => Math.max(x.it?.finP || 0, x.it?.finS || 0), html: x => x.it && (x.it.finP || x.it.finS) ? esc(fdt(Math.max(x.it.finP || 0, x.it.finS || 0))) : '<span class="muted">—</span>' },
+      { k: 'prep', label: 'Prépa', html: x => prepBadge(x.prep) }, { k: 'st', label: 'Statut', html: stBadge },
+    ], [...xs].sort((a, b) => sortKey(a).localeCompare(sortKey(b))), { limit: 500 })}
+      ${noSlot.length ? `<div class="alert warn" style="margin-top:10px">${icon('warn')}<div><b>${noSlot.length} livraison(s) à préparer sans créneau</b> — saisissez l’heure ci-dessus, ou extrayez-les de la LIKP (n° à copier) :<textarea class="inp" readonly style="min-height:60px;margin-top:6px" onclick="this.select()">${noSlot.map(x => x.liv).join('\n')}</textarea></div></div>` : ''}</div>` : '';
+    const dayBtn = `<div class="row" style="margin-top:10px"><button class="btn sm" data-openday="${D}">${dayOpen ? '▾ Masquer' : '▸ Détail des'} ${xs.length} livraisons du jour</button>${noSlot.length ? `<span class="badge b-warn">${noSlot.length} à préparer sans créneau</span>` : ''}</div>`;
+    return `<div class="plan-day ${lateN ? 'late' : ''}">${head}${dayTimeline(D, xs, P)}
+      <div class="tbl-wrap" style="max-height:none"><table class="t"><thead><tr><th>Créneau de chargement</th><th class="num">Livr. prêtes</th><th class="num">Pal SILO</th><th class="num">Colis picking</th><th class="num">Reste SILO</th><th class="num">Reste picking</th><th>Échéance prépa</th><th>Fin estimée</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table></div>${dayBtn}${dayTable}</div>`;
   }).join('');
+  const missing = L.filter(x => !x.t && x.st !== 'ready');
+  const miss = missing.length ? `<div class="alert warn" style="margin-bottom:14px">${icon('warn')}<div><b>${missing.length} livraison(s) à préparer n’ont pas de créneau de chargement</b> (${uniq(missing.map(x => fdateL(x.D))).join(', ')}) : leur échéance est estimée. Ouvrez « Détail des livraisons du jour » pour saisir l’heure, ou collez la LIKP ci-dessus.</div></div>` : '';
   const info = P ? `<div class="alert info" style="margin-bottom:14px">${icon('info')}<div><b>Comment lire :</b> chaque jour de chargement est découpé par créneau LIKP (${num(S.settings.likpSlot)} h). « Reste » = postes pas encore au statut C, en heures (cadences). La fin estimée enchaîne le travail restant dans l’ordre des créneaux avec les équipes (${esc(teamsLbl())} ; SILO : ${esc(siloLbl())})${P.R.p ? `, au rendement réel mesuré (${pct(P.R.p)})` : ''}, à partir de la VL06O extraite le <b>${esc(fdt(P.at))}</b>. « En retard » = la fin estimée dépasse l’échéance (début du créneau − ${num(S.settings.likpMarge)} min ; créneaux fixes : ${(S.settings.creneauxClients || []).map(r => `${esc(r.key)} ${hLbl(r.debut)}–${hLbl(r.fin)}`).join(', ')} ; sans heure LIKP, échéance estimée ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}). Cliquez un créneau pour voir ses livraisons.${S.likp ? '' : ' <b>Collez la LIKP ci-dessus pour obtenir les créneaux.</b>'}</div></div>` : '';
-  return info + `<div class="plan">${dayCards}</div>`;
+  return info + miss + `<div class="plan">${dayCards}</div>`;
 }
-document.addEventListener('click', e => { const r = e.target.closest('[data-openslot]'); if (!r || e.target.closest('th')) return; S.ui.openSlot = S.ui.openSlot === r.dataset.openslot ? null : r.dataset.openslot; render(); });
+document.addEventListener('click', e => { const d = e.target.closest('[data-openday]'); if (d) { S.ui.openDay = S.ui.openDay === d.dataset.openday ? null : d.dataset.openday; render(); } });
+document.addEventListener('click', e => { if (e.target.closest('input,select')) return; const r = e.target.closest('[data-openslot]'); if (!r || e.target.closest('th')) return; S.ui.openSlot = S.ui.openSlot === r.dataset.openslot ? null : r.dataset.openslot; render(); });
 
 // ---------- Purge des données ----------
 function purgeCounts(before) {
@@ -2558,6 +2619,7 @@ function render() {
   if (prepHist) S.prepHist = prepHist; if (likp) S.likp = likp;
   if (settings) S.settings = Object.assign(structuredClone(DEFAULT_SETTINGS), settings);
   if (!(S.settings.settingsV >= 2)) { S.settings.prepDelai = 0; S.settings.likpDefaut = '12:00'; S.settings.settingsV = 2; save('settings'); }   // v1.13 : règle « la veille » trop pessimiste
+  if (!(S.settings.settingsV >= 3)) { if (!(S.settings.equipesSilo || []).some(e => hm(e.debut) >= 19)) S.settings.equipesSilo = [...(S.settings.equipesSilo || []), { nom: 'Nuit', debut: '20:00', fin: '03:30', prep: 1 }]; S.settings.settingsV = 3; save('settings'); }   // v1.15 : équipe SILO de nuit
   if (refd) S.ref = refd; if (prep) S.prep = prep; if (affret) S.affret = affret; if (rapat) S.rapat = rapat; if (sst) S.sst = sst;
   render();
   if (!window.XLSX) toast('⚠ SheetJS n’a pas pu être chargé : gardez le dossier lib/ à côté de index.html.', 8000);

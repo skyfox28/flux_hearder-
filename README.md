@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.14.0** · Développé par **Galaad Poivey**
+Version **1.15.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre `index.html` dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -173,7 +173,12 @@ C'est la vue par défaut de l'onglet Préparation. Elle se lit **jour par jour**
   - livraisons prêtes, palettes SILO et colis de picking (reste compris) ;
   - reste à faire SILO et picking, échéance de préparation et fin estimée ;
   - statut : ✓ tout est prêt, ✓ passe (avec la marge) ou ✗ en retard (avec le nombre de livraisons et le retard maximal).
+- **Frise horaire du jour (0h–24h) :**
+  - plages des équipes picking et SILO, y compris la nuit SILO 20h–3h30 ;
+  - créneaux de chargement en blocs (vert = passe ou prêt, orange = en cours, rouge = retard), avec les livraisons au survol ;
+  - repères de fin estimée du picking et du SILO, et heure d'extraction de la VL06O si elle tombe ce jour-là.
 - **Un clic sur un créneau** déplie ses livraisons : reste à faire, fin estimée, statut prépa / OT et verdict.
+- **« Détail des N livraisons du jour »** affiche toutes les livraisons du jour, triées par créneau. On peut y **saisir l'heure de chargement** d'une livraison sans créneau ; elle est enregistrée comme une heure LIKP. Un bandeau signale les livraisons à préparer sans créneau et donne leurs n° pour les extraire de la LIKP.
 - Les filtres de l'onglet (date, circuit, statuts, recherche) s'appliquent.
 
 ## Créneaux fixes par client
@@ -183,3 +188,8 @@ Certains clients ont un créneau de chargement fixe. Il **prime sur la LIKP** :
 - **Compans : 6h–15h.** Chargement possible sur toute la fenêtre, donc prête pour la fin, soit 14h30.
 
 Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans Paramètres, section « Réel » : client (mot-clé), début, fin et « prêt pour le début / la fin du créneau ».
+
+## Équipes par défaut
+
+- **Picking :** 2 préparateurs de 5h00 à 12h30 et 2 de 12h30 à 20h00, soit 30 h par jour.
+- **SILO :** 1 cariste de 5h00 à 12h30, 1 de 12h30 à 20h00 et **1 de nuit de 20h00 à 3h30**, soit 22,5 h par jour. La nuit est prise en compte dans le calcul « réel ».
