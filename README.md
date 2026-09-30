@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.19.0** · Développé par **Galaad Poivey**
+Version **1.20.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre `index.html` dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -203,6 +203,16 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
 - **Pastilles dans le menu :** livraisons en retard prévu pour Préparation, RDV passés non pointés pour Réceptions SST.
 - **Points d'attention** affichés juste après les indicateurs, seulement s'il y en a.
 - **Tableaux zébrés** pour faciliter la lecture.
+
+## Écran d'ouverture
+
+À l'ouverture, une scène 3D animée (en CSS, sans bibliothèque) montre l'entrepôt Monteux3 : camions qui reculent à quai puis repartent, camions sur la route, chariot élévateur qui sort des palettes, palettes préparées qui apparaissent au quai. Sous la scène, les vraies étapes du démarrage s'affichent :
+
+1. **Données locales** : lecture de la base du navigateur.
+2. **Calcul des flux de la semaine.**
+3. **Sauvegarde partagée** : lecture du dossier et chargement de la sauvegarde la plus récente. Si le navigateur demande de reconfirmer l'accès au dossier, l'écran propose « Charger la dernière sauvegarde » (il faut un clic) ou « Continuer sans ».
+
+L'écran dure environ 3 secondes. « Passer › » ou Échap le ferme tout de suite. L'animation se désactive dans Paramètres → À propos → « Animation d'ouverture ». Elle est réduite si le système demande de limiter les animations.
 
 ## Sauvegarde partagée automatique
 

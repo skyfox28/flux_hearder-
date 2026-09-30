@@ -364,9 +364,181 @@ body.modal-open{overflow:hidden}
   input.search{min-width:0;width:100%}
 }
 @media print{ .blobs,aside.nav,.noprint{display:none!important} .app{display:block} .glass{backdrop-filter:none;box-shadow:none;background:#fff} }
+/* ---------- Écran d'ouverture : scène 3D (CSS) entrepôt / quais / camions ---------- */
+#splash{--sp-sky1:#f1f5fb;--sp-sky2:#cfd9e7;--sp-ground:#c9d0da;--sp-asph:#98a1b1;--sp-apron:#aab2c0;--sp-line:#f4f6f9;--sp-yel:#e2b340;--sp-wall:#eef1f6;--sp-wall2:#d3d9e4;--sp-roof:#b3bdcc;--sp-roof2:#a3aec0;--sp-door:#5b6679;--sp-door2:#4a5466;--sp-glow:#ffe3a3;--sp-grass:#a9cbab;--sp-tree:#5f9a67;--sp-tree2:#4b8153;--sp-trunk:#8a6a4a;--sp-trl:#f7f8fb;--sp-trl2:#dde2ea;--sp-cab:#c9683f;--sp-cab2:#a4532f;--sp-glass:#3c4c63;--sp-wheel:#2a2f39;--sp-wood:#c19662;--sp-wood2:#9b7243;--sp-fork:#cf9f3a;--sp-fork2:#a47c27;--sp-shadow:rgba(30,40,60,.28);--sp-signc:#5b6679}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #splash{--sp-sky1:#222a3a;--sp-sky2:#0f131b;--sp-ground:#262d39;--sp-asph:#323a48;--sp-apron:#2c3340;--sp-line:#7a8295;--sp-yel:#b58c2c;--sp-wall:#5a657b;--sp-wall2:#434c5f;--sp-roof:#394254;--sp-roof2:#31394a;--sp-door:#1b2029;--sp-door2:#151a22;--sp-glow:#e9c46a;--sp-grass:#2d4636;--sp-tree:#3f7a4a;--sp-tree2:#326340;--sp-trunk:#5e4833;--sp-trl:#cfd4dd;--sp-trl2:#a2a9b6;--sp-cab:#cc6c42;--sp-cab2:#95492a;--sp-glass:#8fb2d9;--sp-wheel:#0c0f14;--sp-wood:#9c7a50;--sp-wood2:#7a5c38;--sp-fork:#b58c2c;--sp-fork2:#8a6a1f;--sp-shadow:rgba(0,0,0,.5);--sp-signc:#dfe4ee}}
+:root[data-theme="dark"] #splash{--sp-sky1:#222a3a;--sp-sky2:#0f131b;--sp-ground:#262d39;--sp-asph:#323a48;--sp-apron:#2c3340;--sp-line:#7a8295;--sp-yel:#b58c2c;--sp-wall:#5a657b;--sp-wall2:#434c5f;--sp-roof:#394254;--sp-roof2:#31394a;--sp-door:#1b2029;--sp-door2:#151a22;--sp-glow:#e9c46a;--sp-grass:#2d4636;--sp-tree:#3f7a4a;--sp-tree2:#326340;--sp-trunk:#5e4833;--sp-trl:#cfd4dd;--sp-trl2:#a2a9b6;--sp-cab:#cc6c42;--sp-cab2:#95492a;--sp-glass:#8fb2d9;--sp-wheel:#0c0f14;--sp-wood:#9c7a50;--sp-wood2:#7a5c38;--sp-fork:#b58c2c;--sp-fork2:#8a6a1f;--sp-shadow:rgba(0,0,0,.5);--sp-signc:#dfe4ee}
+.splash{position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:16px;overflow:hidden;color:var(--text-1);background:radial-gradient(1100px 640px at 50% 38%,var(--sp-sky1),var(--sp-sky2));transition:opacity .6s ease,transform .6s ease}
+.splash.out{opacity:0;transform:scale(1.03);pointer-events:none}
+.sp-stage{position:relative;width:min(820px,100%);height:min(58vh,460px);perspective:1500px;perspective-origin:50% 35%;display:flex;align-items:center;justify-content:center}
+.sp-cam{transform-style:preserve-3d;animation:spIn 1.1s cubic-bezier(.2,.8,.2,1) both}
+.sp-world{position:relative;width:640px;height:480px;transform-style:preserve-3d;transform:rotateX(57deg) rotateZ(-36deg);animation:spOrbit 18s ease-in-out infinite alternate}
+@keyframes spIn{from{opacity:0;transform:translateY(40px) scale(.86)}to{opacity:1;transform:none}}
+@keyframes spOrbit{from{transform:rotateX(58deg) rotateZ(-42deg)}to{transform:rotateX(53deg) rotateZ(-24deg)}}
+.sp-ground{position:absolute;left:-260px;top:-140px;width:1160px;height:760px;background:var(--sp-grass);border-radius:40px;transform:translateZ(-1px)}
+.sp-lot{position:absolute;left:10px;top:20px;width:620px;height:370px;background:var(--sp-asph);border-radius:10px}
+.sp-apron{position:absolute;left:60px;top:200px;width:520px;height:120px;background:repeating-linear-gradient(90deg,transparent 0 29px,var(--sp-yel) 29px 32px,transparent 32px 90px),var(--sp-apron)}
+.sp-road{position:absolute;left:-260px;top:400px;width:1160px;height:62px;background:repeating-linear-gradient(90deg,var(--sp-line) 0 22px,transparent 22px 44px) 0 29px/100% 3px no-repeat,var(--sp-asph)}
+.b3{position:absolute;transform-style:preserve-3d}
+.b3>i{position:absolute;display:block}
+.b3>.t{inset:0;background:var(--t)}
+.b3>.f{left:0;right:0;transform-origin:bottom;background:var(--f)}
+.b3>.k{left:0;right:0;top:0;transform-origin:top;transform:rotateX(90deg);background:var(--f)}
+.b3>.l{top:0;bottom:0;left:0;transform-origin:left;transform:rotateY(-90deg);background:var(--s)}
+.b3>.r{top:0;bottom:0;transform-origin:right;transform:rotateY(90deg);background:var(--s)}
+.sp-wh{--t:repeating-linear-gradient(90deg,var(--sp-roof) 0 22px,var(--sp-roof2) 22px 25px);--f:var(--sp-wall);--s:var(--sp-wall2)}
+.sp-wh>.t::after{content:"";position:absolute;left:8%;right:8%;top:42%;height:16%;background:repeating-linear-gradient(90deg,rgba(190,220,255,.55) 0 30px,transparent 30px 60px);border-radius:2px}
+.sp-hvac{--t:#9aa5b6;--f:#c1c9d5;--s:#aab3c1}
+.sp-door{position:absolute;bottom:0;width:58px;height:66%;background:repeating-linear-gradient(0deg,var(--sp-door) 0 5px,var(--sp-door2) 5px 6px);border-radius:2px 2px 0 0}
+.sp-door.open{background:linear-gradient(0deg,var(--sp-glow),color-mix(in srgb,var(--sp-glow) 40%,var(--sp-door)));box-shadow:0 0 18px color-mix(in srgb,var(--sp-glow) 70%,transparent)}
+.sp-sign{position:absolute;left:50%;top:10px;transform:translateX(-50%);font:800 17px/1 system-ui,sans-serif;letter-spacing:.14em;color:var(--sp-signc);white-space:nowrap}
+.sp-sign b{color:var(--sp-cab)}
+.sp-trl{--t:var(--sp-trl);--f:var(--sp-trl2);--s:linear-gradient(90deg,var(--sp-trl) 0 34%,var(--sp-cab) 34% 44%,var(--sp-trl) 44%)}
+.sp-cab{--t:var(--sp-cab);--f:linear-gradient(0deg,var(--sp-cab2) 0 45%,var(--sp-glass) 45% 88%,var(--sp-cab2) 88%);--s:linear-gradient(90deg,var(--sp-cab2) 0 50%,var(--sp-glass) 50% 80%,var(--sp-cab2) 80%)}
+.sp-whl{--t:var(--sp-wheel);--f:var(--sp-wheel);--s:#3a404c}
+.sp-pal{--t:var(--sp-wood);--f:var(--sp-wood2);--s:var(--sp-wood2)}
+.sp-load{--t:color-mix(in srgb,var(--c) 80%,#fff);--f:var(--c);--s:color-mix(in srgb,var(--c) 78%,#000)}
+.sp-fk{--t:var(--sp-fork);--f:var(--sp-fork2);--s:var(--sp-fork2)}
+.sp-mast{--t:#3a404c;--f:#2a2f39;--s:#2a2f39}
+.sp-tree{--t:var(--sp-tree);--f:var(--sp-tree2);--s:var(--sp-tree2)}
+.sp-trunk{--t:var(--sp-trunk);--f:var(--sp-trunk);--s:var(--sp-trunk)}
+.sp-grp{position:absolute;transform-style:preserve-3d}
+.sp-shd{position:absolute;inset:-4px -8px;background:var(--sp-shadow);filter:blur(5px);border-radius:8px}
+.sp-dockA{animation:spDock 11s cubic-bezier(.45,0,.25,1) infinite}
+.sp-dockB{animation:spDock 11s cubic-bezier(.45,0,.25,1) -5.5s infinite}
+@keyframes spDock{0%{transform:translateY(330px)}28%,68%{transform:translateY(0)}100%{transform:translateY(330px)}}
+.sp-roadT{animation:spRoad 9s linear infinite}
+.sp-roadT2{animation:spRoad2 12s linear -4s infinite}
+@keyframes spRoad{from{transform:translate(-420px,0) rotateZ(-90deg)}to{transform:translate(980px,0) rotateZ(-90deg)}}
+@keyframes spRoad2{from{transform:translate(980px,0) rotateZ(90deg)}to{transform:translate(-420px,0) rotateZ(90deg)}}
+.sp-fkA{animation:spFork 7s ease-in-out infinite}
+@keyframes spFork{0%,8%{transform:translate(0,0)}42%,58%{transform:translate(0,70px)}92%,100%{transform:translate(0,0)}}
+.sp-fkA .sp-carry{animation:spCarry 7s steps(1) infinite}
+@keyframes spCarry{0%{opacity:1}50%{opacity:0}100%{opacity:1}}
+.sp-pop{animation:spPop 7s ease-out infinite both}
+@keyframes spPop{0%,6%{scale:1 1 0;opacity:0}14%{scale:1 1 1.08;opacity:1}18%,88%{scale:1;opacity:1}96%,100%{scale:1 1 0;opacity:0}}
+.sp-info{position:relative;width:min(440px,100%);padding:16px 18px 12px;border-radius:20px;background:var(--glass-strong);border:1px solid var(--glass-border);box-shadow:var(--shadow);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);animation:spUp .8s .25s cubic-bezier(.2,.8,.2,1) both}
+@keyframes spUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.sp-brand{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.sp-logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--accent),var(--silo));box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 35%,transparent)}
+.sp-brand b{display:block;font-size:19px;letter-spacing:-.01em}.sp-brand small{color:var(--text-3);font-size:12.5px}
+.sp-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px}
+.sp-steps li{display:flex;align-items:center;gap:9px;color:var(--text-3)}
+.sp-steps li i{width:18px;height:18px;flex:none;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:800;border:2px solid var(--grid)}
+.sp-steps li.active{color:var(--text-1)} .sp-steps li.active i{border-color:var(--accent);border-top-color:transparent;animation:spSpin .8s linear infinite}
+.sp-steps li.done{color:var(--text-2)} .sp-steps li.done i{background:var(--good);border-color:var(--good);color:#fff}
+.sp-steps li.warn{color:var(--text-1)} .sp-steps li.warn i{background:var(--warn);border-color:var(--warn);color:#fff}
+.sp-steps li.skip i{border-style:dashed}
+.sp-steps small{margin-left:auto;color:var(--text-3);font-size:11.5px;text-align:right}
+@keyframes spSpin{to{transform:rotate(360deg)}}
+.sp-act{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+.sp-act:empty{display:none}
+.sp-bar{height:4px;border-radius:4px;background:var(--grid);overflow:hidden;margin:12px 0 8px}
+.sp-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--pick));border-radius:4px;transition:width .5s ease}
+.sp-foot{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--text-3)}
+.sp-foot b{color:var(--text-2)}
+.sp-skip{all:unset;margin-left:auto;cursor:pointer;font-weight:600;color:var(--accent);padding:2px 4px;border-radius:6px}
+.sp-skip:focus-visible{outline:2px solid var(--accent)}
+@media (prefers-reduced-motion: reduce){.splash *{animation:none!important}.splash{transition:none}}
+@media (max-width:560px){.sp-stage{height:44vh}}
 </style>
 </head>
 <body>
+<div id="splash" class="splash" role="dialog" aria-modal="true" aria-label="Ouverture de Flux Hebdo">
+  <div class="sp-stage" aria-hidden="true"><div class="sp-cam" id="spCam"><div class="sp-world" id="spWorld"></div></div></div>
+  <div class="sp-info">
+    <div class="sp-brand"><span class="sp-logo">FX</span><div><b>Flux Hebdo</b><small>Dépôt Monteux3 · entrées, préparation, expéditions</small></div></div>
+    <ol class="sp-steps" id="spSteps"></ol>
+    <div class="sp-act" id="spAct"></div>
+    <div class="sp-bar"><span id="spBar"></span></div>
+    <div class="sp-foot"><span>v<b id="spVer"></b> · Développé par <b>Galaad Poivey</b></span><button class="sp-skip" id="spSkip">Passer ›</button></div>
+  </div>
+</div>
+<script>
+/* Écran d'ouverture : petite scène 3D en CSS (entrepôt, quais, camions, chariot, palettes) + étapes réelles du démarrage */
+const SPLASH = (() => {
+  const el = document.getElementById('splash');
+  try { const th = localStorage.getItem('flux-theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
+  let off = false; try { off = localStorage.getItem('flux-splash') === 'off'; } catch (e) {}
+  if (/[?#&]splash\b/.test(location.href)) off = false; else if (navigator.webdriver) off = true;   // tests automatisés : pas d'écran d'ouverture
+  const noop = { step() {}, ask() { return Promise.resolve(null); }, finish() {}, ver() {}, on: false };
+  if (off) { el.remove(); return noop; }
+  const W = document.getElementById('spWorld');
+  const B = (par, x, y, z, w, d, h, cls, st = '') => {
+    const e = document.createElement('div'); e.className = 'b3 ' + cls;
+    e.style.cssText = `left:${x}px;top:${y}px;width:${w}px;height:${d}px;transform:translateZ(${z}px);${st}`;
+    e.innerHTML = `<i class="t" style="transform:translateZ(${h}px)"></i><i class="f" style="top:${d - h}px;height:${h}px;transform:rotateX(-90deg)"></i><i class="k" style="height:${h}px"></i><i class="l" style="width:${h}px"></i><i class="r" style="left:${w - h}px;width:${h}px"></i>`;
+    par.appendChild(e); return e;
+  };
+  const G = (par, x, y, cls = '', st = '') => { const g = document.createElement('div'); g.className = 'sp-grp ' + cls; g.style.cssText = `left:${x}px;top:${y}px;${st}`; par.appendChild(g); return g; };
+  const div = (par, cls) => { const d = document.createElement('div'); d.className = cls; par.appendChild(d); return d; };
+  const COL = ['var(--in)', 'var(--silo)', 'var(--pick)', 'var(--c4)', 'var(--out)'];
+  const pallet = (par, x, y, z, c, pop, delay) => { const g = G(par, x, y, pop ? 'sp-pop' : '', `transform:translateZ(${z}px);width:22px;height:22px;${delay != null ? `animation-delay:${delay}s` : ''}`); B(g, 0, 0, 0, 22, 22, 4, 'sp-pal'); B(g, 1, 1, 4, 20, 20, 16, 'sp-load', `--c:${c}`); return g; };
+  const truck = (par, x, y, cls) => {
+    const g = G(par, x, y, cls, 'width:40px;height:150px');
+    const sh = div(g, 'sp-shd'); sh.style.transform = 'translateZ(.5px)';
+    B(g, 0, 0, 10, 40, 112, 50, 'sp-trl');
+    B(g, 3, 116, 7, 34, 30, 40, 'sp-cab');
+    B(g, 2, 110, 7, 36, 8, 12, 'sp-whl');
+    for (const [wy, wx] of [[8, -2], [26, -2], [8, 38], [26, 38], [122, -2], [122, 38]]) B(g, wx, wy, 0, 4, 14, 12, 'sp-whl');
+    return g;
+  };
+  // sol, parking, route, aire de quai
+  div(W, 'sp-ground'); div(W, 'sp-lot'); div(W, 'sp-road'); div(W, 'sp-apron');
+  // entrepôt + portes de quai + enseigne
+  const wh = B(W, 60, 40, 0, 520, 160, 118, 'sp-wh');
+  const fr = wh.querySelector('.f'); [0, 1, 2, 3, 4].forEach(i => { const d = div(fr, 'sp-door' + (i <= 1 || i === 3 ? ' open' : '')); d.style.left = (46 + i * 90) + 'px'; });
+  const sg = div(fr, 'sp-sign'); sg.innerHTML = 'MONTEUX<b>3</b>';
+  B(W, 120, 70, 118, 40, 30, 16, 'sp-hvac'); B(W, 470, 120, 118, 50, 34, 14, 'sp-hvac');
+  // camions à quai (manœuvre en marche arrière, puis départ) et sur la route
+  truck(W, 205, 205, 'sp-dockA'); truck(W, 385, 205, 'sp-dockB');
+  truck(W, 0, 340, 'sp-roadT'); truck(W, 0, 372, 'sp-roadT2');
+  // chariot élévateur qui fait la navette entre le stock et le quai
+  const fk = G(W, 145, 232, 'sp-fkA', 'width:20px;height:22px');
+  const fs = div(fk, 'sp-shd'); fs.style.transform = 'translateZ(.5px)';
+  B(fk, 0, 2, 0, 20, 20, 16, 'sp-fk'); B(fk, 2, -1, 0, 16, 3, 32, 'sp-mast'); B(fk, 4, 12, 16, 12, 8, 10, 'sp-mast');
+  const cr = G(fk, -1, -24, 'sp-carry', 'width:22px;height:22px'); B(cr, 0, 0, 3, 22, 22, 4, 'sp-pal'); B(cr, 1, 1, 7, 20, 20, 16, 'sp-load', '--c:var(--pick)');
+  // palettes préparées au quai (apparaissent l'une après l'autre) et stock
+  [[470, 250], [496, 250], [522, 250], [470, 276], [496, 276], [522, 276]].forEach(([x, y], i) => pallet(W, x, y, 0, COL[i % COL.length], true, i * .45));
+  [[70, 225], [96, 225], [70, 225, 20], [96, 225, 20], [70, 251], [96, 251]].forEach(([x, y, z], i) => pallet(W, x, y, z || 0, COL[(i + 2) % COL.length]));
+  // arbres
+  for (const [x, y] of [[-40, 60], [-30, 150], [650, 40], [660, 150], [-60, 280]]) { B(W, x + 8, y + 8, 0, 6, 6, 14, 'sp-trunk'); B(W, x, y, 14, 22, 22, 26, 'sp-tree'); }
+  // échelle (téléphone)
+  const fit = () => { const st = el.querySelector('.sp-stage'); const k = Math.min(1, st.clientWidth / 900, st.clientHeight / 500) * .92; document.getElementById('spCam').style.scale = k; };
+  fit(); addEventListener('resize', fit);
+  // étapes
+  const STEPS = [['db', 'Données locales'], ['calc', 'Calcul des flux de la semaine'], ['sync', 'Sauvegarde partagée']];
+  const ol = document.getElementById('spSteps');
+  ol.innerHTML = STEPS.map(([k, l]) => `<li data-k="${k}"><i></i><span>${l}</span><small></small></li>`).join('');
+  const t0 = performance.now(), MIN = matchMedia('(prefers-reduced-motion: reduce)').matches ? 700 : 3400;
+  let closed = false, waiter = null;
+  const close = () => { if (closed) return; closed = true; if (waiter) waiter(null); el.classList.add('out'); setTimeout(() => el.remove(), 650); };
+  document.getElementById('spSkip').onclick = close;
+  addEventListener('keydown', e => { if (e.key === 'Escape' && !waiter) close(); });
+  return {
+    on: true,
+    ver(v) { document.getElementById('spVer').textContent = v; },
+    step(k, state, det) {
+      const li = ol.querySelector(`[data-k="${k}"]`); if (!li) return;
+      li.className = state; li.querySelector('i').textContent = state === 'done' ? '✓' : state === 'warn' ? '!' : state === 'skip' ? '–' : '';
+      li.querySelector('small').textContent = det || '';
+      const n = ol.querySelectorAll('li.done,li.warn,li.skip').length; document.getElementById('spBar').style.width = Math.round(n / STEPS.length * 100) + '%';
+    },
+    // question avec boutons (ex. reconnecter le dossier : il faut un clic de l'utilisateur)
+    ask(btns) {
+      if (closed) return Promise.resolve(null);
+      const act = document.getElementById('spAct');
+      return new Promise(res => {
+        waiter = v => { waiter = null; act.innerHTML = ''; res(v); };
+        act.innerHTML = btns.map(([v, l, primary]) => `<button class="btn sm${primary ? ' primary' : ''}" data-spv="${v}">${l}</button>`).join('');
+        act.querySelectorAll('button').forEach(b => b.onclick = () => waiter && waiter(b.dataset.spv));
+        act.querySelector('.primary')?.focus();
+      });
+    },
+    async finish() { const w = MIN - (performance.now() - t0); if (w > 0) await new Promise(r => setTimeout(r, w)); close(); },
+  };
+})();
+</script>
 <div class="blobs" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 <div class="app">
   <aside class="nav glass" id="nav"></aside>
@@ -404,9 +576,10 @@ body.modal-open{overflow:hidden}
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.19.0';
+const APP_VERSION = '1.20.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.20.0', '30/09/2026', 'Écran d’ouverture animé en 3D (entrepôt, quais, camions en manœuvre, chariot, palettes) qui suit les étapes du démarrage : données locales, calcul, sauvegarde partagée (reconnexion du dossier en un clic).'],
   ['1.19.0', '30/09/2026', 'Sauvegarde partagée automatique dans le dossier WeDeliver « Flux_hebdo\\Sauvegarde » : chargement de la plus récente à l’ouverture, copie horodatée après chaque modification et à la fermeture, la plus récente l’emporte entre utilisateurs.'],
   ['1.18.0', '30/09/2026', 'Quai d’expédition dans son propre overlay : courbe d’occupation heure par heure sur tous les jours, plages saturées, détail du calcul par livraison.'],
   ['1.17.1', '30/09/2026', 'Quai d’expédition compté en blocs (places au sol) : blocs de l’affrètement, sinon estimation par le ratio blocs/palettes observé.'],
@@ -1715,7 +1888,7 @@ function viewSettings() {
     <div class="drop" data-drop="ref">${icon('upload')}<div><b>Déposez un référentiel</b> ou <button class="btn sm" data-pick="ref">choisir</button></div></div>
     ${S.ref ? `<div class="row" style="margin-top:10px"><button class="btn sm" data-act="ref-reset">Revenir au référentiel par défaut</button></div>` : ''}
   </section>
-  <section class="card glass"><h2>À propos</h2><p class="hint" style="margin:0">Flux Hebdo Dépôt — version <button class="linkbtn" data-detail="version">${APP_VERSION}</button> — développé par <b>${APP_AUTHOR}</b>. Application 100 % locale : les données restent dans ce navigateur et, si vous l’activez, dans le dossier de sauvegarde partagé.</p></section>
+  <section class="card glass"><h2>À propos</h2><label class="row" style="float:right;gap:6px;font-size:13px"><input type="checkbox" data-splash ${(() => { try { return localStorage.getItem('flux-splash') === 'off' ? '' : 'checked'; } catch (e) { return 'checked'; } })()}> Animation d’ouverture</label><p class="hint" style="margin:0">Flux Hebdo Dépôt — version <button class="linkbtn" data-detail="version">${APP_VERSION}</button> — développé par <b>${APP_AUTHOR}</b>. Application 100 % locale : les données restent dans ce navigateur et, si vous l’activez, dans le dossier de sauvegarde partagé.</p></section>
   <section class="card glass"><h2>Sauvegarde</h2><p class="hint">Les données sont stockées dans ce navigateur. Elles peuvent aussi être enregistrées automatiquement dans le dossier partagé (ci-dessous), ou exportées à la main.</p>
     <div class="row">
       <button class="btn" data-act="backup">${icon('dl')} Exporter une sauvegarde</button>
@@ -2952,6 +3125,7 @@ document.addEventListener('click', async e => {
   if (a === 'sync-load' && confirm('Remplacer les données de ce navigateur par la sauvegarde la plus récente du dossier ?')) await syncPull('rechargement', 'load');
   if (a === 'sync-off') await syncDisconnect();
 });
+document.addEventListener('change', e => { if (e.target.matches('[data-splash]')) { try { localStorage.setItem('flux-splash', e.target.checked ? 'on' : 'off'); } catch (x) {} toast(e.target.checked ? 'Animation d’ouverture activée' : 'Animation d’ouverture désactivée'); } });
 document.addEventListener('change', e => { if (e.target.matches('[data-syncuser]')) { setSyncMeta({ user: e.target.value.trim() }); toast('Nom enregistré'); } });
 // fermeture / changement d'onglet : enregistrer tout de suite ; retour sur l'onglet : vérifier si un collègue a sauvegardé
 document.addEventListener('visibilitychange', () => {
@@ -2960,15 +3134,24 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('beforeunload', e => { if (SY.perm === 'granted' && (SY.busy || syncMeta().dirty)) { syncPush(); e.preventDefault(); e.returnValue = ''; } });
 async function syncInit() {
-  if (!syncSupported()) return syncChip();
+  if (!syncSupported()) { SPLASH.step('sync', 'skip', 'navigateur non compatible'); return syncChip(); }
   try { SY.dir = (await DB.get('syncDir')) || null; } catch (e) { SY.dir = null; }
   await syncPerm(false); syncChip();
-  if (SY.perm === 'granted') await syncPull('ouverture');
-  else if (SY.dir) toast('Cliquez sur <b>« Sauvegarde : reconnecter »</b> en haut pour charger la dernière sauvegarde partagée.', 7000);
+  if (!SY.dir) return SPLASH.step('sync', 'skip', 'dossier non configuré');
+  if (SY.perm !== 'granted' && SPLASH.on) {
+    SPLASH.step('sync', 'warn', 'accès au dossier à confirmer');
+    if (await SPLASH.ask([['go', 'Charger la dernière sauvegarde', true], ['no', 'Continuer sans']]) === 'go') { await syncPerm(true); syncChip(); }
+  }
+  if (SY.perm === 'granted') {
+    SPLASH.step('sync', 'active', 'lecture du dossier…');
+    const before = syncMeta().base; await syncPull('ouverture'); const m = syncMeta();
+    SPLASH.step('sync', SY.err ? 'warn' : 'done', SY.err ? 'erreur de lecture' : m.base !== before && m.last?.act === 'load' ? `chargée : ${SY.files[0]?.by || ''} ${fdt(m.base)}` : SY.files.length ? 'déjà à jour' : 'dossier vide');
+  } else { SPLASH.step('sync', 'warn', 'non chargée'); toast('Cliquez sur <b>« Sauvegarde : reconnecter »</b> en haut pour charger la dernière sauvegarde partagée.', 7000); }
 }
 
 // ---------- Démarrage ----------
 (async function init() {
+  SPLASH.ver(APP_VERSION); SPLASH.step('db', 'active');
   SY.muted = true;   // migrations de démarrage : ne pas compter comme modification locale
   try { const th = localStorage.getItem('flux-theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
   try { const u = JSON.parse(localStorage.getItem('flux-ui') || '{}'); if (u.tab && TITLES[u.tab]) S.ui.tab = u.tab; if (u.prepView) S.ui.prepView = u.prepView; } catch (e) {}
@@ -2979,8 +3162,14 @@ async function syncInit() {
   if (!(S.settings.settingsV >= 2)) { S.settings.prepDelai = 0; S.settings.likpDefaut = '12:00'; S.settings.settingsV = 2; save('settings'); }   // v1.13 : règle « la veille » trop pessimiste
   if (!(S.settings.settingsV >= 3)) { if (!(S.settings.equipesSilo || []).some(e => hm(e.debut) >= 19)) S.settings.equipesSilo = [...(S.settings.equipesSilo || []), { nom: 'Nuit', debut: '20:00', fin: '03:30', prep: 1 }]; S.settings.settingsV = 3; save('settings'); }   // v1.15 : équipe SILO de nuit
   if (refd) S.ref = refd; if (prep) S.prep = prep; if (affret) S.affret = affret; if (rapat) S.rapat = rapat; if (sst) S.sst = sst;
+  SPLASH.step('db', 'done', S.prep ? `VL06O ${fdt(snapTs())}` : 'aucune VL06O');
+  SPLASH.step('calc', 'active');
   render();
-  SY.muted = false; syncInit();
+  { const P = projection(); SPLASH.step('calc', 'done', P ? `${P.items.length} livraisons à préparer` : `semaine ${S.ui.week.w}`); }
+  SY.muted = false;
+  SPLASH.step('sync', 'active', 'recherche…');
+  await Promise.race([syncInit(), new Promise(r => setTimeout(r, 45000))]);
+  SPLASH.finish();
   if (!window.XLSX) toast('⚠ SheetJS n’a pas pu être chargé : gardez le dossier lib/ à côté de index.html.', 8000);
 })();
 </script>
