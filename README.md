@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.10.0** · Développé par **Galaad Poivey**
+Version **1.11.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre `index.html` dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -136,3 +136,14 @@ Le numéro de version (`APP_VERSION` dans `index.html`) augmente à chaque modif
   - SILO : heures SILO ÷ capacité des équipes SILO. Par défaut, 1 cariste de 5h00 à 12h30 et 1 de 12h30 à 20h00, soit 15 h/jour ou 270 palettes à 18 pal/h.
   - Picking : heures de picking ÷ capacité des préparateurs (30 h/jour).
 - Toutes ces capacités se règlent dans Paramètres.
+
+## Réel : la journée passe-t-elle ?
+
+À chaque import de la VL06O, l'app fait un point « réel ». L'heure de référence est celle de l'**extraction du fichier** (sa date d'enregistrement).
+
+**Le calcul :**
+- **Reste à faire :** les postes pas encore au statut C, convertis en heures SILO et picking avec les cadences. Le reste est cumulé dans l'ordre des chargements, en comptant aussi les chargements en retard.
+- **Capacité restante :** les heures d'équipe encore disponibles entre l'heure d'extraction et l'échéance de préparation. Par défaut, l'échéance est la fin de la veille travaillée ; on peut la mettre au jour même dans Paramètres.
+- **Verdict :** « passe » si le reste cumulé tient dans la capacité, sinon « ne passe pas » avec les heures manquantes. L'app donne aussi une heure de fin estimée, et calcule tout séparément pour le SILO et le picking.
+- **Limite réelle :** sur les graphiques, un trait rouge pointillé par jour = heures déjà faites + capacité encore disponible. Si le haut de la barre dépasse le trait, la journée ne passe pas.
+- **Rendement réel :** entre deux imports successifs (par exemple le matin et l'après-midi), l'app mesure les heures théoriques réalisées. Ce sont les postes passés au statut C ou sortis de la VL06O. Elle les divise par les heures d'équipe écoulées. Ce rendement ajuste la capacité restante et s'affine à chaque actualisation ; l'ajustement peut être désactivé dans Paramètres.
