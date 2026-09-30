@@ -11,7 +11,7 @@ Gardez ensemble `index.html`, `referentiels.js` et le dossier `lib/`.
 |---|---|---|
 | Préparation | Extraction SAP **VL06O** (`VL06O.XLSX`) | glisser-déposer : l'import remplace la photo précédente |
 | Expéditions | **Base affrètement** (Access) | copier-coller des lignes (avec ou sans en-têtes) |
-| Intercos | VL06O + affrètement | automatique : priorité 9, ou mots-clés Plateforme 38 / Compans / McCormick |
+| Intercos | VL06O + affrètement (envois) et planning SST (retours) | automatique : priorité 9, ou mots-clés Plateforme 38 / Compans / McCormick |
 | Rapatriements | Classeurs `AAAA_Sxx_<Entrepôt>.xlsx` (FM, Mutual, Tempo One…) | glisser-déposer, plusieurs fichiers à la fois |
 | Réceptions SST | `Planning_Reception_SST_Monteux3.xlsb` (onglets « PlanningReception AAAA ») | glisser-déposer, ou saisie manuelle d'un RDV |
 | Paramètres | Fichier Article, MLGT, magasins, cadences | `FichierArticle.XLSX`, `MLGT.XLSX` ou directement `Analyse_Activité_Préparation.xlsb` |
@@ -46,3 +46,11 @@ Seuls les créneaux qui ont un RDV sous-traitant ou un nombre de palettes sont r
 Le pointage « Reçu » se fait dans l'app, et il est conservé quand on ré-importe le planning.
 Un créneau passé sans pointage est signalé en orange.
 Les totaux sont calculés sur les lignes du planning, pas sur le tableau croisé « Cumul » : si celui-ci n'a pas été actualisé, les deux peuvent différer.
+
+## Intercos : envois et retours
+
+Certaines plateformes sont dans les deux flux : Plateforme 38, par exemple, reçoit nos produits, les retravaille et nous les renvoie.
+- Les **envois** sont les livraisons VL06O ou affrètement de priorité 9, ou dont le réceptionnaire contient un mot-clé interco.
+- Les **retours** sont les RDV du planning SST dont le sous-traitant contient ce même mot-clé. La comparaison ignore les espaces : « Plateforme38 » = « PLATEFORME 38 ».
+
+L'onglet Intercos affiche pour chaque plateforme les palettes envoyées ↗ et reçues ↙, jour par jour.

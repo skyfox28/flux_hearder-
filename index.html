@@ -856,7 +856,7 @@ function viewDash() {
     const p = prep.filter(l => l.dc === d), pa = agg(p);
     const a = aff.filter(r => r.date === d), ri = rin.filter(l => l.date === d), ro = rout.filter(l => l.date === d), s = sst.filter(r => r.date === d);
     return {
-      d, palRap: sum(ri, l => l.pal), camRap: ri.length, palSst: sum(s, r => r.pal), camSst: sum(s, r => r.cam || 1),
+      d, palRap: sum(ri, l => l.pal), camRap: ri.length, palSst: sum(s, r => r.pal), camSst: sum(s, r => r.cam || 1), palIntercoBack: sum(s.filter(r => isInterco(r.sst)), r => r.pal),
       palIn: sum(ri, l => l.pal) + sum(s, r => r.pal), palOut: sum(a, r => r.pal), blocs: sum(a, r => r.blocs), livOut: a.length,
       poids: sum(a, r => r.poids), palExt: sum(ro, l => l.pal),
       palInterco: sum(a.filter(r => isInterco(r.nom, livIdx.get(r.liv)?.prio)), r => r.pal),
@@ -879,14 +879,14 @@ function viewDash() {
     <div class="kpis">
       ${kpi('Palettes entrantes', n0(palIn), 'pal', `Rapatriements ${n0(sum(rin, l => l.pal))} · SST ${n0(sum(sst, r => r.pal))}`, 'var(--in)')}
       ${kpi('Camions rapatriement', n0(rin.length), '', uniq(rin.map(l => l.entrepot)).join(' · ') || '—')}
-      ${kpi('Réceptions SST', n0(sum(sst, r => r.pal)), 'pal', `${n0(sum(sst, r => r.cam || 1))} camion(s) · ${n0(sst.filter(r => r.recu).length)}/${sst.length} pointés`)}
+      ${kpi('Réceptions SST', n0(sum(sst, r => r.pal)), 'pal', `${n0(sum(sst, r => r.cam || 1))} camion(s) · dont retours interco ${n0(sum(sst.filter(r => isInterco(r.sst)), r => r.pal))} pal`)}
       ${kpi('Transferts vers externes', n0(sum(rout, l => l.pal)), 'pal', `${rout.length} camion(s) · déstockages + navettes`)}
     </div>
     <div class="group-title" style="margin-top:18px">Sorties</div>
     <div class="kpis">
       ${kpi('Palettes expédiées', n0(palOut), 'pal', `${n0(aff.length)} livraisons · ${tons(sum(aff, r => r.poids))} t`, 'var(--out)')}
       ${kpi('Blocs sol', n0(sum(aff, r => r.blocs)), '', `${uniq(aff.map(r => r.transp)).length} transporteurs`)}
-      ${kpi('Intercos', n0(sum(intercoAff, r => r.pal)), 'pal', `${intercoAff.length} livraisons`)}
+      ${(() => { const ir = intercoRows(); return kpi('Intercos envoyés', n0(sum(ir, r => r.pal ?? r.palSilo)), 'pal', `${ir.length} livraisons · retours ${n0(sum(sst.filter(r => isInterco(r.sst)), r => r.pal))} pal`); })()}
     </div>
     <div class="group-title" style="margin-top:18px">Préparation (VL06O, date de chargement)</div>
     <div class="kpis">
@@ -913,9 +913,9 @@ function viewDash() {
 }
 function dayMatrix(pd) {
   const rowsDef = [
-    ['Rapatriements (pal)', 'palRap', n0], ['Camions rapatriement', 'camRap', n0], ['Réceptions SST (pal)', 'palSst', n0], ['Camions SST', 'camSst', n0],
+    ['Rapatriements (pal)', 'palRap', n0], ['Camions rapatriement', 'camRap', n0], ['Réceptions SST (pal)', 'palSst', n0], ['Camions SST', 'camSst', n0], ['dont retours interco (pal)', 'palIntercoBack', n0],
     ['Total entrées (pal)', 'palIn', n0, true], ['Livraisons expédiées', 'livOut', n0], ['Palettes expédiées', 'palOut', n0, true],
-    ['Blocs sol', 'blocs', n0], ['dont intercos (pal)', 'palInterco', n0], ['Poids expédié (t)', 'poids', tons],
+    ['Blocs sol', 'blocs', n0], ['dont envois interco (pal)', 'palInterco', n0], ['Poids expédié (t)', 'poids', tons],
     ['Transferts vers externes (pal)', 'palExt', n0], ['Livraisons à préparer', 'livPrep', n0], ['Codes (lignes)', 'codes', n0],
     ['Heures préparation', 'hrs', n1, true], ['dont faites', 'hrsFait', n1],
   ];
@@ -1176,7 +1176,7 @@ function viewOut() {
 // ============================================================
 //   VUE : INTERCOS
 // ============================================================
-function viewInterco() {
+function intercoRows() {
   const idx = livIndex();
   const map = new Map();
   for (const l of idx.values()) if (isInterco(l.nom, l.prio)) map.set(l.liv, { liv: l.liv, nom: l.nom, ville: l.ville, date: l.dc, v: l });
@@ -1186,13 +1186,40 @@ function viewInterco() {
     pal: e.a ? e.a.pal : null, palSilo: e.v ? e.v.palSilo : null, colis: e.v ? e.v.total : null, colisPick: e.v ? e.v.colisPick : null,
     hrs: e.v ? e.v.hrSilo + e.v.hrPick : null, prep: e.v?.prep, ot: e.v?.ot, transp: e.a ? e.a.transp : '', poids: e.a ? e.a.poids : null, circuit: e.v?.circuit || '',
   }));
-  const dests = uniq(rows.map(r => r.dest)).sort();
+  return rows;
+}
+function viewInterco() {
+  const rows = intercoRows();
+  // retours : réceptions SST venant d'une plateforme interco (ex. Plateforme 38 retravaille puis renvoie)
+  const back = S.sst.rows.filter(r => inWeek(r.date) && isInterco(r.sst)).map(r => Object.assign({ dest: destGroup(r.sst) }, r));
+  const dests = uniq([...rows.map(r => r.dest), ...back.map(r => r.dest)]).sort();
+  const palOf = r => r.pal ?? r.palSilo ?? 0;
   const cards = dests.map(d => {
-    const rs = rows.filter(r => r.dest === d); const done = rs.filter(r => r.prep === 'C').length;
-    return `<div class="kpi"><div class="lab">${esc(d)}</div><div class="val">${n0(sum(rs, r => r.pal ?? r.palSilo))}<small>pal</small></div>
-      <div class="det">${rs.length} livraison(s) · ${n0(sum(rs, r => r.colis))} colis · ${n1(sum(rs, r => r.hrs))} h prépa</div>
-      <div class="bar"><span style="width:${rs.length ? Math.round(done / rs.length * 100) : 0}%"></span></div><div class="det">${done}/${rs.length} prêtes</div></div>`;
+    const rs = rows.filter(r => r.dest === d), bk = back.filter(r => r.dest === d); const done = rs.filter(r => r.prep === 'C').length;
+    const pOut = sum(rs, palOf), pIn = sum(bk, r => r.pal);
+    return `<div class="kpi"><div class="lab">${esc(d)}${bk.length && rs.length ? ' <span class="badge b-info b-nodot">aller-retour</span>' : ''}</div>
+      <div class="val"><span title="Palettes envoyées">↗ ${n0(pOut)}</span>${bk.length ? ` <span style="color:var(--text-3);font-weight:500">/</span> <span title="Palettes reçues en retour">↙ ${n0(pIn)}</span>` : ''}<small>pal</small></div>
+      <div class="det">Envoi : ${rs.length} livraison(s) · ${n0(sum(rs, r => r.colis))} colis · ${n1(sum(rs, r => r.hrs))} h prépa</div>
+      ${bk.length ? `<div class="det">Retour : ${bk.length} RDV · ${n0(sum(bk, r => r.cam || 1))} camion(s) · ${bk.filter(r => r.recu).length} pointé(s)</div>` : ''}
+      ${rs.length ? `<div class="bar"><span style="width:${Math.round(done / rs.length * 100)}%"></span></div><div class="det">${done}/${rs.length} envois prêts</div>` : ''}</div>`;
   }).join('');
+  // aller / retour par jour
+  const { days } = weekData();
+  const dshow = days.filter((d, i) => i < 5 || rows.some(r => r.date === d) || back.some(r => r.date === d));
+  const cell = (list, f) => list.length ? `<b>${n0(sum(list, f))}</b> <span class="muted">pal</span>` : '<span class="muted">·</span>';
+  const flow = dests.length ? `<div class="tbl-wrap matrix" style="margin-bottom:16px"><table class="t"><thead><tr><th>Plateforme</th><th>Sens</th>${dshow.map(d => `<th class="num dayhead">${DAYS[dayIdx(d)]}<small>${fdate(d)}</small></th>`).join('')}<th class="num">Semaine</th></tr></thead><tbody>
+    ${dests.flatMap(d => {
+      const rs = rows.filter(r => r.dest === d), bk = back.filter(r => r.dest === d); const out = [];
+      if (rs.length) out.push(`<tr><td>${esc(d)}</td><td>${badge('Envoi', 'b-warn')}</td>${dshow.map(x => `<td class="num">${cell(rs.filter(r => r.date === x), palOf)}</td>`).join('')}<td class="num">${cell(rs, palOf)}</td></tr>`);
+      if (bk.length) out.push(`<tr><td>${rs.length ? '' : esc(d)}</td><td>${badge('Retour', 'b-info')}</td>${dshow.map(x => `<td class="num">${cell(bk.filter(r => r.date === x), r => r.pal)}</td>`).join('')}<td class="num">${cell(bk, r => r.pal)}</td></tr>`);
+      return out;
+    }).join('')}
+  </tbody></table></div>` : '';
+  const colsBack = [
+    { k: 'date', label: 'Date', fmt: fdateL }, { k: 'heure', label: 'Créneau' }, { k: 'dest', label: 'Provenance' }, { k: 'sst', label: 'RDV (planning SST)' },
+    { k: 'pal', label: 'Palettes', num: true, fmt: n0 }, { k: 'cam', label: 'Camions', num: true, fmt: n0 },
+    { k: 'recu', label: 'Pointage', html: r => r.recu ? badge('Reçu', 'b-good') : badge('À recevoir', 'b-neutral') },
+  ];
   const cols = [
     { k: 'date', label: 'Date', fmt: fdateL }, { k: 'dest', label: 'Destination' }, { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' },
     { k: 'circuit', label: 'Circuit' }, { k: 'pal', label: 'Pal (affrèt.)', num: true, fmt: n0 }, { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 },
@@ -1201,8 +1228,12 @@ function viewInterco() {
     { k: 'prep', label: 'Prépa', html: r => prepBadge(r.prep) }, { k: 'ot', label: 'OT', html: r => r.ot ? badge(...OT_LABEL[r.ot]) : '' },
   ];
   return `<section class="card glass"><h2>Intercos de la semaine</h2>
-    <p class="hint">Livraisons de priorité 9 (circuit Interco) ou dont le réceptionnaire contient : ${S.settings.intercoKeys.map(k => `<kbd>${esc(k)}</kbd>`).join(' ')} (modifiable dans Paramètres). Palettes = base affrètement si disponible, sinon pal SILO.</p>
-    ${rows.length ? `<div class="kpis" style="margin-bottom:16px">${cards}</div>${table('interco', cols, rows, { total: { pal: sum(rows, r => r.pal), palSilo: sum(rows, r => r.palSilo), colisPick: sum(rows, r => r.colisPick), colis: sum(rows, r => r.colis), hrs: sum(rows, r => r.hrs), poids: sum(rows, r => r.poids) } })}` : '<div class="empty"><b>Aucun interco cette semaine</b>Importez la VL06O ou la base affrètement.</div>'}
+    <p class="hint">Envois : livraisons de priorité 9 (circuit Interco) ou dont le réceptionnaire contient ${S.settings.intercoKeys.map(k => `<kbd>${esc(k)}</kbd>`).join(' ')} (modifiable dans Paramètres) ; palettes = base affrètement si disponible, sinon pal SILO. Retours : RDV du planning SST venant de ces mêmes plateformes (ex. Plateforme 38 qui retravaille les produits et les renvoie).</p>
+    ${dests.length ? `<div class="kpis" style="margin-bottom:16px">${cards}</div>
+      <h2>Aller / retour par jour</h2><p class="hint">↗ palettes envoyées · ↙ palettes reçues en retour.</p>${flow}
+      <h2>Envois</h2>${rows.length ? table('interco', cols, rows, { total: { pal: sum(rows, r => r.pal), palSilo: sum(rows, r => r.palSilo), colisPick: sum(rows, r => r.colisPick), colis: sum(rows, r => r.colis), hrs: sum(rows, r => r.hrs), poids: sum(rows, r => r.poids) } }) : '<div class="empty">Aucun envoi interco cette semaine.</div>'}
+      <h2 style="margin-top:18px">Retours</h2>${back.length ? table('intercoBack', colsBack, back, { total: { pal: sum(back, r => r.pal), cam: sum(back, r => r.cam) } }) : '<div class="empty">Aucun retour planifié cette semaine (planning SST).</div>'}`
+    : '<div class="empty"><b>Aucun interco cette semaine</b>Importez la VL06O, la base affrètement ou le planning SST.</div>'}
   </section>`;
 }
 function destGroup(nom) {
@@ -1503,7 +1534,7 @@ const TITLES = {
   dash: ['Tableau de bord', 'Vision hebdomadaire des flux entrants, sortants et de la préparation'],
   prep: ['Activité préparation', 'Avancement par date de chargement, livraison et code'],
   out: ['Expéditions', 'Base affrètement : livraisons, palettes et blocs sol par transporteur'],
-  interco: ['Intercos', 'Plateforme 38, Compans, McCormick… livrés en tant que plateforme'],
+  interco: ['Intercos', 'Envois et retours avec Plateforme 38, Compans, McCormick…'],
   rapat: ['Rapatriements', 'Flux avec les entrepôts externes'],
   sst: ['Réceptions sous-traitants', 'Planning de réception'],
   set: ['Paramètres', 'Cadences, référentiels et sauvegarde'],
