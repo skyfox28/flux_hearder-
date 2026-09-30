@@ -73,3 +73,17 @@ L'ancien format (`Date Enl · Livraison · …`) reste accepté. Le nom du trans
 Les livraisons de la VL06O **absentes** de la base affrètement sont ajoutées à la liste, sans doublon : une livraison affrétée n'est jamais reprise depuis la VL06O.
 - Elles sont datées à leur date de chargement et marquées « VL06O · non affrété ».
 - Leurs palettes et leurs blocs ne sont connus qu'une fois l'affrètement collé ; en attendant, l'app affiche leurs Pal SILO.
+
+## Capacité de picking (équipes)
+
+Les heures de picking du fichier Excel (colis ÷ cadence) sont des **heures de travail pour un préparateur**, pas une durée réelle.
+L'app les compare à la capacité des équipes, qui se règle dans Paramètres. Par défaut :
+- 2 préparateurs de 5h00 à 12h30 et 2 préparateurs de 12h30 à 20h00 ;
+- soit 4 × 7,5 h = **30 h de picking par jour travaillé** (du lundi au vendredi).
+
+Pour chaque jour de chargement, l'app affiche :
+- le **taux de charge** = heures de picking ÷ capacité ;
+- les **préparateurs nécessaires** = heures ÷ 7,5 h de poste ;
+- la **durée avec l'équipe** = heures ÷ 4 préparateurs.
+
+Le SILO (palettes complètes, 18 pal/h) est suivi à part.

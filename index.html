@@ -435,6 +435,8 @@ const DB = (() => {
 // ---------- État ----------
 const DEFAULT_SETTINGS = {
   cadSilo: 18, cadEntrepot: 400, cadExport: 750, cadMdd: 1300,
+  equipes: [{ nom: 'Matin', debut: '05:00', fin: '12:30', prep: 2 }, { nom: 'Après-midi', debut: '12:30', fin: '20:00', prep: 2 }],
+  joursTrav: [1, 1, 1, 1, 1, 0, 0],
   intercoKeys: ['PLATEFORME 38', 'COMPANS', 'MCCORMICK'],
   transporteurs: {},
   site: 'Monteux3',
@@ -498,6 +500,16 @@ function prepLines() {
   prepCache = out; prepCacheKey = key;
   return out;
 }
+// Capacité de picking : préparateurs × durée de chaque équipe (ex. 2 × 7,5 h + 2 × 7,5 h = 30 h/jour)
+const hm = t => { const m = String(t || '').match(/(\d{1,2})\s*[:h]\s*(\d{0,2})/); return m ? +m[1] + (+m[2] || 0) / 60 : 0; };
+const teamDur = e => { let d = hm(e.fin) - hm(e.debut); if (d < 0) d += 24; return d; };
+const teams = () => (S.settings.equipes || []).filter(e => num(e.prep) > 0 && teamDur(e) > 0);
+const capaDay = () => sum(teams(), e => num(e.prep) * teamDur(e));          // heures de picking disponibles par jour travaillé
+const nbPrep = () => sum(teams(), e => num(e.prep));                          // préparateurs sur la journée
+const hPerPrep = () => nbPrep() ? capaDay() / nbPrep() : 7.5;                 // durée moyenne d'un poste
+const workDay = iso => !!(S.settings.joursTrav || [1, 1, 1, 1, 1, 0, 0])[dayIdx(iso)];
+const capaOf = iso => workDay(iso) ? capaDay() : 0;
+const teamsLbl = () => teams().map(e => `${e.prep} ${e.prep > 1 ? 'préparateurs' : 'préparateur'} ${e.debut}–${e.fin}`).join(' + ');
 function agg(lines) {
   return {
     liv: new Set(lines.map(l => l.liv)).size,
@@ -762,11 +774,11 @@ function toast(msg, ms = 3800) { const t = $('#toast'); t.innerHTML = msg; t.cla
 
 // ---------- Graphiques SVG (barres groupées / empilées) ----------
 // series: [{key,label,color}], cats: [{label,sub}], data[catIdx][key]
-function barChart({ cats, series, data, stacked = false, unit = '', fmt = n0, height = 240 }) {
+function barChart({ cats, series, data, stacked = false, unit = '', fmt = n0, height = 240, ref = null }) {
   const W = 640, H = height, ml = 44, mr = 8, mt = 18, mb = 38;
   const iw = W - ml - mr, ih = H - mt - mb;
   const totals = data.map(d => stacked ? sum(series, s => d[s.key]) : Math.max(0, ...series.map(s => d[s.key] || 0)));
-  let max = Math.max(1, ...totals);
+  let max = Math.max(1, ...totals, ref ? ref.value * 1.08 : 0);
   const step = niceStep(max / 4); max = Math.ceil(max / step) * step;
   const y = v => mt + ih - (v / max) * ih;
   const bw = iw / cats.length;
@@ -800,7 +812,8 @@ function barChart({ cats, series, data, stacked = false, unit = '', fmt = n0, he
     hits += `<rect x="${x0}" y="${mt}" width="${bw}" height="${ih}" fill="transparent" data-tip="${esc(tipHtml)}"/>`;
   });
   g += `<line x1="${ml}" x2="${W - mr}" y1="${y(0)}" y2="${y(0)}" stroke="var(--axis)"/>`;
-  const legend = `<div class="legend">${series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.label)}</span>`).join('')}</div>`;
+  if (ref && ref.value > 0) bars += `<line x1="${ml}" x2="${W - mr}" y1="${y(ref.value)}" y2="${y(ref.value)}" stroke="var(--text-2)" stroke-width="1.5" stroke-dasharray="5 4"/><text class="val-t" x="${W - mr}" y="${y(ref.value) - 5}" text-anchor="end">${esc(ref.label)}</text>`;
+  const legend = `<div class="legend">${series.map(s => `<span><i style="background:${s.color}"></i>${esc(s.label)}</span>`).join('')}${ref ? `<span><i style="background:none;border-top:2px dashed var(--text-2);height:0;width:14px;border-radius:0"></i>${esc(ref.legend || ref.label)}</span>` : ''}</div>`;
   return `${legend}<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img">${g}${bars}${hits}</svg></div>`;
 }
 function roundedBar(x, y, w, h, r, color) {
@@ -907,6 +920,7 @@ function viewDash() {
       palInterco: sum(a.filter(r => isInterco(r.nom, livIdx.get(r.liv)?.prio)), r => r.pal),
       hrSilo: pa.hrSilo, hrPick: pa.hrPick, hrs: pa.hrSilo + pa.hrPick, codes: pa.codes, livPrep: pa.liv,
       hrsFait: sum(p.filter(l => l.sgp === 'C'), l => l.hrSilo + l.hrPick),
+      capa: capaOf(d), taux: capaOf(d) ? pa.hrPick / capaOf(d) : (pa.hrPick ? Infinity : 0), prepNeed: pa.hrPick / hPerPrep(), dureeEq: nbPrep() ? pa.hrPick / nbPrep() : 0,
     };
   });
   const showSun = perDay[6].palIn || perDay[6].palOut || perDay[6].hrs;
@@ -936,6 +950,7 @@ function viewDash() {
     <div class="group-title" style="margin-top:18px">Préparation (VL06O, date de chargement)</div>
     <div class="kpis">
       ${kpi('Charge totale', nf1.format(hrs), 'h', `SILO ${n1(A.hrSilo)} h · Picking ${n1(A.hrPick)} h`, '', 'charge')}
+      ${(() => { const dd = uniq(prep.map(l => l.dc)).filter(Boolean); const cap = sum(dd, capaOf); return kpi('Picking vs capacité', cap ? pct(A.hrPick / cap) : '–', '', `${n1(A.hrPick)} h de charge / ${n1(cap)} h dispo (${dd.length} j × ${n1(capaDay())} h) · ≈ ${n1(A.hrPick / hPerPrep())} préparateurs-jour`, '', 'charge'); })()}
       ${kpi('Livraisons', n0(A.liv), '', `${n0(A.codes)} codes · ${n0(A.total)} colis`, '', 'livprep')}
       ${kpi('Palettes SILO', n0(A.palSilo), '', `Colis picking ${n0(A.colisPick)}`, '', 'silo')}
       <div class="kpi" data-detail="avanc" role="button" tabindex="0"><div class="lab">Avancement (heures faites)</div><div class="val">${pct(hrs ? hrsFait / hrs : NaN)}</div><div class="bar"><span style="width:${hrs ? Math.round(hrsFait / hrs * 100) : 0}%"></span></div><div class="det">${n1(hrsFait)} h faites / ${n1(hrs)} h</div></div>
@@ -945,8 +960,8 @@ function viewDash() {
     <section class="card glass"><h2>Flux palettes par jour</h2><p class="hint">Entrées = rapatriements + réceptions SST · Sorties = base affrètement (date d’enlèvement).</p>
       ${barChart({ cats, series: [{ key: 'palIn', label: 'Entrées', color: cssVar('--in') }, { key: 'palOut', label: 'Sorties', color: cssVar('--out') }], data: pd, unit: ' pal' })}
     </section>
-    <section class="card glass"><h2>Charge préparation par jour</h2><p class="hint">Heures SILO (palettes complètes ÷ ${S.settings.cadSilo}/h) + heures picking (colis ÷ cadence du circuit).</p>
-      ${barChart({ cats, series: [{ key: 'hrSilo', label: 'Heures SILO', color: cssVar('--silo') }, { key: 'hrPick', label: 'Heures picking', color: cssVar('--pick') }], data: pd, stacked: true, unit: ' h', fmt: n1 })}
+    <section class="card glass"><h2>Charge picking vs capacité</h2><p class="hint">Heures de travail picking (colis ÷ cadence du circuit, pour 1 préparateur) comparées à la capacité : ${esc(teamsLbl())} = ${n1(capaDay())} h/jour. Le SILO (${n1(A.hrSilo)} h sur la semaine) est à part.</p>
+      ${barChart({ cats, series: [{ key: 'hrPick', label: 'Heures picking', color: cssVar('--pick') }], data: pd, unit: ' h', fmt: n1, ref: { value: capaDay(), label: `capacité ${n1(capaDay())} h`, legend: `Capacité (${nbPrep()} préparateurs)` } })}
     </section>
   </div>
   <section class="card glass"><h2>Semaine jour par jour</h2><p class="hint">Vue consolidée de tous les flux du dépôt — cliquez un chiffre ou une ligne pour le détail.</p>
@@ -956,7 +971,7 @@ function viewDash() {
     <div class="alerts">${alerts || `<div class="alert info">${icon('info')}<div>Rien à signaler pour cette semaine.</div></div>`}</div>
   </section>`;
 }
-const MATRIX_DETAIL = { palRap: 'rapin', camRap: 'rapin', palSst: 'sst', camSst: 'sst', palIntercoBack: 'sst', palIn: 'in', livOut: 'out', livNA: 'out', palOut: 'out', blocs: 'blocs', palInterco: 'interco', poids: 'poids', palExt: 'ext', livPrep: 'livprep', codes: 'livprep', hrs: 'charge', hrsFait: 'avanc' };
+const MATRIX_DETAIL = { palRap: 'rapin', camRap: 'rapin', palSst: 'sst', camSst: 'sst', palIntercoBack: 'sst', palIn: 'in', livOut: 'out', livNA: 'out', palOut: 'out', blocs: 'blocs', palInterco: 'interco', poids: 'poids', palExt: 'ext', livPrep: 'livprep', codes: 'livprep', hrs: 'charge', hrsFait: 'avanc', hrPick: 'charge', capa: 'charge', taux: 'charge', prepNeed: 'charge', dureeEq: 'charge' };
 function dayMatrix(pd) {
   const rowsDef = [
     ['Rapatriements (pal)', 'palRap', n0], ['Camions rapatriement', 'camRap', n0], ['Réceptions SST (pal)', 'palSst', n0], ['Camions SST', 'camSst', n0], ['dont retours interco (pal)', 'palIntercoBack', n0],
@@ -964,9 +979,11 @@ function dayMatrix(pd) {
     ['Blocs sol', 'blocs', n0], ['dont envois interco (pal)', 'palInterco', n0], ['Poids expédié (t)', 'poids', tons],
     ['Transferts vers externes (pal)', 'palExt', n0], ['Livraisons à préparer', 'livPrep', n0], ['Codes (lignes)', 'codes', n0],
     ['Heures préparation', 'hrs', n1, true], ['dont faites', 'hrsFait', n1],
+    ['Heures picking (charge)', 'hrPick', n1, true], ['Capacité picking (h)', 'capa', n1], ['Taux de charge picking', 'taux', v => isFinite(v) ? pct(v) : 'hors capacité', false, pd => { const c = sum(pd, r => r.capa); return c ? sum(pd, r => r.hrPick) / c : NaN; }],
+    ['Préparateurs nécessaires', 'prepNeed', n1, false, pd => NaN], ['Durée picking avec l’équipe (h)', 'dureeEq', n1],
   ];
   const th = `<th scope="col">Indicateur</th>` + pd.map(r => `<th class="num dayhead" scope="col">${DAYS[dayIdx(r.d)]}<small>${fdate(r.d)}</small></th>`).join('') + '<th class="num" scope="col">Semaine</th>';
-  const body = rowsDef.map(([lab, k, f, hl]) => { const dk = MATRIX_DETAIL[k]; return `<tr${hl ? ' class="sub"' : ''}><td${dk ? ` class="clk" data-detail="${dk}"` : ''}>${lab}</td>${pd.map(r => `<td class="num${r[k] && dk ? ' clk' : ''}"${r[k] && dk ? ` data-detail="${dk}" data-day="${r.d}"` : ''}>${r[k] ? f(r[k]) : '<span class="muted">·</span>'}</td>`).join('')}<td class="num${dk ? ' clk' : ''}"${dk ? ` data-detail="${dk}"` : ''}><b>${f(sum(pd, r => r[k]))}</b></td></tr>`; }).join('');
+  const body = rowsDef.map(([lab, k, f, hl, wf]) => { const dk = MATRIX_DETAIL[k]; const wv = wf ? wf(pd) : sum(pd, r => r[k]); return `<tr${hl ? ' class="sub"' : ''}><td${dk ? ` class="clk" data-detail="${dk}"` : ''}>${lab}</td>${pd.map(r => `<td class="num${r[k] && dk ? ' clk' : ''}"${r[k] && dk ? ` data-detail="${dk}" data-day="${r.d}"` : ''}>${r[k] ? f(r[k]) : '<span class="muted">·</span>'}</td>`).join('')}<td class="num${dk ? ' clk' : ''}"${dk ? ` data-detail="${dk}"` : ''}><b>${isNaN(wv) ? '' : f(wv)}</b></td></tr>`; }).join('');
   return `<div class="tbl-wrap matrix"><table class="t"><thead><tr>${th}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 function buildAlerts(aff, prep) {
@@ -1083,6 +1100,7 @@ function prepSynth(lines) {
   return `
   <div class="kpis" style="margin-bottom:18px">
     <div class="kpi" data-detail="p-charge" role="button" tabindex="0"><div class="lab">Heures à produire</div><div class="val">${n1(hrsT)}<small>h</small></div><div class="det">SILO ${n1(T.hrSilo)} h · Picking ${n1(T.hrPick)} h</div></div>
+    <div class="kpi" data-detail="p-charge" role="button" tabindex="0"><div class="lab">Picking vs capacité</div>${(() => { const dd = uniq(lines.map(l => l.dc)).filter(Boolean); const cap = sum(dd, capaOf); return `<div class="val">${cap ? pct(T.hrPick / cap) : '–'}</div><div class="det">${n1(T.hrPick)} h / ${n1(cap)} h dispo · ≈ ${n1(T.hrPick / hPerPrep() / Math.max(1, dd.length))} préparateurs/jour</div>`; })()}</div>
     <div class="kpi" data-detail="p-reste" role="button" tabindex="0"><div class="lab">Reste à faire</div><div class="val">${n1(hrsT - hrsF)}<small>h</small></div><div class="det">${n0(agg(lines.filter(l => l.sgp !== 'C')).liv)} livraisons · ${n0(T.codes - F.codes)} codes</div></div>
     <div class="kpi" data-detail="p-avanc" role="button" tabindex="0"><div class="lab">Avancement</div><div class="val">${pct(hrsT ? hrsF / hrsT : NaN)}</div><div class="bar"><span style="width:${hrsT ? Math.round(hrsF / hrsT * 100) : 0}%"></span></div><div class="det">Lignes « Prépa terminée = C »</div></div>
     <div class="kpi" data-detail="p-silo" role="button" tabindex="0"><div class="lab">Volume</div><div class="val">${n0(T.total)}<small>colis</small></div><div class="det">${n0(T.palSilo)} pal SILO · ${n0(T.colisPick)} colis picking</div></div>
@@ -1456,6 +1474,10 @@ function viewSettings() {
       <label>Nom du site<input class="inp" data-set="site" value="${esc(st.site)}"></label>
     </div>
   </section>
+  <section class="card glass"><h2>Équipes de préparation (capacité picking)</h2><p class="hint">Capacité = préparateurs × durée du poste. Actuellement ${esc(teamsLbl()) || 'aucune équipe'} = <b>${n1(capaDay())} h de picking par jour</b>.</p>
+    <div class="grid" style="gap:10px">${(st.equipes || []).map((e, i) => `<div class="form"><label>Équipe<input class="inp" data-team="${i}|nom" value="${esc(e.nom)}"></label><label>Début<input class="inp" type="time" data-team="${i}|debut" value="${esc(e.debut)}"></label><label>Fin<input class="inp" type="time" data-team="${i}|fin" value="${esc(e.fin)}"></label><label>Préparateurs<input class="inp" type="number" min="0" data-team="${i}|prep" value="${esc(e.prep)}"></label><label>Durée<input class="inp" disabled value="${n1(teamDur(e))} h → ${n1(num(e.prep) * teamDur(e))} h"></label><button class="btn sm danger" data-act="team-del" data-i="${i}">${icon('trash')}</button></div>`).join('')}</div>
+    <div class="row" style="margin-top:10px"><button class="btn sm" data-act="team-add">+ Ajouter une équipe</button><span class="meta">Jours travaillés :</span>${DAYS.map((d, i) => `<label class="row meta" style="gap:4px"><input type="checkbox" data-jour="${i}" ${(st.joursTrav || [])[i] ? 'checked' : ''}>${d.slice(0, 3)}.</label>`).join('')}</div>
+  </section>
   <section class="card glass"><h2>Intercos</h2><p class="hint">Mots-clés recherchés dans le nom du réceptionnaire (un par ligne). La priorité de livraison 9 est toujours considérée comme interco.</p>
     <textarea class="inp" style="min-height:90px;font-family:inherit" data-setlist="intercoKeys">${esc(st.intercoKeys.join('\n'))}</textarea>
   </section>
@@ -1486,6 +1508,8 @@ document.addEventListener('change', e => {
   const t = e.target;
   if (t.dataset.set) { const k = t.dataset.set; S.settings[k] = k === 'site' ? t.value : (num(t.value) || DEFAULT_SETTINGS[k]); save('settings'); render(); }
   if (t.dataset.setlist) { S.settings[t.dataset.setlist] = t.value.split('\n').map(s => s.trim()).filter(Boolean); save('settings'); render(); }
+  if (t.dataset.team) { const [i, k] = t.dataset.team.split('|'); S.settings.equipes[+i][k] = k === 'prep' ? num(t.value) : t.value; save('settings'); render(); }
+  if (t.dataset.jour != null && t.type === 'checkbox') { S.settings.joursTrav = (S.settings.joursTrav || [1, 1, 1, 1, 1, 0, 0]).slice(); S.settings.joursTrav[+t.dataset.jour] = t.checked ? 1 : 0; save('settings'); render(); }
   if (t.dataset.transp) { const v = t.value.trim(); if (v) S.settings.transporteurs[t.dataset.transp] = v; else delete S.settings.transporteurs[t.dataset.transp]; save('settings'); }
 });
 let qT;
@@ -1500,6 +1524,8 @@ document.addEventListener('click', async e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   const a = b.dataset.act;
   if (a === 'pf-reset') { S.ui.pf = {}; render(); }
+  if (a === 'team-add') { S.settings.equipes = [...(S.settings.equipes || []), { nom: 'Équipe', debut: '20:00', fin: '03:30', prep: 1 }]; save('settings'); render(); }
+  if (a === 'team-del') { S.settings.equipes = S.settings.equipes.filter((_, i) => i !== +b.dataset.i); save('settings'); render(); }
   if (a === 'aff-import') {
     try {
       const rows = parseAffret($('#affPaste').value);
@@ -1665,7 +1691,14 @@ function prepDetail(lines, mode, scope) {
     { label: 'Heures à faire', f: x => hrsOf(x.filter(l => l.sgp !== 'C')), fmt: hr }, { label: 'Avancement', f: x => hrsOf(x) ? hrsOf(x.filter(l => l.sgp === 'C')) / hrsOf(x) : NaN, fmt: pct },
   ]) : '';
   const method = `Pal SILO = arrondi inférieur (colis ÷ UQ/PAL) · Colis picking = reste · Hr SILO = pal ÷ ${S.settings.cadSilo} · Hr picking = colis ÷ cadence du circuit.`;
-  if (mode === 'charge') return { title: 'Charge de préparation', sub: scope, body: mini([['Total', n1(hrsOf(lines)), 'h'], ['SILO', n1(A.hrSilo), 'h', `${n0(A.palSilo)} palettes`], ['Picking', n1(A.hrPick), 'h', `${n0(A.colisPick)} colis`], ['Faites', n1(hrsOf(F)), 'h', pct(hrsOf(lines) ? hrsOf(F) / hrsOf(lines) : NaN)]]) + (days ? h3('Par jour de chargement') + days : '') + h3('Par circuit', method) + circ + h3('Livraisons', 'Triées par charge décroissante.') + livTable('dLivC', livsOf(lines).sort((a, b) => (b.hrSilo + b.hrPick) - (a.hrSilo + a.hrPick))) };
+  const capaT = byDay('dCapa', lines, l => l.dc, [
+    { label: 'Heures picking', f: x => sum(x, l => l.hrPick), fmt: hr }, { label: 'Capacité', f: x => sum(uniq(x.map(l => l.dc)), capaOf), fmt: hr },
+    { label: 'Taux de charge', f: x => { const c = sum(uniq(x.map(l => l.dc)), capaOf); return c ? sum(x, l => l.hrPick) / c : NaN; }, fmt: pct },
+    { label: 'Préparateurs nécessaires', f: x => sum(x, l => l.hrPick) / hPerPrep() / Math.max(1, uniq(x.map(l => l.dc)).length), fmt: n1 },
+    { label: `Durée avec ${nbPrep()} prép.`, f: x => nbPrep() ? sum(x, l => l.hrPick) / nbPrep() / Math.max(1, uniq(x.map(l => l.dc)).length) : NaN, fmt: hr },
+  ]);
+  const capaHint = `Capacité = ${esc(teamsLbl())} = ${n1(capaDay())} h de picking par jour travaillé. Les heures picking sont des heures de travail d’un préparateur (colis ÷ cadence) : « Préparateurs nécessaires » = heures ÷ ${n1(hPerPrep())} h de poste ; « Durée avec l’équipe » = heures ÷ ${nbPrep()} préparateurs.`;
+  if (mode === 'charge') return { title: 'Charge de préparation', sub: scope, body: mini([['Total', n1(hrsOf(lines)), 'h'], ['SILO', n1(A.hrSilo), 'h', `${n0(A.palSilo)} palettes`], ['Picking', n1(A.hrPick), 'h', `${n0(A.colisPick)} colis`], ['Capacité picking', n1(sum(uniq(lines.map(l => l.dc)), capaOf)), 'h', `${n1(capaDay())} h/jour · ${nbPrep()} préparateurs`], ['Faites', n1(hrsOf(F)), 'h', pct(hrsOf(lines) ? hrsOf(F) / hrsOf(lines) : NaN)]]) + h3('Picking vs capacité préparateurs', capaHint) + capaT + (days ? h3('Par jour de chargement') + days : '') + h3('Par circuit', method) + circ + h3('Livraisons', 'Triées par charge décroissante.') + livTable('dLivC', livsOf(lines).sort((a, b) => (b.hrSilo + b.hrPick) - (a.hrSilo + a.hrPick))) };
   if (mode === 'livprep') return { title: 'Livraisons à préparer', sub: scope, body: mini([['Livraisons', n0(A.liv)], ['Terminées', n0(livsOf(lines).filter(l => l.prep === 'C').length)], ['En cours', n0(livsOf(lines).filter(l => l.prep === 'B').length)], ['Non commencées', n0(livsOf(lines).filter(l => l.prep === 'A').length)]]) + (days ? h3('Par jour de chargement') + days : '') + h3('Détail') + livTable('dLivP', livsOf(lines)) };
   if (mode === 'silo') {
     const arts = groupTable('dArt', lines.filter(l => l.colisPick > 0), l => l.art, 'Article', [{ label: 'Lignes', f: x => x.length }, { label: 'Colis picking', f: x => sum(x, l => l.colisPick) }, { label: 'Hr Pick', f: x => sum(x, l => l.hrPick), fmt: hr }], k => `${k} · ${(lines.find(l => l.art === k) || {}).des || ''} · ${(lines.find(l => l.art === k) || {}).picking || ''}`);
