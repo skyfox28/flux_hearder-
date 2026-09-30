@@ -13,7 +13,7 @@ Gardez ensemble `index.html`, `referentiels.js` et le dossier `lib/`.
 | Expéditions | **Base affrètement** (Access) | copier-coller des lignes (avec ou sans en-têtes) |
 | Intercos | VL06O + affrètement | automatique : priorité 9, ou mots-clés Plateforme 38 / Compans / McCormick |
 | Rapatriements | Classeurs `AAAA_Sxx_<Entrepôt>.xlsx` (FM, Mutual, Tempo One…) | glisser-déposer, plusieurs fichiers à la fois |
-| Réceptions SST | Planning de réception des sous-traitants | import Excel (colonnes détectées automatiquement) ou saisie |
+| Réceptions SST | `Planning_Reception_SST_Monteux3.xlsb` (onglets « PlanningReception AAAA ») | glisser-déposer, ou saisie manuelle d'un RDV |
 | Paramètres | Fichier Article, MLGT, magasins, cadences | `FichierArticle.XLSX`, `MLGT.XLSX` ou directement `Analyse_Activité_Préparation.xlsb` |
 
 ## Méthode de calcul de la préparation
@@ -34,4 +34,15 @@ Sur l'extraction VL06O fournie, les totaux ont été vérifiés contre un recalc
 
 Chaque onglet placé après un séparateur `LUNDI>>`, `MARDI>>`, etc. est lu comme un camion. La date vient de la colonne « A LIVRER LE » ou « Date Détournement ». À défaut, elle est déduite du jour du séparateur et de la semaine indiquée dans le nom du fichier.
 Les palettes sont prises dans la colonne « Pal » / « Nb Pal » ; sans cette colonne, chaque ligne compte pour une palette.
-Les onglets de navettes détournées (avec « N° Remorque » ou « Date Détournement ») sont classés **en sortie vers l'entrepôt externe**. Tous les autres sont classés **en entrée** au dépôt. Un clic sur le sens d'un camion l'inverse.
+Sens des flux :
+- **DT** (onglets `F…`, `M…`, `T…` vers le destinataire 2530) : rapatriement, **entrée** au dépôt ;
+- **DESTO** (déstockage) et **NAV** (navette détournée) : **sortie** de chez nous vers l'entrepôt externe.
+
+Un clic sur le sens d'un camion l'inverse en cas d'exception.
+
+## Réceptions sous-traitants
+
+Seuls les créneaux qui ont un RDV sous-traitant ou un nombre de palettes sont repris. Les onglets « Cumul » et « Ne pas toucher » sont ignorés.
+Le pointage « Reçu » se fait dans l'app, et il est conservé quand on ré-importe le planning.
+Un créneau passé sans pointage est signalé en orange.
+Les totaux sont calculés sur les lignes du planning, pas sur le tableau croisé « Cumul » : si celui-ci n'a pas été actualisé, les deux peuvent différer.

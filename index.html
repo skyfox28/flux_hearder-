@@ -244,6 +244,11 @@ table.t{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;font
 .tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
 
 .matrix td.num.hl{font-weight:700}
+.t.slots td{vertical-align:top;min-width:150px;white-space:normal;padding:5px 6px}
+.slot{display:block;margin:2px 0;padding:4px 8px;border-radius:10px;font-size:12px;line-height:1.35;border:1px solid transparent;background:var(--chip);border-color:color-mix(in srgb,var(--text-3) 25%,transparent)}
+.slot b{float:right;margin-left:8px}
+.slot.s-ok{background:color-mix(in srgb,var(--good) 16%,transparent);border-color:color-mix(in srgb,var(--good) 40%,transparent)}
+.slot.s-late{background:color-mix(in srgb,var(--warn) 18%,transparent);border-color:color-mix(in srgb,var(--warn) 50%,transparent)}
 .dayhead small{display:block;font-weight:400;color:var(--text-3)}
 .toast{position:fixed;right:22px;bottom:22px;z-index:60;padding:12px 16px;border-radius:16px;max-width:420px;font-size:13px;transform:translateY(20px);opacity:0;transition:.25s}
 .toast.show{transform:none;opacity:1}
@@ -491,10 +496,11 @@ const OT_LABEL = { A: ['OT non créés', 'b-crit'], B: ['OT partiels', 'b-warn']
 const badge = (lab, cls) => `<span class="badge ${cls}">${esc(lab)}</span>`;
 const prepBadge = s => s ? badge(...PREP_LABEL[s]) : badge('Hors VL06O', 'b-neutral');
 
+const compact = v => String(v || '').toUpperCase().replace(/\s+/g, '');
 function isInterco(nom, prio) {
   if (prio === 9) return true;
-  const u = String(nom || '').toUpperCase();
-  return S.settings.intercoKeys.some(k => k && u.includes(k.toUpperCase()));
+  const u = compact(nom);
+  return S.settings.intercoKeys.some(k => k && u.includes(compact(k)));
 }
 
 // ---------- Lecture fichiers ----------
@@ -623,7 +629,7 @@ function parseRapatWorkbook(wb, fileName) {
     const dtNo = M.dt != null ? str(rows[hi + 1][M.dt]) : '';
     loads.push({
       id: `${entrepot}|${year}-S${week}|${name}`, file: fileName, entrepot, year, week, sheet: name, kind,
-      sens: kind === 'NAV' ? 'out' : 'in', date, approx,
+      sens: kind === 'DT' ? 'in' : 'out', date, approx,
       ref: dtNo || name, remorque: g0('remorque'), usine: g0('usine'), livE: g0('livE'), livS: g0('livS'),
       pal: sum(lines, l => l.pal), poids: sum(lines, l => l.poids), qte: sum(lines, l => l.qte), nbArt: new Set(lines.map(l => l.art || l.des)).size,
       lines: lines.map(({ date, ...l }) => l),
@@ -632,31 +638,43 @@ function parseRapatWorkbook(wb, fileName) {
   return { entrepot, week, year, loads };
 }
 
-// Planning réceptions sous-traitants (lecture générique : colonnes détectées)
+// Planning réceptions sous-traitants (Planning_Reception_SST_Monteux3 : un onglet « PlanningReception AAAA »,
+// une ligne par créneau ; seuls les créneaux avec un RDV ou des palettes sont retenus)
 const SST_SPEC = {
-  date: ['Date réception', 'Date de réception', 'Date livraison', 'Date', 'Jour'], heure: ['Heure', 'Créneau', 'Horaire', 'RDV'],
-  sst: ['Sous-traitant', 'Sous traitant', 'SST', 'Fournisseur', 'Expéditeur', 'Provenance', 'Transporteur'],
-  ref: ['N° commande', 'Commande', 'PO', 'Référence', 'Réf', 'N° livraison', 'Livraison', 'BL'],
-  pal: ['Nb palettes', 'Palettes', 'Nb pal', 'Pal', 'Nombre de palettes', 'Qté palettes'],
+  date: ['Date réception', 'Date de réception', 'Date livraison', 'Date', 'Jour'], heure: ['Créneau', 'Heure RDV', 'Horaire', 'Heure'],
+  sst: ['RDV Sous-Traitant', 'Sous-traitant', 'Sous traitant', 'SST', 'Fournisseur', 'Expéditeur', 'Provenance'],
+  ref: ['N° commande', 'Commande', 'PO', 'Référence', 'N° livraison', 'BL'],
+  pal: ['Nb Palettes', 'Palettes', 'Nb pal', 'Nombre de palettes'], cam: ['Nb Camion', 'Nb Camions', 'Camions'],
+  arr: ['Heure Arrivée', 'Arrivée'], dep: ['Heure départ', 'Départ'],
   quai: ['Quai', 'Porte'], comm: ['Commentaire', 'Commentaires', 'Observations', 'Remarque'], statut: ['Statut', 'Etat', 'Réceptionné'],
 };
+function timeStr(v) {
+  if (typeof v === 'number' && v >= 0 && v < 1) { const mn = Math.round(v * 1440); return `${pad(Math.floor(mn / 60))}:${pad(mn % 60)}`; }
+  const m = String(v ?? '').match(/(\d{1,2})\s*[h:]\s*(\d{2})?/i);
+  return m ? `${pad(+m[1])}:${m[2] || '00'}` : '';
+}
 function parseSST(wb, fileName) {
   const out = [];
   for (const name of wb.SheetNames) {
+    if (/cumul|ne pas toucher|synth|tcd/i.test(name)) continue;   // tableaux croisés et onglet technique
     const rows = sheetRows(wb.Sheets[name]);
-    const hi = rows.slice(0, 25).findIndex(r => r.some(c => /date|jour/i.test(String(c ?? ''))) && r.filter(c => c != null && c !== '').length >= 2);
+    const hi = rows.slice(0, 25).findIndex(r => r.some(c => /date|jour/i.test(String(c ?? ''))) && r.filter(c => c != null && c !== '').length >= 3);
     if (hi < 0) continue;
     const M = headerMap(rows[hi], SST_SPEC);
-    if (M.date == null) continue;
+    if (M.date == null || (M.sst == null && M.pal == null)) continue;
     let lastDate = null;
     for (const r of rows.slice(hi + 1)) {
       const g = k => M[k] == null ? null : r[M[k]];
-      const d = toIso(g('date')) || lastDate; if (toIso(g('date'))) lastDate = d;
-      const sst = str(g('sst')), refv = str(g('ref')), pal = num(g('pal'));
+      const d0 = toIso(g('date')); const d = d0 || lastDate; if (d0) lastDate = d0;
+      const sst = str(g('sst')).replace(/\s+/g, ' '), refv = str(g('ref')), pal = num(g('pal'));
       if (!d || (!sst && !refv && !pal)) continue;
-      let h = g('heure'); if (typeof h === 'number' && h < 1) { const mn = Math.round(h * 1440); h = `${pad(Math.floor(mn / 60))}:${pad(mn % 60)}`; }
+      const heure = timeStr(g('heure')), arr = timeStr(g('arr')), dep = timeStr(g('dep'));
       const stv = str(g('statut'));
-      out.push({ id: 'x' + Math.random().toString(36).slice(2, 10), date: d, heure: str(h), sst, ref: refv, pal, quai: str(g('quai')), comm: str(g('comm')), recu: /^(oui|ok|x|re[cç]u|r[ée]ceptionn[ée]|fait|1|true)$/i.test(stv), src: fileName + ' / ' + name });
+      out.push({
+        id: `${d}|${heure}|${sst.toUpperCase()}|${refv}`, date: d, heure, sst, ref: refv, pal, cam: M.cam != null ? num(g('cam')) : (pal ? 1 : 0),
+        arr, dep, quai: str(g('quai')), comm: str(g('comm')),
+        recu: !!arr || /^(oui|ok|x|re[cç]u|r[ée]ceptionn[ée]|fait|1|true)$/i.test(stv), src: fileName + ' / ' + name,
+      });
     }
   }
   return out;
@@ -838,7 +856,7 @@ function viewDash() {
     const p = prep.filter(l => l.dc === d), pa = agg(p);
     const a = aff.filter(r => r.date === d), ri = rin.filter(l => l.date === d), ro = rout.filter(l => l.date === d), s = sst.filter(r => r.date === d);
     return {
-      d, palRap: sum(ri, l => l.pal), camRap: ri.length, palSst: sum(s, r => r.pal), nbSst: s.length,
+      d, palRap: sum(ri, l => l.pal), camRap: ri.length, palSst: sum(s, r => r.pal), camSst: sum(s, r => r.cam || 1),
       palIn: sum(ri, l => l.pal) + sum(s, r => r.pal), palOut: sum(a, r => r.pal), blocs: sum(a, r => r.blocs), livOut: a.length,
       poids: sum(a, r => r.poids), palExt: sum(ro, l => l.pal),
       palInterco: sum(a.filter(r => isInterco(r.nom, livIdx.get(r.liv)?.prio)), r => r.pal),
@@ -861,8 +879,8 @@ function viewDash() {
     <div class="kpis">
       ${kpi('Palettes entrantes', n0(palIn), 'pal', `Rapatriements ${n0(sum(rin, l => l.pal))} · SST ${n0(sum(sst, r => r.pal))}`, 'var(--in)')}
       ${kpi('Camions rapatriement', n0(rin.length), '', uniq(rin.map(l => l.entrepot)).join(' · ') || '—')}
-      ${kpi('Réceptions SST', n0(sst.length), '', `${n0(sst.filter(r => r.recu).length)} réceptionnées`)}
-      ${kpi('Transferts vers externes', n0(sum(rout, l => l.pal)), 'pal', `${rout.length} navette(s)`)}
+      ${kpi('Réceptions SST', n0(sum(sst, r => r.pal)), 'pal', `${n0(sum(sst, r => r.cam || 1))} camion(s) · ${n0(sst.filter(r => r.recu).length)}/${sst.length} pointés`)}
+      ${kpi('Transferts vers externes', n0(sum(rout, l => l.pal)), 'pal', `${rout.length} camion(s) · déstockages + navettes`)}
     </div>
     <div class="group-title" style="margin-top:18px">Sorties</div>
     <div class="kpis">
@@ -895,7 +913,7 @@ function viewDash() {
 }
 function dayMatrix(pd) {
   const rowsDef = [
-    ['Rapatriements (pal)', 'palRap', n0], ['Camions rapatriement', 'camRap', n0], ['Réceptions SST (pal)', 'palSst', n0],
+    ['Rapatriements (pal)', 'palRap', n0], ['Camions rapatriement', 'camRap', n0], ['Réceptions SST (pal)', 'palSst', n0], ['Camions SST', 'camSst', n0],
     ['Total entrées (pal)', 'palIn', n0, true], ['Livraisons expédiées', 'livOut', n0], ['Palettes expédiées', 'palOut', n0, true],
     ['Blocs sol', 'blocs', n0], ['dont intercos (pal)', 'palInterco', n0], ['Poids expédié (t)', 'poids', tons],
     ['Transferts vers externes (pal)', 'palExt', n0], ['Livraisons à préparer', 'livPrep', n0], ['Codes (lignes)', 'codes', n0],
@@ -1188,8 +1206,8 @@ function viewInterco() {
   </section>`;
 }
 function destGroup(nom) {
-  const u = String(nom || '').toUpperCase();
-  const k = S.settings.intercoKeys.find(k => k && u.includes(k.toUpperCase()));
+  const u = compact(nom);
+  const k = S.settings.intercoKeys.find(k => k && u.includes(compact(k)));
   if (!k) return nom || '—';
   if (/MCCORMICK/.test(k.toUpperCase())) return nom; // plusieurs sites McCormick : garder le nom complet
   return k.charAt(0) + k.slice(1).toLowerCase();
@@ -1198,7 +1216,7 @@ function destGroup(nom) {
 // ============================================================
 //   VUE : RAPATRIEMENTS
 // ============================================================
-const KIND = { DT: 'Transfert (DT)', DESTO: 'Déstockage', NAV: 'Navette détournée' };
+const KIND = { DT: 'Rapatriement (DT)', DESTO: 'Déstockage → externe', NAV: 'Navette détournée → externe' };
 function viewRapat() {
   const { days } = weekData();
   const all = Object.values(S.rapat.loads);
@@ -1231,12 +1249,12 @@ function viewRapat() {
   <section class="card glass">
     <div class="kpis" style="margin-bottom:16px">
       <div class="kpi"><div class="lab"><i style="background:var(--in)"></i>Palettes rapatriées</div><div class="val">${n0(sum(lin, l => l.pal))}</div><div class="det">${lin.length} camion(s) · ${tons(sum(lin, l => l.poids))} t</div></div>
-      <div class="kpi"><div class="lab">Transferts vers externes</div><div class="val">${n0(sum(lout, l => l.pal))}</div><div class="det">${lout.length} navette(s)</div></div>
+      <div class="kpi"><div class="lab">Transferts vers externes</div><div class="val">${n0(sum(lout, l => l.pal))}</div><div class="det">${lout.length} camion(s) · déstockages + navettes</div></div>
       ${ents.map(e => { const x = lin.filter(l => l.entrepot === e); return `<div class="kpi"><div class="lab">${esc(e)}</div><div class="val">${n0(sum(x, l => l.pal))}<small>pal</small></div><div class="det">${x.length} camion(s) entrant(s)</div></div>`; }).join('')}
     </div>
     <h2>Par entrepôt et par jour</h2><p class="hint">Palettes = colonne « Pal » / « Nb Pal » si présente, sinon une ligne = une unité de stock = une palette.</p>${mtx}
   </section>
-  <section class="card glass"><div class="card-head"><div><h2>Camions</h2><p class="hint">Cliquez une ligne pour le détail des palettes. Les navettes détournées (onglets avec « Date Détournement ») sont classées en sortie par défaut.</p></div>
+  <section class="card glass"><div class="card-head"><div><h2>Camions</h2><p class="hint">Cliquez une ligne pour le détail des palettes. Les rapatriements (DT) sont des entrées au dépôt ; les déstockages (DESTO) et navettes détournées (NAV) sont des sorties vers l’entrepôt externe.</p></div>
     <button class="btn sm danger" data-act="rap-clear-week">${icon('trash')} Vider la semaine</button></div>
     <div class="filters"><div class="fgroup"><label>Entrepôt</label>${ents.map(e => `<button class="chip ${(f.ent || []).includes(e) ? 'on' : ''}" data-chip="rf|ent|${esc(e)}">${esc(e)}</button>`).join('')}</div>
     <div class="fgroup"><label>Sens</label><button class="chip ${(f.sens || []).includes('in') ? 'on' : ''}" data-chip="rf|sens|in">Entrées</button><button class="chip ${(f.sens || []).includes('out') ? 'on' : ''}" data-chip="rf|sens|out">Sorties</button></div></div>
@@ -1259,33 +1277,58 @@ document.addEventListener('click', e => {
 function viewSST() {
   const { days } = weekData();
   const rows = S.sst.rows.filter(r => inWeek(r.date)).sort((a, b) => a.date.localeCompare(b.date) || a.heure.localeCompare(b.heure));
-  const dshow = days.filter((d, i) => i < 6 || rows.some(r => r.date === d));
+  const dshow = days.filter((d, i) => i < 5 || rows.some(r => r.date === d));
+  const t = today(), nowH = `${pad(new Date().getHours())}:${pad(new Date().getMinutes())}`;
+  const state = r => r.recu ? 'ok' : (r.date < t || (r.date === t && r.heure && r.heure < nowH) ? 'late' : 'plan');
+  const stBadge = r => ({ ok: badge('Réceptionné', 'b-good'), late: badge('Non pointé', 'b-warn'), plan: badge('Planifié', 'b-neutral') })[state(r)];
   const cols = [
-    { k: 'date', label: 'Date', fmt: fdateL }, { k: 'heure', label: 'Heure' }, { k: 'sst', label: 'Sous-traitant' }, { k: 'ref', label: 'Référence' },
-    { k: 'pal', label: 'Palettes', num: true, fmt: n0 }, { k: 'quai', label: 'Quai' }, { k: 'comm', label: 'Commentaire', cls: 'wrap muted' },
-    { k: 'recu', label: 'Réception', html: r => `<button class="chip ${r.recu ? 'on' : ''}" data-recu="${r.id}">${r.recu ? '✓ Réceptionné' : 'À recevoir'}</button>` },
-    { k: 'x', label: '', html: r => `<button class="iconbtn" data-delsst="${r.id}" aria-label="Supprimer">${icon('trash')}</button>` },
+    { k: 'date', label: 'Date', fmt: fdateL }, { k: 'heure', label: 'Créneau' },
+    { k: 'sst', label: 'Sous-traitant', html: r => `${esc(r.sst || '—')}${isInterco(r.sst) ? ' <span class="badge b-info b-nodot">Interco</span>' : ''}` },
+    { k: 'pal', label: 'Palettes', num: true, fmt: n0 }, { k: 'cam', label: 'Camions', num: true, fmt: n0 },
+    { k: 'arr', label: 'Arrivée' }, { k: 'dep', label: 'Départ' }, { k: 'comm', label: 'Commentaire', cls: 'wrap muted' },
+    { k: 'etat', label: 'État', sv: r => state(r), html: stBadge },
+    { k: 'recu', label: 'Pointage', html: r => `<button class="chip ${r.recu ? 'on' : ''}" data-recu="${esc(r.id)}">${r.recu ? '✓ Reçu' : 'Pointer'}</button>` },
+    { k: 'x', label: '', html: r => r.src === 'saisie' ? `<button class="iconbtn" data-delsst="${esc(r.id)}" aria-label="Supprimer">${icon('trash')}</button>` : '' },
   ];
-  const ssts = uniq(rows.map(r => r.sst)).sort();
+  const ssts = uniq(rows.map(r => r.sst)).sort((a, b) => sum(rows.filter(r => r.sst === b), r => r.pal) - sum(rows.filter(r => r.sst === a), r => r.pal));
+  // grille des créneaux : lignes = heures, colonnes = jours
+  const hours = uniq([...rows.map(r => r.heure).filter(Boolean)]).sort();
+  const slots = hours.length ? (() => { const h0 = Math.min(6, ...hours.map(h => +h.slice(0, 2))), h1 = Math.max(18, ...hours.map(h => +h.slice(0, 2))); const out = []; for (let h = h0; h <= h1; h++) out.push(pad(h)); return out; })() : [];
+  const grid = slots.length ? `<div class="tbl-wrap matrix" style="margin-bottom:16px;max-height:none"><table class="t slots"><thead><tr><th>Créneau</th>${dshow.map(d => `<th class="dayhead">${DAYS[dayIdx(d)]}<small>${fdate(d)} · ${n0(sum(rows.filter(r => r.date === d), r => r.pal))} pal</small></th>`).join('')}</tr></thead><tbody>
+      ${slots.map(h => `<tr><td class="muted">${h}h</td>${dshow.map(d => { const x = rows.filter(r => r.date === d && r.heure.slice(0, 2) === h); return `<td>${x.map(r => `<span class="slot s-${state(r)}" data-tip="${esc(`<b>${esc(r.sst)}</b>${fdateL(r.date)} · ${r.heure}<br>${n0(r.pal)} palettes · ${n0(r.cam)} camion(s)`)}">${esc(r.heure)} · ${esc(r.sst || '—')} <b>${n0(r.pal)}</b></span>`).join('')}</td>`; }).join('')}</tr>`).join('')}
+    </tbody></table></div>` : '';
+  const files = uniq(S.sst.rows.filter(r => r.src !== 'saisie').map(r => r.src.split(' / ')[0]));
   return `<section class="card glass">
-    <h2>Planning de réception sous-traitants</h2>
-    <p class="hint">Import du fichier <kbd>Planning_Reception_SST</kbd> (colonnes date, heure, sous-traitant, palettes… détectées automatiquement) ou saisie manuelle.</p>
+    <div class="card-head"><div><h2>Planning de réception sous-traitants</h2>
+    <p class="hint">Déposez <kbd>Planning_Reception_SST_Monteux3.xlsb</kbd> : les onglets « PlanningReception AAAA » sont lus (créneaux avec RDV ou palettes). Le pointage « Reçu » est conservé lors des ré-imports.</p></div>
+    ${files.length ? `<div class="meta" style="text-align:right">${files.map(esc).join('<br>')}<br>${n0(S.sst.rows.length)} RDV en mémoire</div>` : ''}</div>
     <div class="drop" data-drop="sst">${icon('upload')}<div><b>Déposez le planning ici</b> ou <button class="btn sm" data-pick="sst">choisir</button><small>Un fichier ré-importé remplace ses lignes précédentes.</small></div></div>
-    <div class="form" style="margin-top:14px">
+    <details class="paste" style="margin-top:14px"><summary>+ Ajouter un RDV manuellement</summary>
+    <div class="form" style="margin-top:10px">
       <label>Date<input class="inp" type="date" id="sDate" value="${weekDays()[Math.min(4, dayIdx(today()))]}"></label>
-      <label>Heure<input class="inp" type="time" id="sHeure"></label>
-      <label>Sous-traitant<input class="inp" id="sSst" list="sstList"><datalist id="sstList">${uniq(S.sst.rows.map(r => r.sst)).map(s => `<option value="${esc(s)}">`).join('')}</datalist></label>
-      <label>Référence<input class="inp" id="sRef"></label>
+      <label>Créneau<input class="inp" type="time" id="sHeure"></label>
+      <label>Sous-traitant<input class="inp" id="sSst" list="sstList"><datalist id="sstList">${uniq(S.sst.rows.map(r => r.sst)).sort().map(s => `<option value="${esc(s)}">`).join('')}</datalist></label>
       <label>Palettes<input class="inp" type="number" min="0" id="sPal"></label>
-      <label>Quai<input class="inp" id="sQuai"></label>
+      <label>Commentaire<input class="inp" id="sComm"></label>
       <button class="btn primary" data-act="sst-add">Ajouter</button>
-    </div>
+    </div></details>
   </section>
-  <section class="card glass"><h2>Semaine</h2>
-    ${rows.length ? `<div class="tbl-wrap matrix" style="margin-bottom:16px"><table class="t"><thead><tr><th>Sous-traitant</th>${dshow.map(d => `<th class="num dayhead">${DAYS[dayIdx(d)]}<small>${fdate(d)}</small></th>`).join('')}<th class="num">Semaine</th></tr></thead><tbody>
-      ${ssts.map(s => { const rs = rows.filter(r => r.sst === s); return `<tr><td>${esc(s || '—')}</td>${dshow.map(d => { const x = rs.filter(r => r.date === d); return `<td class="num">${x.length ? `<b>${n0(sum(x, r => r.pal))}</b> <span class="muted">pal · ${x.length}</span>` : '<span class="muted">·</span>'}</td>`; }).join('')}<td class="num"><b>${n0(sum(rs, r => r.pal))}</b></td></tr>`; }).join('')}
-    </tbody></table></div>${table('sst', cols, rows, { total: { pal: sum(rows, r => r.pal) } })}` : '<div class="empty"><b>Aucune réception planifiée cette semaine</b></div>'}
-  </section>`;
+  ${rows.length ? `<section class="card glass">
+    <div class="kpis" style="margin-bottom:16px">
+      <div class="kpi"><div class="lab"><i style="background:var(--in)"></i>Palettes attendues</div><div class="val">${n0(sum(rows, r => r.pal))}</div><div class="det">${n0(sum(rows, r => r.cam))} camion(s) · ${rows.length} RDV</div></div>
+      <div class="kpi"><div class="lab">Réceptionnés</div><div class="val">${n0(rows.filter(r => r.recu).length)}<small>/ ${rows.length}</small></div><div class="bar"><span style="width:${Math.round(rows.filter(r => r.recu).length / rows.length * 100)}%"></span></div></div>
+      ${ssts.slice(0, 3).map(sn => { const x = rows.filter(r => r.sst === sn); return `<div class="kpi"><div class="lab">${esc(sn || '—')}</div><div class="val">${n0(sum(x, r => r.pal))}<small>pal</small></div><div class="det">${x.length} RDV</div></div>`; }).join('')}
+    </div>
+    <h2>Créneaux de la semaine</h2><p class="hint">Gris = planifié · orange = créneau passé non pointé · vert = réceptionné.</p>
+    ${grid}
+    <h2>Par sous-traitant</h2>
+    <div class="tbl-wrap matrix" style="margin:10px 0 16px"><table class="t"><thead><tr><th>Sous-traitant</th>${dshow.map(d => `<th class="num dayhead">${DAYS[dayIdx(d)]}<small>${fdate(d)}</small></th>`).join('')}<th class="num">Semaine</th></tr></thead><tbody>
+      ${ssts.map(sn => { const rs = rows.filter(r => r.sst === sn); return `<tr><td>${esc(sn || '—')}</td>${dshow.map(d => { const x = rs.filter(r => r.date === d); return `<td class="num">${x.length ? `<b>${n0(sum(x, r => r.pal))}</b> <span class="muted">pal · ${n0(sum(x, r => r.cam))} cam.</span>` : '<span class="muted">·</span>'}</td>`; }).join('')}<td class="num"><b>${n0(sum(rs, r => r.pal))}</b> <span class="muted">pal · ${n0(sum(rs, r => r.cam))} cam.</span></td></tr>`; }).join('')}
+      <tr class="tot"><td>Total</td>${dshow.map(d => { const x = rows.filter(r => r.date === d); return `<td class="num">${x.length ? `${n0(sum(x, r => r.pal))} pal · ${n0(sum(x, r => r.cam))} cam.` : '·'}</td>`; }).join('')}<td class="num">${n0(sum(rows, r => r.pal))} pal · ${n0(sum(rows, r => r.cam))} cam.</td></tr>
+    </tbody></table></div>
+    <h2>Détail des RDV</h2>
+    ${table('sst', cols, rows, { total: { pal: sum(rows, r => r.pal), cam: sum(rows, r => r.cam) } })}
+  </section>` : `<section class="card glass"><div class="empty"><b>Aucune réception planifiée cette semaine</b>${S.sst.rows.length ? 'Le planning contient ' + n0(S.sst.rows.length) + ' RDV sur d’autres semaines.' : ''}</div></section>`}`;
 }
 document.addEventListener('click', e => {
   const a = e.target.closest('[data-recu]'); if (a) { const r = S.sst.rows.find(x => x.id === a.dataset.recu); if (r) { r.recu = !r.recu; save('sst'); render(); } return; }
@@ -1373,7 +1416,7 @@ document.addEventListener('click', async e => {
   }
   if (a === 'sst-add') {
     const d = $('#sDate').value; if (!d) return toast('Date obligatoire');
-    S.sst.rows.push({ id: 'm' + Date.now().toString(36), date: d, heure: $('#sHeure').value, sst: $('#sSst').value.trim(), ref: $('#sRef').value.trim(), pal: num($('#sPal').value), quai: $('#sQuai').value.trim(), comm: '', recu: false, src: 'saisie' });
+    S.sst.rows.push({ id: 'm' + Date.now().toString(36), date: d, heure: $('#sHeure').value, sst: $('#sSst').value.trim(), ref: '', pal: num($('#sPal').value), cam: 1, arr: '', dep: '', quai: '', comm: $('#sComm').value.trim(), recu: false, src: 'saisie' });
     await save('sst'); render();
   }
   if (a === 'ref-reset' && confirm('Revenir au référentiel par défaut ?')) { S.ref = null; await save('ref'); render(); }
@@ -1436,7 +1479,12 @@ async function handleFiles(kind, files) {
     }
     if (kind === 'sst') {
       let n = 0;
-      for (const f of files) { const wb = await readWorkbook(f); const rows = parseSST(wb, f.name); S.sst.rows = S.sst.rows.filter(r => !r.src.startsWith(f.name + ' / ')).concat(rows); n += rows.length; }
+      for (const f of files) {
+        const wb = await readWorkbook(f); const rows = parseSST(wb, f.name);
+        const prev = new Map(S.sst.rows.filter(r => r.src.startsWith(f.name + ' / ')).map(r => [r.id, r]));
+        for (const r of rows) { const p = prev.get(r.id); if (p && p.recu) r.recu = true; }
+        S.sst.rows = S.sst.rows.filter(r => !r.src.startsWith(f.name + ' / ')).concat(rows); n += rows.length;
+      }
       await save('sst'); toast(n ? `<b>${n} réceptions importées</b>` : 'Aucune ligne reconnue — envoyez le fichier pour adapter la lecture (colonne « Date » requise).', 5000);
     }
     if (kind === 'ref') {
