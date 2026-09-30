@@ -437,6 +437,19 @@ body.modal-open{overflow:hidden}
 .sp-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--pick));border-radius:4px;transition:width .5s ease}
 .sp-foot{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--text-3)}
 .sp-foot b{color:var(--text-2)}
+.sp-login{margin-top:4px;padding-top:12px;border-top:1px solid var(--grid)}
+.sp-lhead{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13.5px}
+.sp-soon{margin-left:auto;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;color:var(--c5);background:color-mix(in srgb,var(--c5) 14%,transparent);border:1px solid color-mix(in srgb,var(--c5) 35%,transparent)}
+.sp-lrow{display:flex;gap:8px}
+.sp-lrow .inp{flex:1;min-width:0}
+.sp-lerr{min-height:16px;margin-top:6px;font-size:12px;color:var(--crit-ink)}
+.sp-login.shake{animation:spShake .4s}
+@keyframes spShake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.sp-billboard{position:absolute;left:0;top:0;width:150px;height:44px;transform-origin:bottom;display:grid;place-items:center;font:800 15px/1 system-ui,sans-serif;letter-spacing:.12em;color:#fff;background:linear-gradient(135deg,var(--c5),var(--silo));border:3px solid #fff;border-radius:6px;box-shadow:0 0 22px color-mix(in srgb,var(--c5) 55%,transparent);animation:spGlow 2.4s ease-in-out infinite alternate}
+.sp-billboard small{display:block;font-size:8px;letter-spacing:.2em;opacity:.85;margin-top:2px}
+@keyframes spGlow{to{box-shadow:0 0 34px color-mix(in srgb,var(--c5) 85%,transparent)}}
+.splash.still .sp-world,.splash.still .sp-world *{animation-play-state:paused!important}
+@media (max-width:560px){.sp-lrow{flex-wrap:wrap}.sp-lrow .inp{flex:1 1 40%}.sp-lrow .btn{flex:1 1 100%}}
 .sp-skip{all:unset;margin-left:auto;cursor:pointer;font-weight:600;color:var(--accent);padding:2px 4px;border-radius:6px}
 .sp-skip:focus-visible{outline:2px solid var(--accent)}
 @media (prefers-reduced-motion: reduce){.splash *{animation:none!important}.splash{transition:none}}
@@ -451,7 +464,16 @@ body.modal-open{overflow:hidden}
     <ol class="sp-steps" id="spSteps"></ol>
     <div class="sp-act" id="spAct"></div>
     <div class="sp-bar"><span id="spBar"></span></div>
-    <div class="sp-foot"><span>v<b id="spVer"></b> · Développé par <b>Galaad Poivey</b></span><button class="sp-skip" id="spSkip">Passer ›</button></div>
+    <form class="sp-login" id="spLogin" autocomplete="off">
+      <div class="sp-lhead"><b>Connexion</b><span class="sp-soon">Coming soon · comptes utilisateurs</span></div>
+      <div class="sp-lrow">
+        <input class="inp" id="spUser" placeholder="Identifiant" autocomplete="username" aria-label="Identifiant">
+        <input class="inp" id="spPass" type="password" placeholder="Mot de passe" autocomplete="current-password" aria-label="Mot de passe">
+        <button class="btn primary" type="submit" id="spGo">Entrer ›</button>
+      </div>
+      <div class="sp-lerr" id="spErr" role="alert"></div>
+    </form>
+    <div class="sp-foot"><span>v<b id="spVer"></b> · Développé par <b>Galaad Poivey</b></span></div>
   </div>
 </div>
 <script>
@@ -459,9 +481,10 @@ body.modal-open{overflow:hidden}
 const SPLASH = (() => {
   const el = document.getElementById('splash');
   try { const th = localStorage.getItem('flux-theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
-  let off = false; try { off = localStorage.getItem('flux-splash') === 'off'; } catch (e) {}
-  if (/[?#&]splash\b/.test(location.href)) off = false; else if (navigator.webdriver) off = true;   // tests automatisés : pas d'écran d'ouverture
-  const noop = { step() {}, ask() { return Promise.resolve(null); }, finish() {}, ver() {}, on: false };
+  let still = false; try { still = localStorage.getItem('flux-splash') === 'off'; } catch (e) {}
+  const off = !/[?#&]splash\b/.test(location.href) && navigator.webdriver;   // tests automatisés : pas d'écran d'ouverture
+  if (still) el.classList.add('still');
+  const noop = { step() {}, ask() { return Promise.resolve(null); }, finish() {}, ver() {}, on: false, user: () => 'test' };
   if (off) { el.remove(); return noop; }
   const W = document.getElementById('spWorld');
   const B = (par, x, y, z, w, d, h, cls, st = '') => {
@@ -501,6 +524,9 @@ const SPLASH = (() => {
   // palettes préparées au quai (apparaissent l'une après l'autre) et stock
   [[470, 250], [496, 250], [522, 250], [470, 276], [496, 276], [522, 276]].forEach(([x, y], i) => pallet(W, x, y, 0, COL[i % COL.length], true, i * .45));
   [[70, 225], [96, 225], [70, 225, 20], [96, 225, 20], [70, 251], [96, 251]].forEach(([x, y, z], i) => pallet(W, x, y, z || 0, COL[(i + 2) % COL.length]));
+  // panneau « COMING SOON » au bord du parking
+  { const bb = G(W, 650, 290, '', 'width:150px;height:6px'); B(bb, 20, 0, 0, 5, 5, 34, 'sp-mast'); B(bb, 125, 0, 0, 5, 5, 34, 'sp-mast');
+    const pn = div(bb, 'sp-billboard'); pn.style.transform = 'translateZ(30px) translateY(-41px) rotateX(-90deg)'; pn.innerHTML = '<div>COMING SOON<small>COMPTES UTILISATEURS</small></div>'; }
   // arbres
   for (const [x, y] of [[-40, 60], [-30, 150], [650, 40], [660, 150], [-60, 280]]) { B(W, x + 8, y + 8, 0, 6, 6, 14, 'sp-trunk'); B(W, x, y, 14, 22, 22, 26, 'sp-tree'); }
   // échelle (téléphone)
@@ -510,11 +536,20 @@ const SPLASH = (() => {
   const STEPS = [['db', 'Données locales'], ['calc', 'Calcul des flux de la semaine'], ['sync', 'Sauvegarde partagée']];
   const ol = document.getElementById('spSteps');
   ol.innerHTML = STEPS.map(([k, l]) => `<li data-k="${k}"><i></i><span>${l}</span><small></small></li>`).join('');
-  const t0 = performance.now(), MIN = matchMedia('(prefers-reduced-motion: reduce)').matches ? 700 : 3400;
-  let closed = false, waiter = null;
-  const close = () => { if (closed) return; closed = true; if (waiter) waiter(null); el.classList.add('out'); setTimeout(() => el.remove(), 650); };
-  document.getElementById('spSkip').onclick = close;
-  addEventListener('keydown', e => { if (e.key === 'Escape' && !waiter) close(); });
+  // Connexion de test (temporaire, à supprimer) : identifiant admin. Contrôle côté navigateur uniquement, ce n'est pas une sécurité.
+  const hash = t => { let h = 2166136261; for (const c of t) { h ^= c.codePointAt(0); h = Math.imul(h, 16777619) >>> 0; } return h.toString(36); };
+  const ACCOUNTS = { admin: hash('jay') };
+  let closed = false, waiter = null, ready = false, user = null;
+  const go = document.getElementById('spGo'), form = document.getElementById('spLogin');
+  const close = () => { if (closed) return; closed = true; if (waiter) waiter(null); el.classList.add('out'); setTimeout(() => el.remove(), 650); try { sessionStorage.setItem('flux-user', user); } catch (e) {} if (window.onSplashLogin) window.onSplashLogin(user); };
+  const tryClose = () => { if (user && ready && !waiter) close(); else if (user) { go.disabled = true; go.textContent = waiter ? 'Répondez ci-dessus' : 'Chargement…'; } };
+  form.onsubmit = e => {
+    e.preventDefault();
+    const u = document.getElementById('spUser').value.trim().toLowerCase(), pw = document.getElementById('spPass').value;
+    if (ACCOUNTS[u] && ACCOUNTS[u] === hash(pw)) { user = u; document.getElementById('spErr').textContent = ''; tryClose(); }
+    else { document.getElementById('spErr').textContent = 'Identifiant ou mot de passe incorrect.'; form.classList.remove('shake'); void form.offsetWidth; form.classList.add('shake'); document.getElementById('spPass').select(); }
+  };
+  setTimeout(() => document.getElementById('spUser').focus(), 300);
   return {
     on: true,
     ver(v) { document.getElementById('spVer').textContent = v; },
@@ -529,13 +564,14 @@ const SPLASH = (() => {
       if (closed) return Promise.resolve(null);
       const act = document.getElementById('spAct');
       return new Promise(res => {
-        waiter = v => { waiter = null; act.innerHTML = ''; res(v); };
+        waiter = v => { waiter = null; act.innerHTML = ''; res(v); if (user) { go.disabled = false; go.textContent = 'Entrer ›'; tryClose(); } };
         act.innerHTML = btns.map(([v, l, primary]) => `<button class="btn sm${primary ? ' primary' : ''}" data-spv="${v}">${l}</button>`).join('');
         act.querySelectorAll('button').forEach(b => b.onclick = () => waiter && waiter(b.dataset.spv));
         act.querySelector('.primary')?.focus();
       });
     },
-    async finish() { const w = MIN - (performance.now() - t0); if (w > 0) await new Promise(r => setTimeout(r, w)); close(); },
+    finish() { ready = true; tryClose(); },
+    user: () => user,
   };
 })();
 </script>
@@ -576,9 +612,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.20.0';
+const APP_VERSION = '1.21.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.21.0', '30/09/2026', 'Écran d’ouverture = étape de connexion (compte de test temporaire) : il ne se ferme plus tout seul ; mention « Coming soon » (comptes utilisateurs) dans l’animation.'],
   ['1.20.0', '30/09/2026', 'Écran d’ouverture animé en 3D (entrepôt, quais, camions en manœuvre, chariot, palettes) qui suit les étapes du démarrage : données locales, calcul, sauvegarde partagée (reconnexion du dossier en un clic).'],
   ['1.19.0', '30/09/2026', 'Sauvegarde partagée automatique dans le dossier WeDeliver « Flux_hebdo\\Sauvegarde » : chargement de la plus récente à l’ouverture, copie horodatée après chaque modification et à la fermeture, la plus récente l’emporte entre utilisateurs.'],
   ['1.18.0', '30/09/2026', 'Quai d’expédition dans son propre overlay : courbe d’occupation heure par heure sur tous les jours, plages saturées, détail du calcul par livraison.'],
@@ -1206,7 +1243,7 @@ function navBadges() {
 function renderNav() {
   $('#nav').innerHTML = `<div class="brand"><div class="logo">FX</div><div><b>Flux Hebdo</b><small>Dépôt ${esc(S.settings.site)}</small></div></div>` +
     (() => { const nb = navBadges(); return TABS.map(([k, l, i], n) => (n === 6 ? '<div class="sep"></div>' : '') + `<button class="${S.ui.tab === k ? 'on' : ''}" data-tab="${k}" ${S.ui.tab === k ? 'aria-current="page"' : ''}>${icon(i)}<span>${l}</span>${nb[k] ? `<em class="navb ${nb[k][1]}" title="${esc(nb[k][2])}">${nb[k][0]}</em>` : ''}</button>`).join(''); })() +
-    `<div class="foot">${S.prep ? `VL06O : ${esc(new Date(S.prep.importedAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }))}` : 'VL06O : non importé'}<br>Données locales au navigateur<br><button class="linkbtn" data-detail="version">v${APP_VERSION}</button> · Développé par ${APP_AUTHOR}</div>`;
+    `<div class="foot">${S.prep ? `VL06O : ${esc(new Date(S.prep.importedAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }))}` : 'VL06O : non importé'}<br>Données locales au navigateur<br>${(() => { let u = ''; try { u = sessionStorage.getItem('flux-user') || ''; } catch (e) {} return u ? `Connecté : <b>${esc(u)}</b> · <button class="linkbtn" data-act="logout">déconnexion</button><br>` : ''; })()}<button class="linkbtn" data-detail="version">v${APP_VERSION}</button> · Développé par ${APP_AUTHOR}</div>`;
 }
 $('#nav').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) { S.ui.tab = b.dataset.tab; S.ui.modal = null; render(); window.scrollTo({ top: 0 }); } });
 $('#wPrev').onclick = () => shiftWeek(-1);
@@ -1888,7 +1925,7 @@ function viewSettings() {
     <div class="drop" data-drop="ref">${icon('upload')}<div><b>Déposez un référentiel</b> ou <button class="btn sm" data-pick="ref">choisir</button></div></div>
     ${S.ref ? `<div class="row" style="margin-top:10px"><button class="btn sm" data-act="ref-reset">Revenir au référentiel par défaut</button></div>` : ''}
   </section>
-  <section class="card glass"><h2>À propos</h2><label class="row" style="float:right;gap:6px;font-size:13px"><input type="checkbox" data-splash ${(() => { try { return localStorage.getItem('flux-splash') === 'off' ? '' : 'checked'; } catch (e) { return 'checked'; } })()}> Animation d’ouverture</label><p class="hint" style="margin:0">Flux Hebdo Dépôt — version <button class="linkbtn" data-detail="version">${APP_VERSION}</button> — développé par <b>${APP_AUTHOR}</b>. Application 100 % locale : les données restent dans ce navigateur et, si vous l’activez, dans le dossier de sauvegarde partagé.</p></section>
+  <section class="card glass"><h2>À propos</h2><label class="row" style="float:right;gap:6px;font-size:13px"><input type="checkbox" data-splash ${(() => { try { return localStorage.getItem('flux-splash') === 'off' ? '' : 'checked'; } catch (e) { return 'checked'; } })()}> Animer l’écran d’ouverture</label><p class="hint" style="margin:0">Flux Hebdo Dépôt — version <button class="linkbtn" data-detail="version">${APP_VERSION}</button> — développé par <b>${APP_AUTHOR}</b>. Application 100 % locale : les données restent dans ce navigateur et, si vous l’activez, dans le dossier de sauvegarde partagé.</p></section>
   <section class="card glass"><h2>Sauvegarde</h2><p class="hint">Les données sont stockées dans ce navigateur. Elles peuvent aussi être enregistrées automatiquement dans le dossier partagé (ci-dessous), ou exportées à la main.</p>
     <div class="row">
       <button class="btn" data-act="backup">${icon('dl')} Exporter une sauvegarde</button>
@@ -3125,7 +3162,9 @@ document.addEventListener('click', async e => {
   if (a === 'sync-load' && confirm('Remplacer les données de ce navigateur par la sauvegarde la plus récente du dossier ?')) await syncPull('rechargement', 'load');
   if (a === 'sync-off') await syncDisconnect();
 });
-document.addEventListener('change', e => { if (e.target.matches('[data-splash]')) { try { localStorage.setItem('flux-splash', e.target.checked ? 'on' : 'off'); } catch (x) {} toast(e.target.checked ? 'Animation d’ouverture activée' : 'Animation d’ouverture désactivée'); } });
+window.onSplashLogin = () => { try { renderNav(); } catch (e) {} };
+document.addEventListener('click', e => { if (e.target.closest('[data-act="logout"]')) { try { sessionStorage.removeItem('flux-user'); } catch (x) {} location.reload(); } });
+document.addEventListener('change', e => { if (e.target.matches('[data-splash]')) { try { localStorage.setItem('flux-splash', e.target.checked ? 'on' : 'off'); } catch (x) {} toast(e.target.checked ? 'Écran d’ouverture animé' : 'Écran d’ouverture sans animation'); } });
 document.addEventListener('change', e => { if (e.target.matches('[data-syncuser]')) { setSyncMeta({ user: e.target.value.trim() }); toast('Nom enregistré'); } });
 // fermeture / changement d'onglet : enregistrer tout de suite ; retour sur l'onglet : vérifier si un collègue a sauvegardé
 document.addEventListener('visibilitychange', () => {
