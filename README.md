@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.17.0** · Développé par **Galaad Poivey**
+Version **1.17.1** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre `index.html` dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -206,15 +206,17 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
 
 ## Saturation du quai d'expédition
 
-Les palettes préparées restent au quai jusqu'au départ du camion. Si le quai est plein, on ne peut plus préparer. L'app simule l'occupation du quai heure par heure, à partir de la dernière VL06O :
+Le quai se compte en **blocs** : 1 bloc = 1 place au sol. Les livraisons préparées occupent le quai jusqu'au départ du camion ; si le quai est plein, on ne peut plus préparer. L'app simule l'occupation du quai heure par heure, à partir de la dernière VL06O :
 
-1. **Au départ :** les palettes déjà préparées et pas encore parties. Une livraison terminée compte en entier, une livraison en cours au prorata des heures faites.
-2. **Arrivées :** chaque livraison pose ses palettes restantes au quai à sa **fin de préparation estimée** (projection « réel »).
-3. **Départs :** elle libère le quai au **début, au milieu ou à la fin de son créneau de chargement** (milieu par défaut). Le créneau vient de la LIKP ou du créneau fixe client, sinon de l'heure par défaut. Si la préparation finit après le créneau, la livraison part dès qu'elle est prête (signalée « après créneau »).
-4. **Palettes d'une livraison :** celles de la base affrètement, sinon Pal SILO + ⌈colis picking ÷ 80⌉.
+1. **Au départ :** les blocs des livraisons déjà préparées et pas encore parties. Une livraison terminée compte en entier, une livraison en cours au prorata des heures faites.
+2. **Arrivées :** chaque livraison pose ses blocs restants à sa **fin de préparation estimée** (projection « réel »).
+3. **Départs :** elle libère ses blocs au **début, au milieu ou à la fin de son créneau de chargement** (milieu par défaut). Si la préparation finit après le créneau, la livraison part dès qu'elle est prête (signalée « après créneau »).
+4. **Blocs d'une livraison :**
+   - colonne `blocs` de la base affrètement ;
+   - à défaut, palettes (affrètement, ou Pal SILO + ⌈colis picking ÷ 80⌉) × **ratio blocs/palettes observé** dans la base affrètement (0,65 par défaut s'il y a moins de 5 livraisons affrétées).
 
 **Où le voir :**
-- **Réglages :** la capacité (**450 palettes** par défaut), le nombre de colis par palette de picking et le moment de départ du camion se règlent dans Paramètres, section « Quai d'expédition ».
+- **Réglages :** la capacité (**450 blocs** par défaut), le ratio blocs/palettes par défaut, les colis par palette de picking et le moment de départ du camion se règlent dans Paramètres, section « Quai d'expédition ».
 - **Planning :** chaque jour a un verdict « Quai exp. », fluide ou saturé avec les plages horaires. La frise montre la courbe d'occupation, la ligne de capacité et les plages saturées en rouge.
-- **Tableau de bord :** une tuile donne l'occupation actuelle et la prochaine saturation.
-- **Grand détail Charge SILO / picking :** pic par jour, plages saturées et **calcul livraison par livraison** (palettes, origine du nombre, déjà au quai, à poser, heure de pose, heure de départ).
+- **Tableau de bord :** une tuile « Quai expédition (blocs) » donne l'occupation actuelle et la prochaine saturation.
+- **Grand détail Charge SILO / picking :** pic par jour, plages saturées et **calcul livraison par livraison** (blocs, origine du nombre, déjà au quai, à poser, heure de pose, heure de départ).
