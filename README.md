@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.27.1** · Développé par **Galaad Poivey**
+Version **1.27.2** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).

@@ -629,9 +629,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.27.1';
+const APP_VERSION = '1.27.2';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.27.2', '01/10/2026', 'Frise du planning : étiquettes des repères (extraction, fin picking, fin SILO) sur des lignes séparées et libellés de créneaux tronqués à la largeur du bloc.'],
   ['1.27.1', '01/10/2026', 'Navettes : sans nombre de colis, la navette n’est pas encore chargée → 0 palette (plus d’estimation au poids).'],
   ['1.27.0', '01/10/2026', 'Écran d’ouverture : propose seulement de charger la sauvegarde partagée (dossiers SharePoint relus ensuite dans l’app) ; confirmation systématique avant de fermer l’onglet.'],
   ['1.26.0', '01/10/2026', 'Tableau de bord : quai d’expédition dans Sorties, points d’attention en bas de page ; épuration de tous les onglets (petits textes des tuiles et explications derrière ⓘ, survol ou clic).'],
@@ -2657,6 +2658,7 @@ function reelSection() {
 }
 
 // Frise horaire d'une journée : équipes, créneaux de chargement (vert = passe, rouge = retard), fins estimées
+const fitTxt = (t, w, cw) => { const n = Math.floor(w / cw); return n <= 1 ? '' : t.length <= n ? t : t.slice(0, Math.max(1, n - 1)) + '…'; };
 function dayTimeline(D, xs, P) {
   const W = 1100, ml = 92, mr = 12, iw = W - ml - mr, d0 = dayStartTs(D);
   const X = ts => ml + Math.max(0, Math.min(1, (ts - d0) / (24 * H))) * iw;
@@ -2684,14 +2686,18 @@ function dayTimeline(D, xs, P) {
     const col = gr.late ? 'var(--crit)' : gr.ready ? 'var(--good)' : 'var(--c4)';
     const tip = `<b>Créneau ${esc(gr.lbl)}</b>${gr.ss.length} livraison(s) · ${gr.ss.filter(x => x.st === 'ready').length} prête(s)${gr.late ? `<br><b style="display:inline;color:var(--crit-ink)">${gr.late} en retard</b>` : ''}<br>${gr.ss.slice(0, 8).map(x => `${x.liv} ${esc(x.nom)}`).join('<br>')}${gr.ss.length > 8 ? '<br>…' : ''}`;
     const w = Math.max(3, X(gr.en) - X(gr.st)), y = y0 + gr.k * lh;
-    g += `<rect x="${X(gr.st)}" y="${y}" width="${w}" height="${lh - 4}" rx="6" fill="${col}" opacity=".85" data-tip="${esc(tip)}"/><text x="${X(gr.st) + 6}" y="${y + 13}" style="font-size:10.5px;font-weight:600;fill:#fff;pointer-events:none">${esc(w > 60 ? gr.lbl : '')} ${w > 90 ? `· ${gr.ss.length} liv.` : ''}</text>`;
+    g += `<rect x="${X(gr.st)}" y="${y}" width="${w}" height="${lh - 4}" rx="6" fill="${col}" opacity=".85" data-tip="${esc(tip)}"/><text x="${X(gr.st) + 6}" y="${y + 13}" style="font-size:10.5px;font-weight:600;fill:#fff;pointer-events:none">${esc(fitTxt(gr.lbl + (w > 150 ? ` · ${gr.ss.length} liv.` : ''), w - 10, 6.2))}</text>`;
   }
   const hgt = y0 + Math.max(1, lanesEnd.length) * lh + 8;
   // repères verticaux
-  const mark = (ts, color, lbl) => ts && ts >= d0 && ts <= d0 + 24 * H ? `<line x1="${X(ts)}" x2="${X(ts)}" y1="16" y2="${hgt}" stroke="${color}" stroke-width="2" stroke-dasharray="4 3"/><text x="${X(ts) + 3}" y="${hgt - 2}" style="font-size:10px;font-weight:700;fill:${color}">${esc(lbl)}</text>` : '';
-  const finP = Math.max(0, ...xs.map(x => x.it?.finP || 0)), finS = Math.max(0, ...xs.map(x => x.it?.finS || 0));
-  g += mark(P?.at, 'var(--text-2)', `extraction ${new Date(P?.at || 0).toTimeString().slice(0, 5)}`) + mark(finP || null, cssVar('--pick'), `fin picking ${new Date(finP).toTimeString().slice(0, 5)}`) + mark(finS || null, cssVar('--silo'), `fin SILO ${new Date(finS).toTimeString().slice(0, 5)}`);
-  return `<div class="timeline"><svg viewBox="0 0 ${W} ${hgt + 4}" role="img" aria-label="Frise horaire">${g}</svg></div>`;
+  const finP = Math.max(0, ...xs.map(x => x.it?.finP || 0)), finS = Math.max(0, ...xs.map(x => x.it?.finS || 0)), hh = t => new Date(t).toTimeString().slice(0, 5);
+  const marks = [[P?.at, 'var(--text-2)', `extraction ${hh(P?.at || 0)}`], [finP, cssVar('--pick'), `fin picking ${hh(finP)}`], [finS, cssVar('--silo'), `fin SILO ${hh(finS)}`]]
+    .filter(([ts]) => ts && ts >= d0 && ts <= d0 + 24 * H).sort((a, b) => a[0] - b[0]);
+  const rowsEnd = [];   // une ligne d'étiquettes par repère trop proche du précédent
+  const placed = marks.map(([ts, color, lbl]) => { const x = X(ts), wl = lbl.length * 6 + 8; let k = rowsEnd.findIndex(e => e < x); if (k < 0) { k = rowsEnd.length; rowsEnd.push(0); } rowsEnd[k] = x + wl; return { x, color, lbl, k }; });
+  const H2 = hgt + rowsEnd.length * 13;
+  for (const m of placed) g += `<line x1="${m.x}" x2="${m.x}" y1="16" y2="${hgt + m.k * 13 + 2}" stroke="${m.color}" stroke-width="2" stroke-dasharray="4 3"/><text x="${m.x + 3}" y="${hgt + m.k * 13 + 11}" style="font-size:10px;font-weight:700;fill:${m.color}">${esc(m.lbl)}</text>`;
+  return `<div class="timeline"><svg viewBox="0 0 ${W} ${H2 + 4}" role="img" aria-label="Frise horaire">${g}</svg></div>`;
 }
 // ============================================================
 //   PRÉPARATION : PLANNING DE CHARGEMENT (jour → créneau → livraisons)
