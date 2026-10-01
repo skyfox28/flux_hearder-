@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.30.1** · Développé par **Galaad Poivey**
+Version **1.30.2** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -198,6 +198,7 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
 ## Équipes par défaut
 
 - **Picking :** 2 préparateurs de 5h00 à 12h30 et 2 de 12h30 à 20h00, soit 30 h par jour.
+- Le SILO est un **magasin automatique** : 1 cariste par poste, en entrée comme en sortie. Dans Paramètres, chaque poste se règle par une case « Poste ouvert (1 cariste) » ; une valeur supérieure à 1 d'une ancienne sauvegarde compte pour 1.
 - **Cariste entrée SILO** (rangement des réceptions) : 1 de 5h00 à 12h30 et 1 de 12h30 à 20h00.
 - **Cariste sortie SILO** (palettes complètes des commandes) : 1 cariste de 5h00 à 12h30, 1 de 12h30 à 20h00 et **1 de nuit de 20h00 à 3h30**, soit 22,5 h par jour. La nuit est prise en compte dans le calcul « réel ».
 

@@ -881,9 +881,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.30.1';
+const APP_VERSION = '1.30.2';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.30.2', '01/10/2026', 'Paramètres : cariste entrée SILO et cariste sortie SILO réglés par une case « Poste ouvert (1 cariste) » au lieu d’un nombre (magasin automatique, jamais plus d’un cariste par poste).'],
   ['1.30.1', '01/10/2026', 'Simulateur « Et si ? » : côté SILO, seule la cadence se règle (magasin automatique, 1 cariste par poste en entrée et en sortie).'],
   ['1.30.0', '01/10/2026', 'Pilotage visuel : jauges (quais, picking, sortie SILO, entrées, sorties) et anneaux (avancement des livraisons, picking par circuit, sorties par transporteur) sur le tableau de bord et dans la vue jour ; simulateur « Et si ? » (préparateurs, caristes sortie SILO, cadences) avec détail par créneau dans la vue jour ; verre plus transparent mais plus lisible (textes plus grands, détail des tuiles en entier).'],
   ['1.29.0', '01/10/2026', 'Style « sobre » (industriel), au choix dans Paramètres › À propos : surfaces opaques sans flou, textes plus grands et plus contrastés, détail des tuiles visible en entier, badges avec symbole (✓ ! ✗), barre du haut sur une ligne (pastille d’état des données, bouton Mettre à jour ; Purger reste dans Paramètres).'],
@@ -1130,7 +1131,9 @@ function prepLines() {
 // Capacité de picking : préparateurs × durée de chaque équipe (ex. 2 × 7,5 h + 2 × 7,5 h = 30 h/jour)
 const hm = t => { const m = String(t || '').match(/(\d{1,2})\s*[:h]\s*(\d{0,2})/); return m ? +m[1] + (+m[2] || 0) / 60 : 0; };
 const teamDur = e => { let d = hm(e.fin) - hm(e.debut); if (d < 0) d += 24; return d; };
-const teams = (key = 'equipes') => (S.settings[key] || []).filter(e => num(e.prep) > 0 && teamDur(e) > 0);
+// SILO = magasin automatique : 1 cariste par poste (entrée et sortie), le poste est ouvert ou fermé
+const SINGLE_TEAMS = ['equipesSilo', 'equipesRecep'];
+const teams = (key = 'equipes') => (S.settings[key] || []).filter(e => num(e.prep) > 0 && teamDur(e) > 0).map(e => SINGLE_TEAMS.includes(key) && num(e.prep) > 1 ? Object.assign({}, e, { prep: 1 }) : e);
 const capaDay = () => sum(teams(), e => num(e.prep) * teamDur(e));          // heures de picking disponibles par jour travaillé
 const nbPrep = () => sum(teams(), e => num(e.prep));                          // préparateurs sur la journée
 const hPerPrep = () => nbPrep() ? capaDay() / nbPrep() : 7.5;                 // durée moyenne d'un poste
@@ -2231,8 +2234,8 @@ document.addEventListener('click', e => {
 // ============================================================
 function teamEditor(key, title, who, cap, unitTxt) {
   const list = S.settings[key] || [];
-  return `<section class="card glass"><h2>${title}</h2><p class="hint">Capacité = ${who} × durée du poste = <b>${n1(cap)} ${unitTxt}</b>.</p>
-    <div class="grid" style="gap:10px">${list.map((e, i) => `<div class="form"><label>Équipe<input class="inp" data-team="${key}|${i}|nom" value="${esc(e.nom)}"></label><label>Début<input class="inp" type="time" data-team="${key}|${i}|debut" value="${esc(e.debut)}"></label><label>Fin<input class="inp" type="time" data-team="${key}|${i}|fin" value="${esc(e.fin)}"></label><label>${who.charAt(0).toUpperCase() + who.slice(1)}<input class="inp" type="number" min="0" data-team="${key}|${i}|prep" value="${esc(e.prep)}"></label><label>Durée<input class="inp" disabled value="${n1(teamDur(e))} h → ${n1(num(e.prep) * teamDur(e))} h"></label><button class="btn sm danger" data-act="team-del" data-k="${key}" data-i="${i}">${icon('trash')}</button></div>`).join('')}</div>
+  return `<section class="card glass"><h2>${title}</h2><p class="hint">${SINGLE_TEAMS.includes(key) ? 'Magasin automatique : 1 cariste par poste ouvert. ' : ''}Capacité = ${who} × durée du poste = <b>${n1(cap)} ${unitTxt}</b>.</p>
+    <div class="grid" style="gap:10px">${list.map((e, i) => `<div class="form"><label>Équipe<input class="inp" data-team="${key}|${i}|nom" value="${esc(e.nom)}"></label><label>Début<input class="inp" type="time" data-team="${key}|${i}|debut" value="${esc(e.debut)}"></label><label>Fin<input class="inp" type="time" data-team="${key}|${i}|fin" value="${esc(e.fin)}"></label>${SINGLE_TEAMS.includes(key) ? `<label class="row" style="flex-direction:row;align-items:center;gap:8px;align-self:center"><input type="checkbox" data-team="${key}|${i}|prep" ${num(e.prep) > 0 ? 'checked' : ''}> Poste ouvert (1 cariste)</label>` : `<label>${who.charAt(0).toUpperCase() + who.slice(1)}<input class="inp" type="number" min="0" data-team="${key}|${i}|prep" value="${esc(e.prep)}"></label>`}<label>Durée<input class="inp" disabled value="${n1(teamDur(e))} h → ${n1(Math.min(SINGLE_TEAMS.includes(key) ? 1 : Infinity, num(e.prep)) * teamDur(e))} h"></label><button class="btn sm danger" data-act="team-del" data-k="${key}" data-i="${i}">${icon('trash')}</button></div>`).join('')}</div>
     <div class="row" style="margin-top:10px"><button class="btn sm" data-act="team-add" data-k="${key}">+ Ajouter une équipe</button></div>
   </section>`;
 }
@@ -2347,7 +2350,7 @@ document.addEventListener('change', e => {
   if (t.dataset.setstr) { S.settings[t.dataset.setstr] = t.value; save('settings'); render(); }
   if (t.dataset.setsel) { S.settings[t.dataset.setsel] = +t.value; save('settings'); render(); }
   if (t.dataset.setchk) { S.settings[t.dataset.setchk] = t.checked; save('settings'); render(); }
-  if (t.dataset.team) { const [key, i, k] = t.dataset.team.split('|'); S.settings[key][+i][k] = k === 'prep' ? num(t.value) : t.value; save('settings'); render(); }
+  if (t.dataset.team) { const [key, i, k] = t.dataset.team.split('|'); S.settings[key][+i][k] = k === 'prep' ? (t.type === 'checkbox' ? (t.checked ? 1 : 0) : num(t.value)) : t.value; save('settings'); render(); }
   if (t.dataset.jour != null && t.type === 'checkbox') { S.settings.joursTrav = (S.settings.joursTrav || [1, 1, 1, 1, 1, 0, 0]).slice(); S.settings.joursTrav[+t.dataset.jour] = t.checked ? 1 : 0; save('settings'); render(); }
   if (t.dataset.transp) { const v = t.value.trim(); if (v) S.settings.transporteurs[t.dataset.transp] = v; else delete S.settings.transporteurs[t.dataset.transp]; save('settings'); }
 });
