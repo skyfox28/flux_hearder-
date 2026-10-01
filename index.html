@@ -629,9 +629,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.27.0';
+const APP_VERSION = '1.27.1';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.27.1', '01/10/2026', 'Navettes : sans nombre de colis, la navette n’est pas encore chargée → 0 palette (plus d’estimation au poids).'],
   ['1.27.0', '01/10/2026', 'Écran d’ouverture : propose seulement de charger la sauvegarde partagée (dossiers SharePoint relus ensuite dans l’app) ; confirmation systématique avant de fermer l’onglet.'],
   ['1.26.0', '01/10/2026', 'Tableau de bord : quai d’expédition dans Sorties, points d’attention en bas de page ; épuration de tous les onglets (petits textes des tuiles et explications derrière ⓘ, survol ou clic).'],
   ['1.25.0', '01/10/2026', 'Onglet Sources : toutes les mises à jour au même endroit (VL06O, LIKP, affrètement, navettes VL06I, rapatriements, planning SST) ; dossier SharePoint reliable pour VL06O, LIKP, SST et un par entrepôt de rapatriement (FM, Mutual, Tempo One).'],
@@ -1807,7 +1808,7 @@ document.addEventListener('click', e => {
 // ============================================================
 //   NAVETTES USINES (copier-coller VL06I) : entrées au dépôt
 //   - seuls les sites usines retenus (2560 Carpentras, 2510 usine épices par défaut)
-//   - palettes = nombre de colis (si vide : estimé au poids, kg/palette moyen des autres navettes)
+//   - palettes = nombre de colis (vide = navette pas encore chargée : 0, rien n'est estimé)
 //   - date dépassée : la navette est encore attendue, elle compte le jour de la VL06I
 //   - pas d'horaire : ramenées au fil de la journée par les chauffeurs de parc
 // ============================================================
@@ -1825,10 +1826,9 @@ const navSites = () => String(S.settings.navSites || '').split(/[\s,;]+/).filter
 function navRows() {
   if (!S.nav) return [];
   const sites = navSites(), rows = S.nav.rows.filter(r => !sites.length || sites.includes(r.site));
-  const ref = rows.filter(r => r.colis > 0 && r.poids > 0), kg = ref.length >= 3 ? sum(ref, r => r.poids) / sum(ref, r => r.colis) : 150;
   return rows.map(r => Object.assign({}, r, {
-    pal: r.colis > 0 ? r.colis : r.poids > 0 ? Math.max(1, Math.round(r.poids / kg)) : 0,
-    palSrc: r.colis > 0 ? 'colis' : r.poids > 0 ? `≈ ${n0(r.poids)} kg ÷ ${n0(kg)} kg/pal` : 'inconnu',
+    pal: r.colis > 0 ? r.colis : 0,             // pas de colis = navette pas encore chargée : rien d'inventé
+    loaded: r.colis > 0,
     dateEff: r.date < S.nav.snap ? S.nav.snap : r.date, late: r.date < S.nav.snap,
   }));
 }
@@ -1842,13 +1842,13 @@ function viewNav() {
     ${table('navT', [
       { k: 'date', label: 'Date', html: r => `${esc(fdateL(r.date))}${r.late ? ` ${badge('en retard', 'b-warn')}` : ''}` },
       { k: 'nom', label: 'Usine', cls: 'wrap' }, { k: 'liv', label: 'Livraison' },
-      { k: 'pal', label: 'Palettes', num: true, html: r => r.palSrc === 'colis' ? n0(r.pal) : `${n0(r.pal)} <span class="muted" title="${esc(r.palSrc)}">≈</span>` },
+      { k: 'pal', label: 'Palettes', num: true, html: r => r.loaded ? n0(r.pal) : badge('pas encore chargée', 'b-neutral') },
     ], rows, { total: { pal: sum(rows, r => r.pal) } })}</section>`;
 }
 const navTable = (id, rows) => table(id, [
   { k: 'dateEff', label: 'Jour retenu', fmt: fdateL }, { k: 'date', label: 'Date VL06I', html: r => r.late ? `${esc(fdate(r.date))} ${badge('en retard', 'b-warn')}` : esc(fdate(r.date)) },
   { k: 'liv', label: 'Livraison' }, { k: 'site', label: 'Site' }, { k: 'nom', label: 'Usine', cls: 'wrap' },
-  { k: 'pal', label: 'Palettes', num: true, html: r => r.palSrc === 'colis' ? n0(r.pal) : `${n0(r.pal)} <span class="muted" title="${esc(r.palSrc)}">≈</span>` },
+  { k: 'pal', label: 'Palettes', num: true, html: r => r.loaded ? n0(r.pal) : badge('pas encore chargée', 'b-neutral') },
   { k: 'poids', label: 'Poids kg', num: true, fmt: n0 }, { k: 'ref', label: 'Réf.' },
 ], rows, { total: { pal: sum(rows, r => r.pal), poids: sum(rows, r => r.poids) } });
 document.addEventListener('click', async e => {

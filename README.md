@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.27.0** · Développé par **Galaad Poivey**
+Version **1.27.1** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -235,7 +235,7 @@ Les dossiers reliés sont relus automatiquement à chaque ouverture (étape « F
 
 - On colle la VL06I dans Sources. Comme la VL06O, chaque collage **remplace** le précédent : une navette absente du nouveau collage a été déchargée.
 - Seuls les sites usines **2560** (Carpentras) et **2510** (usine épices) sont retenus. La liste est réglable dans Paramètres → Quai de réception.
-- **Palettes = nombre de colis.** Si le nombre de colis est vide, il est estimé au poids, à partir du poids moyen par palette des autres navettes (signalé par ≈).
+- **Palettes = nombre de colis.** Si le nombre de colis est vide, la navette n'est pas encore chargée : elle compte **0 palette** et s'affiche « pas encore chargée ». Rien n'est estimé.
 - **Date dépassée :** une navette encore présente compte le jour de la VL06I. Par exemple, une navette du 29/09 dans une VL06I du 01/10 compte le 01/10.
 - Pas d'horaire : les chauffeurs de parc les ramènent au fil de la journée. Pour le quai de réception, elles sont réparties de 05:00 à 20:00 (réglable).
 - Les navettes s'ajoutent aux **entrées** : tableau de bord, overlay flux palettes, matrice jour par jour, quai de réception. L'onglet **Navettes usines** liste simplement les navettes en cours (date, usine, livraison, palettes).
