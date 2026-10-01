@@ -1,11 +1,11 @@
 # Flux Hebdo Dépôt
 
-Version **1.21.1** · Développé par **Galaad Poivey**
+Version **1.23.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
-Aucun serveur : on ouvre `index.html` dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
+Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
 
-Gardez ensemble `index.html` et le dossier `lib/`. Le référentiel articles (Fichier Article, MLGT, magasins) est intégré à `index.html`.
+Dans le zip livré, le fichier de l'app porte le nom de l'app et sa version, par exemple `Flux_Hebdo_v1.23.0.html` (dans ce dépôt, il s'appelle `index.html`). Gardez-le avec le dossier `lib/`. Le référentiel articles (Fichier Article, MLGT, magasins) est intégré au fichier. Changer de version ne fait rien perdre : les données sont liées au navigateur, pas au nom du fichier.
 
 ## Sources alimentées
 
@@ -216,11 +216,38 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
 
 Paramètres → À propos → « Animer l'écran d'ouverture » : décoché, la scène reste figée, mais la connexion reste demandée. L'animation est aussi réduite si le système demande de limiter les animations.
 
+## Quai de réception
+
+Simulation, jour par jour, de la réception de la semaine affichée :
+
+1. **Arrivée des camions :** heure d'arrivée pointée, sinon heure du RDV du planning SST, sinon (rapatriements sans heure) répartie régulièrement sur une plage réglable (06:00–14:00 par défaut).
+2. **Portes :** chaque camion prend la première porte libre (3 portes par défaut) et décharge pendant 45 min (réglable). Si toutes les portes sont prises, il attend : l'attente est calculée.
+3. **Sol :** à la fin du déchargement, les palettes sont posées au sol (1 bloc par palette par défaut). Capacité du sol : 150 blocs par défaut.
+4. **Rangement :** dans l'ordre d'arrivée, à 25 palettes/h par cariste réception présent. Les équipes de rangement se règlent comme les autres équipes (par défaut, 1 cariste 05:00–12:30 et 1 cariste 12:30–20:00).
+
+Verdict rouge pour un jour si le sol dépasse sa capacité ou si un camion attend 30 min ou plus. Une tuile « Quai réception (blocs) » est ajoutée au tableau de bord, dans le groupe Entrées. Son overlay contient :
+- la courbe des palettes au sol ;
+- le tableau par jour : pic, attente maximale, heure de fin de rangement ;
+- le calcul camion par camion : porte, déchargement, attente, heure de rangement.
+
+**Les valeurs par défaut sont à ajuster** dans Paramètres → « Quai de réception » et « Équipes de rangement ».
+
+## Dossiers sources SharePoint (rapatriements, planning SST)
+
+Paramètres → « Dossiers sources (SharePoint) ». On choisit une fois, pour chaque type, le dossier SharePoint synchronisé par OneDrive où les fichiers sont déposés. Ensuite :
+- **À chaque ouverture**, l'app relit automatiquement les fichiers nouveaux ou modifiés depuis le dernier import (étape « Fichiers SharePoint » de l'écran d'ouverture).
+- **Rapatriements :** fichiers `AAAA_Sxx_<Entrepôt>.xlsx` des semaines proches (± 3 semaines), sous-dossiers compris.
+- **Planning SST :** le fichier « Planning…Réception… » le plus récent.
+- Un bouton **Actualiser depuis SharePoint** dans les onglets Rapatriements et Réceptions SST relit sans fermer l'app.
+- Si le navigateur demande de reconfirmer l'accès, une seule question à l'ouverture couvre tous les dossiers : sauvegarde et sources.
+
+**Fermeture de l'onglet :** tant que la dernière modification n'est pas enregistrée dans le dossier de sauvegarde partagé, le navigateur demande confirmation avant de fermer, et l'enregistrement démarre pendant ce temps. Un navigateur ne permet pas d'empêcher totalement la fermeture : c'est le maximum autorisé.
+
 ## Sauvegarde partagée automatique
 
 Dossier prévu : `MC CORMICK & COMPANY INC\WeDeliver - Documents\101_Sandbox GP\Flux_hebdo\Sauvegarde`. C'est le dossier SharePoint synchronisé en local par OneDrive.
 
-- **Mise en place, une fois par poste :** ouvrez `index.html` dans **Edge ou Chrome**, puis Paramètres → « Choisir le dossier Sauvegarde… » (ou cliquez sur le bouton nuage en haut). Sélectionnez le dossier `Sauvegarde` et indiquez votre nom. Un navigateur ne peut pas ouvrir un chemin tout seul : l'accès au dossier est donné une fois, puis mémorisé.
+- **Mise en place, une fois par poste :** ouvrez le fichier de l'app dans **Edge ou Chrome**, puis Paramètres → « Choisir le dossier Sauvegarde… » (ou cliquez sur le bouton nuage en haut). Sélectionnez le dossier `Sauvegarde` et indiquez votre nom. Un navigateur ne peut pas ouvrir un chemin tout seul : l'accès au dossier est donné une fois, puis mémorisé.
 - **À chaque ouverture :** l'app lit le dossier et charge la sauvegarde **la plus récente** si elle est plus récente que les données du navigateur. Si le navigateur redemande l'autorisation, un clic sur « Sauvegarde : reconnecter » suffit ; Chrome/Edge proposent aussi « Autoriser à chaque visite ».
 - **Après chaque modification** (import, collage, réglage), l'app enregistre une copie horodatée au bout de 4 secondes, puis de nouveau quand on ferme ou quitte l'onglet. S'il reste des modifications non enregistrées à la fermeture, le navigateur demande confirmation, le temps d'écrire le fichier.
 - **Plusieurs utilisateurs :** chaque copie a son propre nom, `Flux_Hebdo_AAAA-MM-JJ_HHhMMmSS_<nom>.json`, donc OneDrive ne crée pas de conflit. La sauvegarde la plus récente l'emporte : à l'ouverture et au retour sur l'onglet, l'app charge celle d'un collègue si elle est plus récente que la vôtre. Les modifications ne sont pas fusionnées : deux personnes qui modifient en même temps, c'est la dernière enregistrée qui compte.

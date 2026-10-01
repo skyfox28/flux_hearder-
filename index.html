@@ -533,7 +533,7 @@ const SPLASH = (() => {
   const fit = () => { const st = el.querySelector('.sp-stage'); const k = Math.min(1, st.clientWidth / 900, st.clientHeight / 500) * .92; document.getElementById('spCam').style.scale = k; };
   fit(); addEventListener('resize', fit);
   // étapes
-  const STEPS = [['db', 'Données locales'], ['calc', 'Calcul des flux de la semaine'], ['sync', 'Sauvegarde partagée']];
+  const STEPS = [['db', 'Données locales'], ['calc', 'Calcul des flux de la semaine'], ['sync', 'Sauvegarde partagée'], ['src', 'Fichiers SharePoint (rapatriements, SST)']];
   const ol = document.getElementById('spSteps');
   ol.innerHTML = STEPS.map(([k, l]) => `<li data-k="${k}"><i></i><span>${l}</span><small></small></li>`).join('');
   // Connexion de test (temporaire, à supprimer) : identifiant admin. Contrôle côté navigateur uniquement, ce n'est pas une sécurité.
@@ -612,9 +612,11 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.21.1';
+const APP_VERSION = '1.23.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.23.0', '01/10/2026', 'Dossiers sources SharePoint (rapatriements, planning SST) relus automatiquement à l’ouverture ; une seule autorisation pour tous les dossiers ; confirmation à la fermeture tant que la sauvegarde partagée n’est pas à jour.'],
+  ['1.22.0', '01/10/2026', 'Quai de réception : portes de déchargement, palettes au sol (blocs) et rangement par l’équipe réception ; attente des camions, saturation du sol, fin de rangement par jour ; tuile et overlay dédiés, réglages et équipes de rangement.'],
   ['1.21.1', '30/09/2026', 'Mention « Coming soon · en développement » portée par l’app elle-même (panneau de la scène et en-tête de l’écran d’ouverture).'],
   ['1.21.0', '30/09/2026', 'Écran d’ouverture = étape de connexion (compte de test temporaire) : il ne se ferme plus tout seul ; mention « Coming soon » (comptes utilisateurs) dans l’animation.'],
   ['1.20.0', '30/09/2026', 'Écran d’ouverture animé en 3D (entrepôt, quais, camions en manœuvre, chariot, palettes) qui suit les étapes du démarrage : données locales, calcul, sauvegarde partagée (reconnexion du dossier en un clic).'],
@@ -749,6 +751,14 @@ const DEFAULT_SETTINGS = {
   equipesSilo: [{ nom: 'Matin', debut: '05:00', fin: '12:30', prep: 1 }, { nom: 'Après-midi', debut: '12:30', fin: '20:00', prep: 1 }, { nom: 'Nuit', debut: '20:00', fin: '03:30', prep: 1 }],
   capaInWeek: 2250, capaOutWeek: 3000,
   capaQuaiExp: 450,    // blocs (places au sol) max. au quai d'expédition
+  // quai de réception (valeurs par défaut à ajuster)
+  capaQuaiRec: 150,    // blocs (places au sol) en attente de rangement
+  portesRec: 3,        // portes de déchargement
+  dechDuree: 45,       // minutes de déchargement par camion
+  cadRecep: 25,        // palettes rangées par heure et par cariste réception
+  blocParPalRec: 1,    // blocs par palette reçue (palettes entières non gerbées)
+  rapatDebut: '06:00', rapatFin: '14:00',   // plage d'arrivée des camions sans heure (rapatriements)
+  equipesRecep: [{ nom: 'Matin', debut: '05:00', fin: '12:30', prep: 1 }, { nom: 'Après-midi', debut: '12:30', fin: '20:00', prep: 1 }],
   quaiDepart: 1,       // départ du camion : 0 = début du créneau, 1 = milieu, 2 = fin
   colisParPalPick: 80, // estimation des palettes de picking quand la livraison n'est pas affrétée
   blocParPal: 0.65,    // blocs (places au sol) par palette, si l'affrètement ne permet pas de le mesurer
@@ -899,7 +909,7 @@ function isInterco(nom, prio) {
 // ---------- Lecture fichiers ----------
 function readWorkbook(file) {
   return new Promise((res, rej) => {
-    if (!window.XLSX) return rej(new Error('Bibliothèque Excel (SheetJS) non chargée — le fichier lib/xlsx.full.min.js doit accompagner index.html.'));
+    if (!window.XLSX) return rej(new Error('Bibliothèque Excel (SheetJS) non chargée — le fichier lib/xlsx.full.min.js doit accompagner le fichier de l’app (Flux_Hebdo_vX.Y.Z.html).'));
     const fr = new FileReader();
     fr.onload = () => { try { res(XLSX.read(new Uint8Array(fr.result), { type: 'array' })); } catch (e) { rej(e); } };
     fr.onerror = () => rej(fr.error);
@@ -1313,6 +1323,7 @@ function viewDash() {
       ${kpi('Camions rapatriement', n0(rin.length), '', uniq(rin.map(l => l.entrepot)).join(' · ') || '—', '', 'rapin')}
       ${kpi('Réceptions SST', n0(sum(sst, r => r.pal)), 'pal', `${n0(sum(sst, r => r.cam || 1))} camion(s) · dont retours interco ${n0(sum(sst.filter(r => isInterco(r.sst)), r => r.pal))} pal`, '', 'sst')}
       ${kpi('Transferts vers externes', n0(sum(rout, l => l.pal)), 'pal', `${rout.length} camion(s) · déstockages + navettes`, '', 'ext')}
+      ${recTile()}
     </div>
     <div class="group-title" style="margin-top:18px">Sorties</div>
     <div class="kpis">
@@ -1744,7 +1755,7 @@ function viewRapat() {
   const imp = `<section class="card glass">
     <div class="card-head"><div><h2>Fichiers de rapatriement</h2><p class="hint">Un classeur par entrepôt externe et par semaine (ex. <kbd>2026_S40_FM.xlsx</kbd>). Chaque onglet après « LUNDI&gt;&gt; », « MARDI&gt;&gt; »… est un camion : palettes, poids et articles sont calculés automatiquement.</p></div>
     ${files.length ? `<div class="meta" style="text-align:right">${files.length} fichier(s) en mémoire</div>` : ''}</div>
-    <div class="drop" data-drop="rapat">${icon('upload')}<div><b>Déposez un ou plusieurs fichiers ici</b> ou <button class="btn sm" data-pick="rapat">choisir</button><small>Un fichier ré-importé remplace sa version précédente.</small></div></div>
+    <div class="drop" data-drop="rapat">${icon('upload')}<div><b>Déposez un ou plusieurs fichiers ici</b> ou <button class="btn sm" data-pick="rapat">choisir</button>${SRC.rapat.dir ? ` <button class="btn sm" data-act="src-refresh" data-k="rapat">Actualiser depuis SharePoint</button>` : ` <button class="btn sm" data-act="src-choose" data-k="rapat">Relier un dossier SharePoint…</button>`}<small>Un fichier ré-importé remplace sa version précédente.</small></div></div>
   </section>`;
   if (!loads.length) return imp + `<section class="card glass"><div class="empty"><b>Aucun rapatriement pour cette semaine</b>${all.length ? 'Des données existent sur d’autres semaines : ' + uniq(all.map(l => 'S' + isoWeek(l.date).w)).sort().join(', ') : ''}</div></section>`;
   const dshow = days.filter((d, i) => i < 6 || loads.some(l => l.date === d));
@@ -1817,7 +1828,7 @@ function viewSST() {
     <div class="card-head"><div><h2>Planning de réception sous-traitants</h2>
     <p class="hint">Déposez <kbd>Planning_Reception_SST_Monteux3.xlsb</kbd> : les onglets « PlanningReception AAAA » sont lus (créneaux avec RDV ou palettes). Le pointage « Reçu » est conservé lors des ré-imports.</p></div>
     ${files.length ? `<div class="meta" style="text-align:right">${files.map(esc).join('<br>')}<br>${n0(S.sst.rows.length)} RDV en mémoire</div>` : ''}</div>
-    <div class="drop" data-drop="sst">${icon('upload')}<div><b>Déposez le planning ici</b> ou <button class="btn sm" data-pick="sst">choisir</button><small>Un fichier ré-importé remplace ses lignes précédentes.</small></div></div>
+    <div class="drop" data-drop="sst">${icon('upload')}<div><b>Déposez le planning ici</b> ou <button class="btn sm" data-pick="sst">choisir</button>${SRC.sst.dir ? ` <button class="btn sm" data-act="src-refresh" data-k="sst">Actualiser depuis SharePoint</button>` : ` <button class="btn sm" data-act="src-choose" data-k="sst">Relier un dossier SharePoint…</button>`}<small>Un fichier ré-importé remplace ses lignes précédentes.</small></div></div>
     <details class="paste" style="margin-top:14px"><summary>+ Ajouter un RDV manuellement</summary>
     <div class="form" style="margin-top:10px">
       <label>Date<input class="inp" type="date" id="sDate" value="${weekDays()[Math.min(4, dayIdx(today()))]}"></label>
@@ -1880,6 +1891,18 @@ function viewSettings() {
       <label>Colis par palette de picking (estimation hors affrètement)<input class="inp" type="number" min="1" data-set="colisParPalPick" value="${num(st.colisParPalPick)}"></label>
     </div>
   </section>
+  <section class="card glass"><h2>Quai de réception (saturation)</h2><p class="hint">Les camions déchargent sur les portes de réception ; leurs palettes attendent au sol (en <b>blocs</b>) jusqu’à leur rangement par l’équipe réception. Valeurs par défaut à ajuster à la réalité du dépôt.</p>
+    <div class="set-grid">
+      <label>Capacité du sol de réception (blocs)<input class="inp" type="number" min="0" data-set="capaQuaiRec" value="${num(st.capaQuaiRec)}"></label>
+      <label>Portes de déchargement<input class="inp" type="number" min="1" data-set="portesRec" value="${num(st.portesRec)}"></label>
+      <label>Durée de déchargement (min / camion)<input class="inp" type="number" min="5" data-set="dechDuree" value="${num(st.dechDuree)}"></label>
+      <label>Cadence de rangement (pal/h par cariste)<input class="inp" type="number" min="1" data-set="cadRecep" value="${num(st.cadRecep)}"></label>
+      <label>Blocs par palette reçue<input class="inp" type="number" min="0.1" step="0.05" data-set="blocParPalRec" value="${num(st.blocParPalRec)}"></label>
+      <label>Camions sans heure (rapatriements) : de<input class="inp" type="time" data-setstr="rapatDebut" value="${esc(st.rapatDebut || '06:00')}"></label>
+      <label>à<input class="inp" type="time" data-setstr="rapatFin" value="${esc(st.rapatFin || '14:00')}"></label>
+    </div>
+  </section>
+  ${teamEditor('equipesRecep', 'Équipes de rangement (réception)', 'caristes', sum(teams('equipesRecep'), e => num(e.prep) * teamDur(e)), `h de rangement par jour, soit ${n0(sum(teams('equipesRecep'), e => num(e.prep) * teamDur(e)) * num(st.cadRecep))} pal à ${num(st.cadRecep)} pal/h`)}
   <section class="card glass"><h2>Capacité quai (palettes)</h2><p class="hint">Capacité hebdomadaire, répartie sur les jours travaillés (${nbWorkDays()} j) : ${n0(num(st.capaInWeek) / nbWorkDays())} pal/jour en entrée, ${n0(num(st.capaOutWeek) / nbWorkDays())} pal/jour en sortie.</p>
     <div class="set-grid">
       <label>Entrées (pal / semaine)<input class="inp" type="number" min="0" data-set="capaInWeek" value="${st.capaInWeek}"></label>
@@ -1927,6 +1950,7 @@ function viewSettings() {
     ${S.ref ? `<div class="row" style="margin-top:10px"><button class="btn sm" data-act="ref-reset">Revenir au référentiel par défaut</button></div>` : ''}
   </section>
   <section class="card glass"><h2>À propos</h2><label class="row" style="float:right;gap:6px;font-size:13px"><input type="checkbox" data-splash ${(() => { try { return localStorage.getItem('flux-splash') === 'off' ? '' : 'checked'; } catch (e) { return 'checked'; } })()}> Animer l’écran d’ouverture</label><p class="hint" style="margin:0">Flux Hebdo Dépôt — version <button class="linkbtn" data-detail="version">${APP_VERSION}</button> — développé par <b>${APP_AUTHOR}</b>. Application 100 % locale : les données restent dans ce navigateur et, si vous l’activez, dans le dossier de sauvegarde partagé.</p></section>
+  ${srcCard()}
   <section class="card glass"><h2>Sauvegarde</h2><p class="hint">Les données sont stockées dans ce navigateur. Elles peuvent aussi être enregistrées automatiquement dans le dossier partagé (ci-dessous), ou exportées à la main.</p>
     <div class="row">
       <button class="btn" data-act="backup">${icon('dl')} Exporter une sauvegarde</button>
@@ -2033,7 +2057,7 @@ $('#fileInput').addEventListener('change', e => handleFiles(pickKind, [...e.targ
 document.addEventListener('dragover', e => { const d = e.target.closest('[data-drop]'); if (d) { e.preventDefault(); d.classList.add('over'); } });
 document.addEventListener('dragleave', e => { const d = e.target.closest('[data-drop]'); if (d) d.classList.remove('over'); });
 document.addEventListener('drop', e => { const d = e.target.closest('[data-drop]'); if (!d) return; e.preventDefault(); d.classList.remove('over'); handleFiles(d.dataset.drop, [...e.dataTransfer.files]); });
-async function handleFiles(kind, files) {
+async function handleFiles(kind, files, auto) {
   if (!files.length) return;
   try {
     if (kind === 'restore') {
@@ -2062,7 +2086,7 @@ async function handleFiles(kind, files) {
         for (const [k, l] of Object.entries(S.rapat.loads)) if (l.file === f.name) delete S.rapat.loads[k];
         for (const l of res.loads) S.rapat.loads[l.id] = l;
         n += res.loads.length; pal += sum(res.loads, l => l.pal); msgs.push(`${esc(res.entrepot)} S${res.week ?? '?'} : ${res.loads.length} camion(s)`);
-        if (res.loads.length && files.length === 1) S.ui.week = isoWeek(res.loads[res.loads.length - 1].date);
+        if (!auto && res.loads.length && files.length === 1) S.ui.week = isoWeek(res.loads[res.loads.length - 1].date);
       }
       await save('rapat'); toast(`<b>${n} chargements · ${n0(pal)} palettes</b><br>${msgs.join('<br>')}`, 5000);
     }
@@ -2750,7 +2774,12 @@ function dockLink(P) {
 }
 // courbe d'occupation du quai sur tous les jours projetés
 function dockChart(dock, P) {
-  const days = P.rows.map(r => r.D); if (!days.length) return '';
+  return occChart(dock, P.rows.map(r => r.D), P.at, `extraction ${new Date(P.at).toTimeString().slice(0, 5)} · ${n0(dock.now)} blocs`, 'Occupation du quai d’expédition');
+}
+// courbe d'occupation (blocs) sur des jours donnés : capacité, plages saturées, repère « maintenant »
+function occChart(dock, days, at, atLbl, aria) {
+  if (!days.length) return '';
+  const P = { at: at || dayStartTs(days[0]) };
   const W = 1100, ml = 48, mr = 14, mt = 22, ch = 220, mb = 34, iw = W - ml - mr;
   // axe compact : fin de la journée d'extraction puis uniquement les jours projetés (week-ends masqués)
   const segs = []; if (P.at < dayStartTs(days[0])) segs.push([P.at, dayStartTs(days[0])]);
@@ -2771,11 +2800,11 @@ function dockChart(dock, P) {
   for (const [t, o] of pts) { if (prev != null) d += ` L${X(t)},${Y(prev)}`; d += ` L${X(t)},${Y(o)}`; prev = o; }
   g += `<path d="${d} L${X(t1)},${Y(0)} Z" fill="var(--in)" opacity=".25"/><path d="${d.replace(/^M[^L]*/, 'M' + X(pts[0][0]) + ',' + Y(pts[0][1]))}" fill="none" stroke="var(--in)" stroke-width="1.8"/>`;
   g += `<line x1="${ml}" x2="${W - mr}" y1="${Y(cap)}" y2="${Y(cap)}" stroke="#fff" stroke-width="4" opacity=".7"/><line x1="${ml}" x2="${W - mr}" y1="${Y(cap)}" y2="${Y(cap)}" stroke="var(--crit)" stroke-width="1.6" stroke-dasharray="6 4"/><text x="${W - mr - 4}" y="${Y(cap) - 5}" text-anchor="end" style="font-size:11px;font-weight:700;fill:var(--crit-ink)">capacité ${n0(cap)} blocs</text>`;
-  g += `<line x1="${X(P.at)}" x2="${X(P.at)}" y1="${mt - 6}" y2="${mt + ch}" stroke="var(--text-2)" stroke-width="1.6" stroke-dasharray="4 3"/><text x="${X(P.at) + 4}" y="${mt - 8}" style="font-size:10px;font-weight:700;fill:var(--text-2)">extraction ${new Date(P.at).toTimeString().slice(0, 5)} · ${n0(dock.now)} blocs</text>`;
+  if (at && at > t0 && at < t1) g += `<line x1="${X(at)}" x2="${X(at)}" y1="${mt - 6}" y2="${mt + ch}" stroke="var(--text-2)" stroke-width="1.6" stroke-dasharray="4 3"/><text x="${X(at) + 4}" y="${mt - 8}" style="font-size:10px;font-weight:700;fill:var(--text-2)">${esc(atLbl)}</text>`;
   // zones de survol par heure
   for (let t = Math.floor(t0 / H) * H; t < t1; t += H) { if (!segs.some(([a, b]) => t + H > a && t < b)) continue; const pk = Math.max(dock.occAt(t), ...dock.series.filter(([ts]) => ts > t && ts < t + H).map(s => s[1]));
     g += `<rect x="${X(t)}" y="${mt}" width="${Math.max(1, X(t + H) - X(t))}" height="${ch}" fill="transparent" data-tip="${esc(`<b>${esc(fdt(t))} → ${new Date(t + H).toTimeString().slice(0, 5)}</b>max ${n0(pk)} blocs au quai / ${n0(cap)}${pk > cap ? ' · <b style="display:inline;color:var(--crit-ink)">saturé</b>' : ''}`)}"/>`; }
-  return `<div class="timeline"><svg viewBox="0 0 ${W} ${mt + ch + mb + 4}" role="img" aria-label="Occupation du quai d’expédition">${g}</svg></div>`;
+  return `<div class="timeline"><svg viewBox="0 0 ${W} ${mt + ch + mb + 4}" role="img" aria-label="${esc(aria)}">${g}</svg></div>`;
 }
 function dockDetail() {
   const P = projection();
@@ -2786,6 +2815,101 @@ function dockDetail() {
     mini([['Au quai à l’extraction', n0(dock.now), 'blocs', `taux ${pct(dock.now / dock.cap)}`], ['Pic prévu', n0(pk[1]), 'blocs', esc(fdt(pk[0]))], ['Capacité', n0(dock.cap), 'blocs', 'réglable dans Paramètres'], ['Saturation', dock.sat.length ? `${dock.sat.length} plage${dock.sat.length > 1 ? 's' : ''}` : 'aucune', '', nx ? `dès ${esc(fdt(nx.from))}` : 'le quai suit'], ['Livraisons suivies', n0(dock.rows.length), '', `${n0(sum(dock.rows, r => r.pal))} blocs au total`], ['Ratio bloc/palette', nf2.format(blocRatio().v), '', esc(blocRatio().src)]]) +
     h3('Occupation du quai heure par heure', 'Surface = blocs posés au quai. Zones rouges = au-dessus de la capacité : la préparation risque d’être bloquée tant que les camions ne partent pas.') + dockChart(dock, P) +
     dockSection(P) };
+}
+// ============================================================
+//   QUAI DE RÉCEPTION : camion → porte (déchargement) → sol (blocs) → rangement (caristes réception)
+//   - heure d'arrivée : pointage réel, sinon heure du RDV (planning SST), sinon répartie sur la plage des rapatriements
+//   - portes : un camion attend si toutes les portes sont occupées
+//   - sol : les palettes d'un camion sont posées à la fin du déchargement, rangées dans l'ordre d'arrivée
+//     au rythme cadence × caristes présents (équipes de rangement)
+// ============================================================
+const recDays = () => { const w = weekData(); return w.days.filter(d => workDay(d) || S.sst.rows.some(r => r.date === d) || Object.values(S.rapat.loads).some(l => l.sens === 'in' && l.date === d)); };
+function recTrucks(days) {
+  const set = new Set(days), out = [], st = S.settings;
+  for (const r of S.sst.rows) {
+    if (!set.has(r.date) || !(r.pal > 0)) continue;
+    const n = Math.max(1, Math.round(num(r.cam) || 1)), h = r.arr || r.heure;
+    for (let i = 0; i < n; i++) out.push({ kind: isInterco(r.sst) ? 'Retour interco' : 'Sous-traitant', lbl: r.sst || '—', ref: r.ref || '', date: r.date, pal: r.pal / n, t: h ? dayStartTs(r.date) + hm(h) * H : null, src: r.arr ? 'arrivée pointée' : r.heure ? 'RDV planning' : '' });
+  }
+  for (const l of Object.values(S.rapat.loads)) if (l.sens === 'in' && set.has(l.date) && l.pal > 0) out.push({ kind: 'Rapatriement', lbl: l.entrepot, ref: l.ref, date: l.date, pal: l.pal, t: null, src: '' });
+  const a = hm(st.rapatDebut || '06:00'), b = Math.max(a + .5, hm(st.rapatFin || '14:00'));
+  for (const D of days) { const xs = out.filter(x => x.date === D && x.t == null); xs.forEach((x, i) => { x.t = dayStartTs(D) + (a + (b - a) * (i + .5) / xs.length) * H; x.src = `réparti ${st.rapatDebut}–${st.rapatFin}`; }); }
+  return out.sort((x, y) => x.t - y.t);
+}
+function occStats(series, cap) {
+  const sat = []; let cur = null;
+  for (let i = 0; i < series.length; i++) { const [t, o] = series[i], tNext = series[i + 1] ? series[i + 1][0] : t;
+    if (o > cap) { if (!cur) cur = { from: t, to: tNext, peak: o }; else { cur.to = tNext; cur.peak = Math.max(cur.peak, o); } }
+    else if (cur) { sat.push(cur); cur = null; } }
+  if (cur) sat.push(cur);
+  const occAt = t => { let o = 0; for (const [ts, v] of series) { if (ts > t) break; o = v; } return o; };
+  const dayPeak = D => { const d0 = dayStartTs(D), d1 = d0 + 24 * H; let pk = occAt(d0), pt = d0; for (const [t, o] of series) if (t >= d0 && t < d1 && o > pk) { pk = o; pt = t; } return { peak: pk, at: pt }; };
+  return { sat, occAt, dayPeak };
+}
+function recSim(days = recDays()) {
+  const st = S.settings, cap = num(st.capaQuaiRec), ratio = num(st.blocParPalRec) || 1, cad = Math.max(1, num(st.cadRecep) || 25);
+  const doors = Math.max(1, Math.round(num(st.portesRec) || 1)), dur = Math.max(5, num(st.dechDuree) || 45) * 60e3;
+  const tr = recTrucks(days), free = Array(doors).fill(0);
+  for (const x of tr) { let k = free.findIndex(f => f <= x.t); if (k < 0) { k = 0; for (let i = 1; i < doors; i++) if (free[i] < free[k]) k = i; }
+    x.start = Math.max(x.t, free[k]); x.end = x.start + dur; x.door = k + 1; x.wait = x.start - x.t; free[k] = x.end; x.blocs = Math.ceil(x.pal * ratio - 1e-9); x.done = null; }
+  const series = [];
+  if (tr.length) {
+    const STEP = 5 * 60e3, ev = tr.slice().sort((p, q) => p.end - q.end), t0 = Math.min(dayStartTs(days[0]), ev[0].end);
+    const tMax = Math.max(dayStartTs(days[days.length - 1]) + 24 * H, ev[ev.length - 1].end) + 72 * H;
+    let ei = 0, qi = 0, floor = 0, cumIn = 0, cumOut = 0, last = -1;
+    for (let t = t0; t < tMax; t += STEP) {
+      while (ei < ev.length && ev[ei].end <= t) { floor += ev[ei].pal; cumIn += ev[ei].pal; ev[ei].cumEnd = cumIn; ei++; }
+      const o = Math.ceil(floor * ratio - 1e-9); if (o !== last) { series.push([t, o]); last = o; }
+      const d = Math.min(floor, capaBetween('equipesRecep', t, t + STEP) * cad); floor -= d; cumOut += d;
+      while (qi < ei && ev[qi].cumEnd <= cumOut + 1e-6) { ev[qi].done = t + STEP * Math.min(1, d ? 1 - (cumOut - ev[qi].cumEnd) / d : 1); qi++; }
+      if (ei >= ev.length && floor <= 1e-6 && t >= dayStartTs(days[days.length - 1]) + 24 * H) break;
+    }
+    if (last !== 0) series.push([series.length ? series[series.length - 1][0] + STEP : t0, 0]);
+  }
+  const o = occStats(series, cap);
+  return Object.assign({ cap, ratio, cad, doors, dur, trucks: tr, series, days }, o);
+}
+function recDayRow(R, D) {
+  const xs = R.trucks.filter(x => x.date === D), { peak, at } = R.dayPeak(D), d0 = dayStartTs(D);
+  const s = R.sat.filter(x => x.to > d0 && x.from < d0 + 24 * H), wait = Math.max(0, ...xs.map(x => x.wait));
+  const done = xs.length && xs.every(x => x.done) ? Math.max(...xs.map(x => x.done)) : null;
+  const hh = t => new Date(t).toTimeString().slice(0, 5);
+  return { D, cam: xs.length, pal: sum(xs, x => x.pal), peak, at, taux: R.cap ? peak / R.cap : NaN, wait, done, unfinished: xs.some(x => !x.done), ok: !s.length && wait < 30 * 60e3,
+    lbl: s.length ? `sol saturé ${s.map(x => `${hh(Math.max(x.from, d0))}–${x.to >= d0 + 24 * H ? '24:00' : hh(x.to)}`).join(', ')}` : wait >= 30 * 60e3 ? `attente camion ${Math.round(wait / 60e3)} min` : xs.length ? `pic ${n0(peak)} / ${n0(R.cap)} blocs` : 'aucune réception' };
+}
+function recDetail() {
+  const R = recSim(), days = R.days, st = S.settings;
+  if (!R.trucks.length) return { title: 'Quai de réception', sub: scopeLbl(), body: none('Aucune réception cette semaine : importez le planning SST et les fichiers de rapatriement.') };
+  const pk = R.series.reduce((m, x) => x[1] > m[1] ? x : m, [0, 0]), maxW = R.trucks.reduce((m, x) => x.wait > m.wait ? x : m, R.trucks[0]);
+  const rows = days.map(D => recDayRow(R, D)).filter(r => r.cam || workDay(r.D));
+  const hh = t => t ? new Date(t).toTimeString().slice(0, 5) : '–', mins = ms => ms >= 60e3 ? `${Math.round(ms / 60e3)} min` : '–';
+  const now = Date.now();
+  const dayT = table('recDays', [
+    { k: 'D', label: 'Jour', fmt: fdateL }, { k: 'cam', label: 'Camions', num: true, fmt: n0 }, { k: 'pal', label: 'Palettes', num: true, fmt: n0 },
+    { k: 'peak', label: 'Pic au sol', num: true, html: r => r.cam ? `${n0(r.peak)} blocs` : '–' }, { k: 'at', label: 'Heure du pic', html: r => r.cam && r.peak ? hh(r.at) : '–' },
+    { k: 'taux', label: 'Taux', num: true, html: r => r.cam ? tauxBadge(r.taux) : '–' }, { k: 'wait', label: 'Attente max', num: true, html: r => mins(r.wait) },
+    { k: 'done', label: 'Fin de rangement', html: r => r.cam ? (r.unfinished ? badge('non terminé', 'b-crit') : esc(fdt(r.done))) : '–' },
+    { k: 'lbl', label: 'Verdict', html: r => !r.cam ? '<span class="muted">—</span>' : r.ok ? badge('✓ ' + r.lbl, 'b-good') : badge('✗ ' + r.lbl, 'b-crit') },
+  ], rows);
+  const trT = table('recTr', [
+    { k: 'date', label: 'Jour', fmt: fdateL }, { k: 't', label: 'Arrivée', html: r => `${hh(r.t)} <span class="muted">${esc(r.src)}</span>` }, { k: 'kind', label: 'Type' }, { k: 'lbl', label: 'Fournisseur / entrepôt', cls: 'wrap' }, { k: 'ref', label: 'Réf.' },
+    { k: 'pal', label: 'Palettes', num: true, fmt: n0 }, { k: 'blocs', label: 'Blocs', num: true, fmt: n0 }, { k: 'door', label: 'Porte', num: true },
+    { k: 'start', label: 'Déchargement', html: r => `${hh(r.start)}–${hh(r.end)}` }, { k: 'wait', label: 'Attente', num: true, html: r => r.wait >= 60e3 ? `<b style="color:var(--crit-ink)">${mins(r.wait)}</b>` : '–' },
+    { k: 'done', label: 'Rangé à', html: r => r.done ? esc(fdt(r.done)) : badge('non rangé', 'b-crit') },
+  ], R.trucks, { limit: 400 });
+  return { xl: true, title: 'Quai de réception', sub: `${scopeLbl()} · ${R.doors} portes · déchargement ${R.dur / 60e3} min/camion · sol ${n0(R.cap)} blocs · rangement ${R.cad} pal/h par cariste (${esc(teams('equipesRecep').map(e => `${e.prep} ${e.debut}–${e.fin}`).join(' + ') || 'aucune équipe')})`, body:
+    mini([['Camions', n0(R.trucks.length), '', `${n0(sum(R.trucks, x => x.pal))} palettes`], ['Pic au sol', n0(pk[1]), 'blocs', pk[1] ? esc(fdt(pk[0])) : ''], ['Capacité sol', n0(R.cap), 'blocs', 'réglable dans Paramètres'],
+      ['Saturation', R.sat.length ? `${R.sat.length} plage${R.sat.length > 1 ? 's' : ''}` : 'aucune', '', R.sat[0] ? `dès ${esc(fdt(R.sat[0].from))}` : 'le rangement suit'],
+      ['Attente max', maxW.wait >= 60e3 ? n0(maxW.wait / 60e3) : '0', 'min', maxW.wait >= 60e3 ? `${esc(maxW.lbl)} · ${esc(fdt(maxW.t))}` : 'toujours une porte libre'],
+      ['Capacité de rangement', n0(capaBetween('equipesRecep', dayStartTs(days[0]), dayStartTs(days[0]) + 24 * H) * R.cad), 'pal/jour', `${R.cad} pal/h × heures caristes`]]) +
+    h3('Palettes au sol en attente de rangement', 'Surface = blocs posés au sol de la réception. Zones rouges = au-dessus de la capacité : plus de place pour décharger.') + occChart(R, days.filter(D => rows.some(r => r.D === D)), now, `maintenant ${hh(now)}`, 'Occupation du quai de réception') +
+    h3('Par jour', `Verdict rouge si le sol dépasse ${n0(R.cap)} blocs ou si un camion attend 30 min ou plus une porte libre.`) + dayT +
+    h3('Calcul par camion', `Arrivée = heure pointée, sinon RDV du planning SST, sinon répartie sur ${esc(st.rapatDebut)}–${esc(st.rapatFin)} (rapatriements sans heure). Le camion prend la première porte libre parmi ${R.doors}, décharge ${R.dur / 60e3} min, puis ses palettes (× ${nf2.format(R.ratio)} bloc/palette) attendent au sol ; elles sont rangées dans l’ordre d’arrivée à ${R.cad} pal/h par cariste réception présent.`) + trT };
+}
+function recTile() {
+  const R = recSim(); if (!R.trucks.length) return '';
+  const rows = R.days.map(D => recDayRow(R, D)).filter(r => r.cam), bad = rows.filter(r => !r.ok), pk = Math.max(0, ...rows.map(r => r.peak));
+  return `<div class="kpi" data-detail="recq" role="button" tabindex="0"><div class="lab"><i style="background:var(--in)"></i>Quai réception (blocs)</div><div class="val">${n0(pk)}<small>/ ${n0(R.cap)} blocs</small></div><div class="bar"><span style="width:${Math.min(100, Math.round(pk / Math.max(1, R.cap) * 100))}%;background:${pk > R.cap ? 'var(--crit)' : pk > R.cap * .85 ? 'var(--warn)' : 'var(--good)'}"></span></div><div class="det">${bad.length ? `<strong style="color:var(--crit-ink)">${bad.length} jour${bad.length > 1 ? 's' : ''} en tension : ${esc(fdateL(bad[0].D))} ${esc(bad[0].lbl)}</strong>` : `pic de la semaine · ${R.trucks.length} camions · pas de saturation`}</div></div>`;
 }
 function dockSection(P) {
   const dock = dockSim(P); const days = P.rows.map(r => r.D);
@@ -2872,6 +2996,7 @@ const DETAILS = {
   flux: () => flowDetail(),
   prepxl: () => prepXlDetail(),
   quai: () => dockDetail(),
+  recq: () => recDetail(),
   tr(d, code) {
     const aff = wk(d).aff.filter(r => r.transp === code);
     return { title: `Expéditions · ${esc(transpName(code))}`, sub: scopeLbl(d), body: mini([['Palettes', n0(sum(aff, r => r.pal))], ['Livraisons', n0(aff.length)], ['Blocs sol', n0(sum(aff, r => r.blocs))], ['Poids', tons(sum(aff, r => r.poids)), 't']]) + (d ? '' : h3('Par jour') + byDay('dTrD', aff, r => r.date, [{ label: 'Livraisons', f: x => x.length }, { label: 'Palettes', f: x => sum(x, r => r.pal) }, { label: 'Blocs', f: x => sum(x, r => r.blocs) }])) + h3('Livraisons') + affTable('dTrL', aff) };
@@ -3100,7 +3225,7 @@ async function syncPull(why, force) {
   syncChip(); if (S.ui.tab === 'set') render();
 }
 async function syncConnect() {
-  if (!syncSupported()) return toast('Votre navigateur ne permet pas d’accéder à un dossier : ouvrez index.html dans Edge ou Chrome.', 6000);
+  if (!syncSupported()) return toast('Votre navigateur ne permet pas d’accéder à un dossier : ouvrez le fichier de l’app (Flux_Hebdo_vX.Y.Z.html) dans Edge ou Chrome.', 6000);
   let dir; try { dir = await window.showDirectoryPicker({ id: 'flux-hebdo-sauvegarde', mode: 'readwrite', startIn: 'documents' }); }
   catch (e) { if (e.name !== 'AbortError') toast(`⚠ Accès au dossier refusé : ${esc(e.message)}`, 6000); return; }
   if (dir.name.toLowerCase() !== 'sauvegarde' && !confirm(`Le dossier choisi s’appelle « ${dir.name} » et non « Sauvegarde ».\nChemin attendu :\n${SYNC_PATH}\n\nL’utiliser quand même ?`)) return;
@@ -3140,7 +3265,7 @@ function syncChip() {
 }
 function syncCard() {
   const m = syncMeta();
-  if (!syncSupported()) return `<div class="alert warn" style="margin-top:12px">${icon('warn')}<div><b>Sauvegarde partagée indisponible dans ce navigateur.</b> Ouvrez <code>index.html</code> dans <b>Edge</b> ou <b>Chrome</b> (pas dans un aperçu intégré) pour enregistrer automatiquement dans le dossier <code>${esc(SYNC_PATH)}</code>.</div></div>`;
+  if (!syncSupported()) return `<div class="alert warn" style="margin-top:12px">${icon('warn')}<div><b>Sauvegarde partagée indisponible dans ce navigateur.</b> Ouvrez le fichier <code>Flux_Hebdo_v${APP_VERSION}.html</code> dans <b>Edge</b> ou <b>Chrome</b> (pas dans un aperçu intégré) pour enregistrer automatiquement dans le dossier <code>${esc(SYNC_PATH)}</code>.</div></div>`;
   return `<h3 class="mh">Sauvegarde partagée automatique</h3>
     <p class="hint">Dossier : <code>${esc(SYNC_PATH)}</code> (dossier SharePoint synchronisé par OneDrive). À chaque ouverture, l’app charge la sauvegarde la plus récente du dossier ; après chaque modification et à la fermeture, elle y écrit une copie horodatée. Avec plusieurs utilisateurs, la plus récente l’emporte. Les ${SYNC_KEEP} dernières copies sont conservées.</p>
     <div class="row" style="flex-wrap:wrap;gap:8px">
@@ -3172,13 +3297,105 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') { if (syncMeta().dirty && SY.perm === 'granted') syncPush(); }
   else if (SY.perm === 'granted' && !SY.busy && Date.now() - SY.lastPull > 30000) syncPull('mise à jour d’un collègue');
 });
-window.addEventListener('beforeunload', e => { if (SY.perm === 'granted' && (SY.busy || syncMeta().dirty)) { syncPush(); e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('beforeunload', e => {
+  const dirty = SY.busy || syncMeta().dirty;
+  if (!dirty && SY.perm === 'granted') return;                       // tout est déjà enregistré dans le dossier partagé
+  if (!SY.dir) return;                                              // pas de dossier partagé : rien à enregistrer ailleurs
+  if (SY.perm === 'granted') syncPush();                             // enregistrement lancé pendant que le navigateur demande confirmation
+  e.preventDefault(); e.returnValue = '';
+});
+// ============================================================
+//   DOSSIERS SOURCES (SharePoint synchronisé) : rapatriements et planning SST
+//   - dossier choisi une fois par poste ; à chaque ouverture (et sur « Actualiser »), les fichiers nouveaux
+//     ou modifiés depuis le dernier import sont relus automatiquement
+//   - rapatriements : fichiers AAAA_Sxx_<Entrepôt>.xlsx des semaines proches (sous-dossiers compris)
+//   - planning SST : le fichier « Planning…Réception… » le plus récent
+// ============================================================
+const SRC = {
+  rapat: { lbl: 'Rapatriements', hint: 'fichiers AAAA_Sxx_<Entrepôt>.xlsx (FM, Mutual, Tempo One…)', re: /^(\d{4})_S(\d{1,2})_.+\.xls[xmb]?$/i, dir: null, perm: 'none', last: null },
+  sst: { lbl: 'Planning réception SST', hint: 'fichier Planning_Reception_SST…xlsb (le plus récent)', re: /planning.*(r[ée]ception|sst).*\.xls[xmb]?$/i, dir: null, perm: 'none', last: null },
+};
+const srcMeta = () => { try { return JSON.parse(localStorage.getItem('flux-src') || '{}'); } catch (e) { return {}; } };
+const setSrcMeta = m => { try { localStorage.setItem('flux-src', JSON.stringify(m)); } catch (e) {} };
+async function srcLoad() {
+  for (const [k, c] of Object.entries(SRC)) { try { c.dir = (await DB.get('srcDir_' + k)) || null; } catch (e) { c.dir = null; } c.perm = await permOf(c.dir, false); }
+}
+async function permOf(dir, ask) {
+  if (!dir) return 'none';
+  try { const o = { mode: 'read' }; let p = dir.queryPermission ? await dir.queryPermission(o) : 'granted'; if (p !== 'granted' && ask && dir.requestPermission) p = await dir.requestPermission(o); return p; } catch (e) { return 'prompt'; }
+}
+async function srcScan(dir, re, depth = 2, path = '') {
+  const out = [];
+  for await (const [name, h] of dir.entries()) {
+    if (h.kind === 'file' && re.test(name) && !name.startsWith('~$')) out.push({ h, name, path: path + name });
+    else if (h.kind === 'directory' && depth > 0) out.push(...await srcScan(h, re, depth - 1, path + name + '/'));
+  }
+  return out;
+}
+// relit les fichiers nouveaux ou modifiés ; renvoie un résumé
+async function srcRefresh(only, force) {
+  const meta = srcMeta(), cw = isoWeek(today()), wk = (y, w) => y * 53 + w, res = [];
+  for (const [k, c] of Object.entries(SRC)) {
+    if ((only && only !== k) || !c.dir || c.perm !== 'granted') continue;
+    try {
+      let files = await srcScan(c.dir, c.re);
+      if (k === 'rapat') files = files.filter(f => { const m = c.re.exec(f.name); return Math.abs(wk(+m[1], +m[2]) - wk(cw.y, cw.w)) <= 3; });
+      const withF = await Promise.all(files.map(async f => Object.assign(f, { file: await f.h.getFile() })));
+      let pick = withF;
+      if (k === 'sst') pick = withF.sort((a, b) => b.file.lastModified - a.file.lastModified).slice(0, 1);
+      const todo = pick.filter(f => force || meta[k + '|' + f.path] !== f.file.lastModified);
+      if (todo.length) { await handleFiles(k, todo.map(f => f.file), true); for (const f of todo) meta[k + '|' + f.path] = f.file.lastModified; setSrcMeta(meta); }
+      c.last = { at: Date.now(), n: todo.length, files: pick.map(f => f.path) }; c.err = '';
+      res.push(`${c.lbl} : ${todo.length ? `${todo.length} fichier${todo.length > 1 ? 's' : ''} relu${todo.length > 1 ? 's' : ''}` : 'à jour'}`);
+    } catch (e) { console.error(e); c.err = e.message; res.push(`${c.lbl} : erreur (${e.message})`); }
+  }
+  return res;
+}
+async function srcChoose(k) {
+  if (!syncSupported()) return toast('Votre navigateur ne permet pas d’accéder à un dossier : ouvrez le fichier de l’app (Flux_Hebdo_vX.Y.Z.html) dans Edge ou Chrome.', 6000);
+  let dir; try { dir = await window.showDirectoryPicker({ id: 'flux-hebdo-src-' + k, mode: 'read', startIn: 'documents' }); }
+  catch (e) { if (e.name !== 'AbortError') toast(`⚠ Accès au dossier refusé : ${esc(e.message)}`, 6000); return; }
+  const c = SRC[k]; c.dir = dir; await DB.set('srcDir_' + k, dir); c.perm = await permOf(dir, true);
+  const r = await srcRefresh(k, true); toast(`<b>Dossier « ${esc(dir.name)} » relié</b><br>${esc(r.join(' · '))}`, 5000); render();
+}
+function srcCard() {
+  if (!syncSupported()) return '';
+  return `<section class="card glass"><h2>Dossiers sources (SharePoint)</h2><p class="hint">Choisissez une fois le dossier SharePoint synchronisé (OneDrive) où sont déposés les fichiers : à chaque ouverture de l’app, les fichiers nouveaux ou modifiés sont relus automatiquement. Bouton « Actualiser » pour relire sans fermer l’app.</p>
+    <div class="grid" style="gap:10px">${Object.entries(SRC).map(([k, c]) => `<div class="row" style="flex-wrap:wrap;gap:8px;align-items:center">
+      <b style="min-width:190px">${c.lbl}</b>
+      ${c.dir ? `<span class="badge ${c.perm === 'granted' ? 'b-good' : 'b-warn'}">${c.perm === 'granted' ? 'Relié' : 'Accès à reconfirmer'} : ${esc(c.dir.name)}</span>` : `<span class="badge b-warn">Aucun dossier</span>`}
+      <span class="muted" style="font-size:12px">${c.err ? `<span style="color:var(--crit-ink)">${esc(c.err)}</span>` : c.last ? `${c.last.files.length} fichier(s) suivi(s) · vérifié ${new Date(c.last.at).toTimeString().slice(0, 5)}` : esc(c.hint)}</span>
+      <div class="spacer"></div>
+      ${c.dir ? `<button class="btn sm" data-act="src-refresh" data-k="${k}">Actualiser</button>` : ''}
+      <button class="btn sm" data-act="src-choose" data-k="${k}">${c.dir ? 'Changer…' : 'Choisir le dossier…'}</button>
+      ${c.dir ? `<button class="btn sm" data-act="src-off" data-k="${k}">Retirer</button>` : ''}
+    </div>`).join('')}</div></section>`;
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-act^="src-"]'); if (!b) return; const k = b.dataset.k, c = SRC[k];
+  if (b.dataset.act === 'src-choose') await srcChoose(k);
+  if (b.dataset.act === 'src-refresh') { if (c.perm !== 'granted') c.perm = await permOf(c.dir, true); const r = await srcRefresh(k, false); toast(esc(r.join(' · ') || 'Accès au dossier refusé')); render(); }
+  if (b.dataset.act === 'src-off' && confirm(`Ne plus lire automatiquement le dossier « ${c.dir.name} » ? (les données déjà importées sont conservées)`)) { c.dir = null; c.perm = 'none'; c.last = null; await DB.set('srcDir_' + k, null); render(); }
+});
+// à l'ouverture : une seule question pour tous les dossiers dont l'accès est à reconfirmer (un clic est obligatoire)
+async function permPreflight() {
+  if (!syncSupported()) return;
+  try { SY.dir = (await DB.get('syncDir')) || null; } catch (e) { SY.dir = null; }
+  await syncPerm(false); await srcLoad();
+  const pend = () => [...(SY.dir && SY.perm !== 'granted' ? [['sync', SY.dir]] : []), ...Object.entries(SRC).filter(([, c]) => c.dir && c.perm !== 'granted').map(([k, c]) => [k, c.dir])];
+  for (let i = 0; i < 3 && pend().length && SPLASH.on; i++) {
+    SPLASH.step('sync', 'warn', `accès à confirmer : ${pend().map(([, d]) => d.name).join(', ')}`);
+    if (await SPLASH.ask([['go', i ? 'Autoriser les dossiers restants' : 'Autoriser l’accès aux dossiers', true], ['no', 'Continuer sans']]) !== 'go') break;
+    for (const [k] of pend()) { if (k === 'sync') await syncPerm(true); else SRC[k].perm = await permOf(SRC[k].dir, true); }
+  }
+  SY.asked = true; syncChip();
+}
 async function syncInit() {
   if (!syncSupported()) { SPLASH.step('sync', 'skip', 'navigateur non compatible'); return syncChip(); }
-  try { SY.dir = (await DB.get('syncDir')) || null; } catch (e) { SY.dir = null; }
-  await syncPerm(false); syncChip();
+  if (!SY.asked) { try { SY.dir = (await DB.get('syncDir')) || null; } catch (e) { SY.dir = null; } await syncPerm(false); }
+  syncChip();
   if (!SY.dir) return SPLASH.step('sync', 'skip', 'dossier non configuré');
-  if (SY.perm !== 'granted' && SPLASH.on) {
+  if (SY.perm !== 'granted' && SPLASH.on && !SY.asked) {
     SPLASH.step('sync', 'warn', 'accès au dossier à confirmer');
     if (await SPLASH.ask([['go', 'Charger la dernière sauvegarde', true], ['no', 'Continuer sans']]) === 'go') { await syncPerm(true); syncChip(); }
   }
@@ -3208,9 +3425,15 @@ async function syncInit() {
   { const P = projection(); SPLASH.step('calc', 'done', P ? `${P.items.length} livraisons à préparer` : `semaine ${S.ui.week.w}`); }
   SY.muted = false;
   SPLASH.step('sync', 'active', 'recherche…');
+  await permPreflight();
   await Promise.race([syncInit(), new Promise(r => setTimeout(r, 45000))]);
+  if (Object.values(SRC).some(c => c.dir)) {
+    SPLASH.step('src', 'active', 'lecture SharePoint…');
+    const r = await Promise.race([srcRefresh(), new Promise(r => setTimeout(() => r(['délai dépassé']), 45000))]);
+    SPLASH.step('src', r.some(x => /erreur|délai/.test(x)) ? 'warn' : 'done', r.join(' · ') || 'accès non autorisé'); render();
+  } else SPLASH.step('src', 'skip', syncSupported() ? 'aucun dossier relié' : 'navigateur non compatible');
   SPLASH.finish();
-  if (!window.XLSX) toast('⚠ SheetJS n’a pas pu être chargé : gardez le dossier lib/ à côté de index.html.', 8000);
+  if (!window.XLSX) toast('⚠ SheetJS n’a pas pu être chargé : gardez le dossier lib/ à côté du fichier de l’app.', 8000);
 })();
 </script>
 </body>
