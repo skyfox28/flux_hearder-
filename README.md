@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.32.0** · Développé par **Galaad Poivey**
+Version **1.33.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -214,6 +214,8 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
   - **Courbe du reste à faire heure par heure** : elle descend quand l'équipe travaille et reste à plat hors des postes ; chaque point rouge est une échéance sous laquelle le reste doit passer.
   - Tableau par créneau de chargement, puis la liste des livraisons dans l'ordre de préparation. Côté SILO, c'est la **file du cariste**, avec l'heure de sortie prévue et les palettes des postes commencés signalées.
   - Côté picking : reste par circuit et **nombre de préparateurs par poste suffisant** pour tenir toutes les échéances.
+- **Détails dédiés « Entrées » et « Sorties »** (clic sur leur jauge ou leur tuile) : boutons Semaine / jour, chiffres clés face à la capacité du quai, graphique par jour avec la ligne de capacité (ou heure par heure pour un jour : arrivées pointées, RDV ou réparties ; départs selon le créneau de chargement), anneau par origine ou par transporteur, tableau jour par jour, puis les listes détaillées (camions, RDV, navettes, livraisons affrétées et non affrétées).
+- Les quais d'expédition et de réception gardent leur détail dédié (occupation heure par heure, saturation, calcul par livraison ou par camion).
 - **Anneaux cliquables** : chaque transporteur ouvre son détail, un circuit ouvre le détail Picking, un statut ouvre la liste des livraisons.
 - **Tableau de bord épuré** : « À traiter » en haut, puis Pilotage et les verdicts des prochains chargements ; le simulateur, « Tous les indicateurs de la semaine » et « Semaine jour par jour » sont repliés (un clic les ouvre).
 - **Simulateur « Et si ? »** : curseurs pour les préparateurs (matin, après-midi), la cadence de picking entrepôt, et la cadence SILO (magasin automatique : 1 cariste par poste en entrée et en sortie, seule la cadence change). Le verdict, la marge et l'heure de fin se recalculent tout de suite, avec l'écart par rapport aux réglages. Dans la vue jour, le résultat est détaillé par créneau de chargement. Les paramètres ne sont jamais modifiés ; « Revenir aux réglages » annule la simulation.

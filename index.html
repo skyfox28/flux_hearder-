@@ -904,9 +904,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.32.0';
+const APP_VERSION = '1.33.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.33.0', '01/10/2026', 'Détails dédiés « Entrées » et « Sorties » (semaine ou jour) : capacité quai, graphique par jour face à la capacité ou heure par heure, répartition par origine / transporteur, jour le plus chargé, listes détaillées ; ouverts depuis les jauges et les tuiles.'],
   ['1.32.0', '01/10/2026', 'Détails dédiés « Picking » et « Sortie SILO » (jour par jour) : courbe du reste à faire heure par heure avec les échéances, créneaux, livraisons dans l’ordre de préparation / file du cariste, cadence apprise et certitude, besoin en préparateurs ; jauges, tuiles et anneaux ouvrent leur propre détail (transporteur, circuit, livraisons). Tableau de bord épuré : « À traiter » en haut, simulateur, indicateurs détaillés et semaine jour par jour repliables.'],
   ['1.31.0', '01/10/2026', 'Apprentissage à chaque actualisation de la VL06O : une mesure ne compte que si l’équipe avait encore du travail à l’import suivant (sinon l’heure de fin est déduite et l’app ne retient qu’un minimum) ; pourcentage de certitude (volume observé × régularité × précision) qui monte avec les actualisations ; rendement appliqué à la projection en proportion de cette certitude ; panneau « Ce que l’app a appris ».'],
   ['1.30.2', '01/10/2026', 'Paramètres : cariste entrée SILO et cariste sortie SILO réglés par une case « Poste ouvert (1 cariste) » au lieu d’un nombre (magasin automatique, jamais plus d’un cariste par poste).'],
@@ -1652,7 +1653,7 @@ function viewDash() {
   ${fold('kpis', 'Tous les indicateurs de la semaine', 'entrées, sorties, capacité quai, préparation', `
     <div class="group-title">Entrées</div>
     <div class="kpis">
-      ${kpi('Palettes entrantes', n0(palIn), 'pal', `Rapatriements ${n0(sum(rin, l => l.pal))} · SST ${n0(sum(sst, r => r.pal))} · Navettes ${n0(sum(nav, r => r.pal))}`, 'var(--in)', 'in', deltaTag(palIn, PW.palIn, PW.lbl))}
+      ${kpi('Palettes entrantes', n0(palIn), 'pal', `Rapatriements ${n0(sum(rin, l => l.pal))} · SST ${n0(sum(sst, r => r.pal))} · Navettes ${n0(sum(nav, r => r.pal))}`, 'var(--in)', 'inx', deltaTag(palIn, PW.palIn, PW.lbl))}
       ${kpi('Camions rapatriement', n0(rin.length), '', uniq(rin.map(l => l.entrepot)).join(' · ') || '—', '', 'rapin')}
       ${kpi('Réceptions SST', n0(sum(sst, r => r.pal)), 'pal', `${n0(sum(sst, r => r.cam || 1))} camion(s) · dont retours interco ${n0(sum(sst.filter(r => isInterco(r.sst)), r => r.pal))} pal`, '', 'sst')}
       ${kpi('Transferts vers externes', n0(sum(rout, l => l.pal)), 'pal', `${rout.length} camion(s) · déstockages + navettes`, '', 'ext')}
@@ -1660,7 +1661,7 @@ function viewDash() {
     </div>
     <div class="group-title" style="margin-top:18px">Sorties</div>
     <div class="kpis">
-      ${kpi('Palettes expédiées', n0(palOut), 'pal', `${n0(aff.length)} livraisons affrétées · ${tons(sum(aff, r => r.poids))} t${vlOnlyRows().length ? ` · +${vlOnlyRows().length} VL06O non affrétées` : ''}`, 'var(--out)', 'out', deltaTag(palOut, PW.palOut, PW.lbl))}
+      ${kpi('Palettes expédiées', n0(palOut), 'pal', `${n0(aff.length)} livraisons affrétées · ${tons(sum(aff, r => r.poids))} t${vlOnlyRows().length ? ` · +${vlOnlyRows().length} VL06O non affrétées` : ''}`, 'var(--out)', 'outx', deltaTag(palOut, PW.palOut, PW.lbl))}
       ${kpi('Blocs sol', n0(sum(aff, r => r.blocs)), '', `${uniq(aff.map(r => r.transp)).length} transporteurs`, '', 'blocs', deltaTag(sum(aff, r => r.blocs), PW.blocs, PW.lbl))}
       ${dockTile()}
       ${(() => { const ir = intercoRows(); return kpi('Intercos envoyés', n0(sum(ir, r => r.pal ?? r.palSilo)), 'pal', `${ir.length} livraisons`, '', 'interco'); })()}
@@ -4059,8 +4060,8 @@ function pilotBand() {
     g.push(gauge(nx.tP, n1(nx.cumP), `h / ${n1(nx.capP)} h`, `Picking · ${fdateL(nx.D)}`, finLbl(nx.finP, nx.D), 'pick|' + nx.D));
     g.push(gauge(nx.tS, n0(nx.rPal), `pal · ${n1(nx.cumS)} h`, `Sortie SILO · ${fdateL(nx.D)}`, finLbl(nx.finS, nx.D), 'siloOut|' + nx.D));
   }
-  g.push(gauge(ci ? palIn / ci : null, n0(palIn), `/ ${n0(ci)} pal`, 'Entrées semaine', 'capacité quai', 'in'));
-  g.push(gauge(co ? palOut / co : null, n0(palOut), `/ ${n0(co)} pal`, 'Sorties semaine', 'capacité quai', 'out'));
+  g.push(gauge(ci ? palIn / ci : null, n0(palIn), `/ ${n0(ci)} pal`, 'Entrées semaine', 'capacité quai', 'inx'));
+  g.push(gauge(co ? palOut / co : null, n0(palOut), `/ ${n0(co)} pal`, 'Sorties semaine', 'capacité quai', 'outx'));
   return `<section class="card glass pilot"><div class="group-title">Pilotage</div><div class="gauges">${g.join('')}</div>${donutsOf(prep, aff)}</section>`;
 }
 // bandeau d'une journée (overlay « Journée »)
@@ -4077,8 +4078,8 @@ function pilotDay(x) {
   if (P && P.rows.some(r => r.D === D)) { const dk = dockSim(P), v = dockVerdict(dk, D); g.push(gauge(v.peak / dk.cap, n0(v.peak), `/ ${n0(dk.cap)} blocs`, 'Quai expédition', `pic à ${hhmm(v.at)}`, 'quai')); }
   else g.push(gauge(null, '', '', 'Quai expédition', 'pas de simulation'));
   g.push(x.rr.cam ? gauge(x.rr.peak / x.R.cap, n0(x.rr.peak), `/ ${n0(x.R.cap)} blocs`, 'Quai réception', `${n0(x.rr.cam)} camion(s)`, 'recq') : gauge(null, '', '', 'Quai réception', 'aucun camion'));
-  g.push(gauge(capaInDay(D) ? x.inPal / capaInDay(D) : null, n0(x.inPal), `/ ${n0(capaInDay(D))} pal`, 'Entrées', `${n0(x.inCam)} camion(s)`, 'in'));
-  g.push(gauge(capaOutDay(D) ? x.outPal / capaOutDay(D) : null, n0(x.outPal), `/ ${n0(capaOutDay(D))} pal`, 'Sorties', `${n0(x.outN)} livraison(s)`, 'out'));
+  g.push(gauge(capaInDay(D) ? x.inPal / capaInDay(D) : null, n0(x.inPal), `/ ${n0(capaInDay(D))} pal`, 'Entrées', `${n0(x.inCam)} camion(s)`, 'inx|' + D));
+  g.push(gauge(capaOutDay(D) ? x.outPal / capaOutDay(D) : null, n0(x.outPal), `/ ${n0(capaOutDay(D))} pal`, 'Sorties', `${n0(x.outN)} livraison(s)`, 'outx|' + D));
   return `<div class="pilot pilot-day"><div class="gauges">${g.join('')}</div>${donutsOf(dd.prep, dd.aff)}</div>`;
 }
 // ---------- simulateur « et si ? » (ne modifie jamais les paramètres) ----------
@@ -4229,6 +4230,61 @@ function teamDetail(k, D0) {
 }
 DETAILS.pick = (d, D) => teamDetail('P', D);
 DETAILS.siloOut = (d, D) => teamDetail('S', D);
+// ============================================================
+//   DÉTAILS DÉDIÉS : entrées et sorties (semaine ou jour)
+//   capacité, graphique par jour ou par heure, répartition, listes
+// ============================================================
+const FLOW_COLS = ['var(--in)', 'var(--out)', 'var(--pick)', 'var(--c4)', 'var(--silo)', 'var(--c5)', 'var(--text-3)'];
+function flowItems(isIn, days) {
+  if (isIn) return recTrucks(days).map(x => ({ date: x.date, t: x.t, pal: x.pal, cat: x.kind === 'Rapatriement' ? `Rapatriement ${x.lbl}` : x.kind, lbl: x.lbl, ref: x.ref, src: x.src, n: 1 }));
+  const set = new Set(days), out = [];
+  for (const r of Object.values(S.affret.rows)) if (set.has(r.date) && !isExtShip(r)) out.push({ date: r.date, t: departTs(r.liv, r.date, r.nom), pal: r.pal || 0, cat: transpName(r.transp), lbl: r.nom, ref: r.liv, n: 1, blocs: r.blocs || 0 });
+  for (const l of Object.values(S.rapat.loads)) if (l.sens === 'out' && set.has(l.date)) out.push({ date: l.date, t: null, pal: l.pal || 0, cat: `Transfert ${l.entrepot}`, lbl: l.entrepot, ref: l.ref, n: 1 });
+  return out;
+}
+function flowX(isIn, D0) {
+  const days = weekDays().filter(d => workDay(d) || flowItems(isIn, [d]).length);
+  const D = D0 && days.includes(D0) ? D0 : null, scope = D ? [D] : days;
+  const its = flowItems(isIn, scope), tot = sum(its, x => x.pal);
+  const capDay = d => isIn ? capaInDay(d) : capaOutDay(d), cap = sum(scope, capDay);
+  const key = isIn ? 'inx' : 'outx', title = isIn ? 'Entrées' : 'Sorties';
+  // catégories : les 5 plus grosses + autres
+  const cats0 = uniq(its.map(x => x.cat)).map(c => ({ c, v: sum(its.filter(x => x.cat === c), x => x.pal) })).sort((a, b) => b.v - a.v);
+  const top = cats0.slice(0, 5).map(x => x.c), catOf = x => top.includes(x.cat) ? x.cat : 'Autres';
+  const cats = top.concat(cats0.length > 5 ? ['Autres'] : []), colOf = c => FLOW_COLS[cats.indexOf(c)] || 'var(--text-3)';
+  const chips = `<div class="row noprint" style="gap:6px;margin:-4px 0 12px"><button class="chip${!D ? ' on' : ''}" data-detail="${key}">Semaine</button>${days.map(d => `<button class="chip${d === D ? ' on' : ''}" data-detail="${key}|${d}">${esc(fdateL(d))}</button>`).join('')}</div>`;
+  const perDay = days.map(d => { const x = flowItems(isIn, [d]); return { d, pal: sum(x, i => i.pal), n: x.length, cap: capDay(d) }; });
+  const peak = D ? null : perDay.reduce((m, r) => r.pal > (m ? m.pal : -1) ? r : m, null);
+  const t = cap ? tot / cap : NaN;
+  const head = mini([
+    [isIn ? 'Palettes reçues' : 'Palettes expédiées', n0(tot), 'pal', `${n0(its.length)} ${isIn ? 'camion(s)' : 'livraison(s) / transfert(s)'}`],
+    ['Capacité quai', cap ? pct(t) : '–', '', `${n0(tot)} / ${n0(cap)} pal${cap ? ` · reste ${n0(Math.max(0, cap - tot))}` : ''}`],
+    D ? ['Heure la plus chargée', (() => { const h = new Map(); its.forEach(x => { if (x.t) { const k = new Date(x.t).getHours(); h.set(k, (h.get(k) || 0) + x.pal); } }); const m = [...h.entries()].sort((a, b) => b[1] - a[1])[0]; return m ? `${m[0]}h–${m[0] + 1}h` : '—'; })(), '', isIn ? 'arrivées (pointées, RDV, ou réparties)' : 'départs (créneau de chargement)']
+      : ['Jour le plus chargé', peak ? DAYS[dayIdx(peak.d)] : '—', '', peak ? `${n0(peak.pal)} pal · ${peak.cap ? pct(peak.pal / peak.cap) : '–'} de la capacité` : ''],
+    [isIn ? 'Origine principale' : 'Transporteur principal', cats0[0] ? esc(cats0[0].c) : '—', '', cats0[0] ? `${n0(cats0[0].v)} pal · ${pct(cats0[0].v / (tot || 1))}` : ''],
+    ...(isIn ? [] : [['Blocs au sol', n0(sum(its, x => x.blocs || 0)), '', 'base affrètement']]),
+  ]);
+  let chart;
+  if (D) {
+    const hrs = []; for (let h = 4; h <= 22; h++) hrs.push(h);
+    const data = hrs.map(h => { const o = {}; cats.forEach(c => o[c] = sum(its.filter(x => x.t && new Date(x.t).getHours() === h && catOf(x) === c), x => x.pal)); return o; });
+    chart = h3(isIn ? 'Arrivées heure par heure' : 'Départs heure par heure', isIn ? 'Heure d’arrivée pointée, sinon RDV du planning SST ; rapatriements et navettes sans heure répartis sur leur plage (Paramètres).' : 'Heure de départ = créneau de chargement (LIKP ou client), selon le réglage « la livraison quitte le quai ».') +
+      barChart({ cats: hrs.map(h => ({ label: `${h}h`, tip: `${h}h–${h + 1}h` })), series: cats.map(c => ({ key: c, label: c, color: colOf(c) })), data, stacked: true, unit: ' pal', height: 260 });
+  } else {
+    const data = days.map(d => { const x = flowItems(isIn, [d]), o = {}; cats.forEach(c => o[c] = sum(x.filter(i => catOf(i) === c), i => i.pal)); return o; });
+    chart = h3('Par jour, face à la capacité du quai') + barChart({ cats: days.map(d => ({ label: DAYS[dayIdx(d)].slice(0, 3) + '.', sub: fdate(d), tip: `${DAYS[dayIdx(d)]} ${fdate(d)}` })), series: cats.map(c => ({ key: c, label: c, color: colOf(c) })), data, stacked: true, unit: ' pal', height: 280,
+      ref: { value: capDay(days.find(workDay) || days[0]), label: `capacité ${n0(capDay(days.find(workDay) || days[0]))} pal/j`, legend: 'Capacité quai / jour' } });
+  }
+  const parts = cats.map(c => ({ lab: c, v: sum(its.filter(x => catOf(x) === c), x => x.pal), col: colOf(c), key: !isIn && c !== 'Autres' && !/^Transfert /.test(c) ? 'tr|' + (Object.values(S.affret.rows).find(r => transpName(r.transp) === c) || {}).transp : null }));
+  const dn = donut(isIn ? 'Par origine' : 'Par transporteur', parts, n0(tot), 'pal');
+  const dayT = D ? '' : table(key + 'd', [{ k: 'd', label: 'Jour', fmt: fdateL }, { k: 'n', label: isIn ? 'Camions' : 'Livraisons', num: true, fmt: n0 }, { k: 'pal', label: 'Palettes', num: true, fmt: n0 }, { k: 'cap', label: 'Capacité', num: true, fmt: n0 }, { k: 't', label: 'Taux', num: true, sv: r => r.cap ? r.pal / r.cap : 0, html: r => r.cap ? tauxBadge(r.pal / r.cap) : '–' }], perDay, { total: { n: sum(perDay, r => r.n), pal: sum(perDay, r => r.pal), cap: sum(perDay, r => r.cap) } });
+  const base = isIn ? DETAILS.in(D) : DETAILS.out(D);
+  const i0 = base.body.indexOf('<h3'), lists = i0 >= 0 ? base.body.slice(i0) : '';   // listes détaillées existantes (sans leurs chiffres clés)
+  return { xl: true, title: `${title} · ${D ? fdateL(D) : `semaine ${S.ui.week.w}`}`, sub: isIn ? 'rapatriements, réceptions sous-traitants, navettes usines' : 'expéditions affrétées (date d’enlèvement) et transferts vers les externes', body:
+    chips + head + `<div class="grid flowx" style="grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:14px;align-items:start"><div>${chart}</div><div style="margin-top:34px">${dn}</div></div>` + (dayT ? h3('Jour par jour') + dayT : '') + lists };
+}
+DETAILS.inx = (d, D) => flowX(true, D);
+DETAILS.outx = (d, D) => flowX(false, D);
 DETAILS.noslot = () => {
   const P = projection(), items = new Map((P ? P.items : []).map(i => [i.liv, i]));
   const xs = [...livIndex().values()].filter(l => l.prep !== 'C' && !slotInfo(l.liv, l.nom) && !isExtShip(l)).map(l => Object.assign({}, l, { D: (likpOf(l.liv) || {}).d || l.dc, it: items.get(l.liv) })).sort((a, b) => (a.D || '').localeCompare(b.D || '') || a.liv.localeCompare(b.liv));
