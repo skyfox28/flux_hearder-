@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.26.0** · Développé par **Galaad Poivey**
+Version **1.27.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -210,7 +210,7 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
 
 1. **Données locales** : lecture de la base du navigateur.
 2. **Calcul des flux de la semaine.**
-3. **Sauvegarde partagée** : lecture du dossier et chargement de la sauvegarde la plus récente. Si le navigateur demande de reconfirmer l'accès au dossier, l'écran propose « Charger la dernière sauvegarde » (il faut un clic) ou « Continuer sans ».
+3. **Sauvegarde partagée** : l'écran propose seulement de **charger la sauvegarde** : « Charger la dernière sauvegarde » (si le navigateur demande de reconfirmer l'accès), ou « Charger la sauvegarde / Garder les données de ce poste » quand une sauvegarde plus récente existe. Les dossiers SharePoint (sources) ne sont pas traités ici : ils sont relus dans l'app une fois connecté. Si un accès est à confirmer, un message renvoie vers Sources › « Tout actualiser ».
 
 **Connexion (temporaire, le temps des tests) :** l'écran ne se ferme pas tout seul. On entre dans l'app en se connectant avec l'identifiant `admin` et le mot de passe de test (communiqué à part). Le nom de l'utilisateur connecté s'affiche en bas du menu, avec un lien « déconnexion ». Il s'agit d'un simple contrôle dans le navigateur, **pas d'une vraie sécurité** : les données restent lisibles par qui ouvre le fichier. Un panneau dans la scène et un badge à côté du nom de l'app indiquent « Coming soon · en développement » : c'est l'app elle-même qui est en cours de développement.
 
@@ -270,7 +270,7 @@ Onglet Sources → « Relier un dossier SharePoint ». On choisit une fois, pour
 - Les boutons **Actualiser** (par dossier) et **Tout actualiser depuis SharePoint** de l'onglet Sources relisent sans fermer l'app.
 - Si le navigateur demande de reconfirmer l'accès, une seule question à l'ouverture couvre tous les dossiers : sauvegarde et sources.
 
-**Fermeture de l'onglet :** tant que la dernière modification n'est pas enregistrée dans le dossier de sauvegarde partagé, le navigateur demande confirmation avant de fermer, et l'enregistrement démarre pendant ce temps. Un navigateur ne permet pas d'empêcher totalement la fermeture : c'est le maximum autorisé.
+**Fermeture de l'onglet :** le navigateur demande **toujours** confirmation (« Quitter le site ? ») avant de fermer ou recharger l'onglet, pour éviter une fermeture par erreur. S'il reste des modifications non enregistrées, l'enregistrement dans le dossier partagé démarre pendant cette confirmation. Le texte de la fenêtre est imposé par le navigateur, l'app ne peut pas le personnaliser. Le lien « déconnexion » ne déclenche pas cette confirmation.
 
 ## Sauvegarde partagée automatique
 

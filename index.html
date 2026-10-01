@@ -550,7 +550,7 @@ const SPLASH = (() => {
   const fit = () => { const st = el.querySelector('.sp-stage'); const k = Math.min(1, st.clientWidth / 900, st.clientHeight / 500) * .92; document.getElementById('spCam').style.scale = k; };
   fit(); addEventListener('resize', fit);
   // étapes
-  const STEPS = [['db', 'Données locales'], ['calc', 'Calcul des flux de la semaine'], ['sync', 'Sauvegarde partagée'], ['src', 'Fichiers SharePoint']];
+  const STEPS = [['db', 'Données locales'], ['calc', 'Calcul des flux de la semaine'], ['sync', 'Sauvegarde partagée']];
   const ol = document.getElementById('spSteps');
   ol.innerHTML = STEPS.map(([k, l]) => `<li data-k="${k}"><i></i><span>${l}</span><small></small></li>`).join('');
   // Connexion de test (temporaire, à supprimer) : identifiant admin. Contrôle côté navigateur uniquement, ce n'est pas une sécurité.
@@ -629,9 +629,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.26.0';
+const APP_VERSION = '1.27.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.27.0', '01/10/2026', 'Écran d’ouverture : propose seulement de charger la sauvegarde partagée (dossiers SharePoint relus ensuite dans l’app) ; confirmation systématique avant de fermer l’onglet.'],
   ['1.26.0', '01/10/2026', 'Tableau de bord : quai d’expédition dans Sorties, points d’attention en bas de page ; épuration de tous les onglets (petits textes des tuiles et explications derrière ⓘ, survol ou clic).'],
   ['1.25.0', '01/10/2026', 'Onglet Sources : toutes les mises à jour au même endroit (VL06O, LIKP, affrètement, navettes VL06I, rapatriements, planning SST) ; dossier SharePoint reliable pour VL06O, LIKP, SST et un par entrepôt de rapatriement (FM, Mutual, Tempo One).'],
   ['1.24.0', '01/10/2026', 'Navettes usines (copier-coller VL06I, sites 2560 et 2510, palettes = colis, date dépassée = jour de la VL06I) dans les entrées et le quai de réception ; overlay flux sans solde ni retours interco ; affichage épuré (explications repliées derrière ⓘ, alertes sur une ligne).'],
@@ -3399,7 +3400,7 @@ document.addEventListener('click', async e => {
   if (a === 'sync-off') await syncDisconnect();
 });
 window.onSplashLogin = () => { try { renderNav(); } catch (e) {} };
-document.addEventListener('click', e => { if (e.target.closest('[data-act="logout"]')) { try { sessionStorage.removeItem('flux-user'); } catch (x) {} location.reload(); } });
+document.addEventListener('click', e => { if (e.target.closest('[data-act="logout"]')) { try { sessionStorage.removeItem('flux-user'); } catch (x) {} window.__leaving = true; location.reload(); } });
 document.addEventListener('change', e => { if (e.target.matches('[data-splash]')) { try { localStorage.setItem('flux-splash', e.target.checked ? 'on' : 'off'); } catch (x) {} toast(e.target.checked ? 'Écran d’ouverture animé' : 'Écran d’ouverture sans animation'); } });
 document.addEventListener('change', e => { if (e.target.matches('[data-syncuser]')) { setSyncMeta({ user: e.target.value.trim() }); toast('Nom enregistré'); } });
 // fermeture / changement d'onglet : enregistrer tout de suite ; retour sur l'onglet : vérifier si un collègue a sauvegardé
@@ -3408,11 +3409,9 @@ document.addEventListener('visibilitychange', () => {
   else if (SY.perm === 'granted' && !SY.busy && Date.now() - SY.lastPull > 30000) syncPull('mise à jour d’un collègue');
 });
 window.addEventListener('beforeunload', e => {
-  const dirty = SY.busy || syncMeta().dirty;
-  if (!dirty && SY.perm === 'granted') return;                       // tout est déjà enregistré dans le dossier partagé
-  if (!SY.dir) return;                                              // pas de dossier partagé : rien à enregistrer ailleurs
-  if (SY.perm === 'granted') syncPush();                             // enregistrement lancé pendant que le navigateur demande confirmation
-  e.preventDefault(); e.returnValue = '';
+  if (window.__leaving || (navigator.webdriver && !/[?#&]splash\b/.test(location.href))) return;   // déconnexion volontaire, tests automatisés
+  if (SY.perm === 'granted' && (SY.busy || syncMeta().dirty)) syncPush();   // enregistrement lancé pendant la confirmation
+  e.preventDefault(); e.returnValue = '';                         // le navigateur demande toujours « Quitter le site ? »
 });
 // ============================================================
 //   DOSSIERS SOURCES (SharePoint synchronisé) : rapatriements et planning SST
@@ -3490,33 +3489,42 @@ document.addEventListener('click', async e => {
   if (b.dataset.act === 'src-refresh') { if (c.perm !== 'granted') c.perm = await permOf(c.dir, true); const r = await srcRefresh(k, false); toast(esc(r.join(' · ') || 'Accès au dossier refusé')); render(); }
   if (b.dataset.act === 'src-off' && confirm(`Ne plus lire automatiquement le dossier « ${c.dir.name} » ? (les données déjà importées sont conservées)`)) { c.dir = null; c.perm = 'none'; c.last = null; await DB.set('srcDir_' + k, null); render(); }
 });
-// à l'ouverture : une seule question pour tous les dossiers dont l'accès est à reconfirmer (un clic est obligatoire)
-async function permPreflight() {
-  if (!syncSupported()) return;
-  try { SY.dir = (await DB.get('syncDir')) || null; } catch (e) { SY.dir = null; }
-  await syncPerm(false); await srcLoad();
-  const pend = () => [...(SY.dir && SY.perm !== 'granted' ? [['sync', SY.dir]] : []), ...Object.entries(SRC).filter(([, c]) => c.dir && c.perm !== 'granted').map(([k, c]) => [k, c.dir])];
-  for (let i = 0; i < 3 && pend().length && SPLASH.on; i++) {
-    SPLASH.step('sync', 'warn', `accès à confirmer : ${pend().map(([, d]) => d.name).join(', ')}`);
-    if (await SPLASH.ask([['go', i ? 'Autoriser les dossiers restants' : 'Autoriser l’accès aux dossiers', true], ['no', 'Continuer sans']]) !== 'go') break;
-    for (const [k] of pend()) { if (k === 'sync') await syncPerm(true); else SRC[k].perm = await permOf(SRC[k].dir, true); }
-  }
-  SY.asked = true; syncChip();
-}
 async function syncInit() {
+  // écran d'ouverture : on propose seulement de charger la sauvegarde partagée
   if (!syncSupported()) { SPLASH.step('sync', 'skip', 'navigateur non compatible'); return syncChip(); }
-  if (!SY.asked) { try { SY.dir = (await DB.get('syncDir')) || null; } catch (e) { SY.dir = null; } await syncPerm(false); }
-  syncChip();
+  try { SY.dir = (await DB.get('syncDir')) || null; } catch (e) { SY.dir = null; }
+  await syncPerm(false); syncChip();
   if (!SY.dir) return SPLASH.step('sync', 'skip', 'dossier non configuré');
-  if (SY.perm !== 'granted' && SPLASH.on && !SY.asked) {
-    SPLASH.step('sync', 'warn', 'accès au dossier à confirmer');
-    if (await SPLASH.ask([['go', 'Charger la dernière sauvegarde', true], ['no', 'Continuer sans']]) === 'go') { await syncPerm(true); syncChip(); }
+  let want = false;
+  if (SY.perm !== 'granted') {
+    if (!SPLASH.on) return syncChip();
+    SPLASH.step('sync', 'warn', 'sauvegarde disponible');
+    if (await SPLASH.ask([['go', 'Charger la dernière sauvegarde', true], ['no', 'Continuer sans']]) !== 'go') { SPLASH.step('sync', 'skip', 'non chargée'); return syncChip(); }
+    await syncPerm(true); syncChip(); want = true;
+    if (SY.perm !== 'granted') return SPLASH.step('sync', 'warn', 'accès refusé');
   }
-  if (SY.perm === 'granted') {
-    SPLASH.step('sync', 'active', 'lecture du dossier…');
-    const before = syncMeta().base; await syncPull('ouverture'); const m = syncMeta();
-    SPLASH.step('sync', SY.err ? 'warn' : 'done', SY.err ? 'erreur de lecture' : m.base !== before && m.last?.act === 'load' ? `chargée : ${SY.files[0]?.by || ''} ${fdt(m.base)}` : SY.files.length ? 'déjà à jour' : 'dossier vide');
-  } else { SPLASH.step('sync', 'warn', 'non chargée'); toast('Cliquez sur <b>« Sauvegarde : reconnecter »</b> en haut pour charger la dernière sauvegarde partagée.', 7000); }
+  SPLASH.step('sync', 'active', 'lecture du dossier…');
+  try {
+    const files = await syncList(), top = files[0], m = syncMeta();
+    const newer = top && top.ts > (m.base || 0) + 999;
+    if (newer && !want && SPLASH.on && !(m.dirty > top.ts)) {
+      SPLASH.step('sync', 'warn', `plus récente : ${top.by} · ${fdt(top.ts)}`);
+      want = await SPLASH.ask([['load', 'Charger la sauvegarde', true], ['keep', 'Garder les données de ce poste']]) === 'load';
+      if (!want) { setSyncMeta({ base: top.ts }); return SPLASH.step('sync', 'skip', 'données du poste gardées'); }
+    }
+    const before = syncMeta().base; await syncPull('ouverture', want && newer ? 'load' : undefined); const m2 = syncMeta();
+    SPLASH.step('sync', SY.err ? 'warn' : 'done', SY.err ? 'erreur de lecture' : m2.base !== before && m2.last?.act === 'load' ? `chargée : ${SY.files[0]?.by || ''} ${fdt(m2.base)}` : SY.files.length ? 'déjà à jour' : 'dossier vide');
+  } catch (e) { SPLASH.step('sync', 'warn', 'erreur de lecture'); }
+}
+// dossiers SharePoint (sources) : relus dans l'app, sans question à l'ouverture
+async function srcAuto() {
+  if (!syncSupported()) return;
+  await srcLoad();
+  if (!Object.values(SRC).some(c => c.dir)) return;
+  const r = await srcRefresh(); const pend = Object.values(SRC).filter(c => c.dir && c.perm !== 'granted');
+  if (pend.length) toast(`Sources SharePoint : accès à confirmer (${esc(pend.map(c => c.lbl).join(', '))}) — onglet <b>Sources</b> › « Tout actualiser ».`, 7000);
+  else if (r.some(x => /relu/.test(x))) toast(esc(r.join(' · ')), 5000);
+  render();
 }
 
 // Épuration : les longues explications sont repliées derrière une icône ⓘ (survol = bulle, clic = déplier)
@@ -3575,14 +3583,9 @@ document.addEventListener('click', e => {
   { const P = projection(); SPLASH.step('calc', 'done', P ? `${P.items.length} livraisons à préparer` : `semaine ${S.ui.week.w}`); }
   SY.muted = false;
   SPLASH.step('sync', 'active', 'recherche…');
-  await permPreflight();
-  await Promise.race([syncInit(), new Promise(r => setTimeout(r, 45000))]);
-  if (Object.values(SRC).some(c => c.dir)) {
-    SPLASH.step('src', 'active', 'lecture SharePoint…');
-    const r = await Promise.race([srcRefresh(), new Promise(r => setTimeout(() => r(['délai dépassé']), 45000))]);
-    SPLASH.step('src', r.some(x => /erreur|délai/.test(x)) ? 'warn' : 'done', r.join(' · ') || 'accès non autorisé'); render();
-  } else SPLASH.step('src', 'skip', syncSupported() ? 'aucun dossier relié' : 'navigateur non compatible');
+  await syncInit();
   SPLASH.finish();
+  srcAuto();
   if (!window.XLSX) toast('⚠ SheetJS n’a pas pu être chargé : gardez le dossier lib/ à côté du fichier de l’app.', 8000);
 })();
 </script>
