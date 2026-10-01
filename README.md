@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.27.2** · Développé par **Galaad Poivey**
+Version **1.28.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -215,6 +215,19 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
 **Connexion (temporaire, le temps des tests) :** l'écran ne se ferme pas tout seul. On entre dans l'app en se connectant avec l'identifiant `admin` et le mot de passe de test (communiqué à part). Le nom de l'utilisateur connecté s'affiche en bas du menu, avec un lien « déconnexion ». Il s'agit d'un simple contrôle dans le navigateur, **pas d'une vraie sécurité** : les données restent lisibles par qui ouvre le fichier. Un panneau dans la scène et un badge à côté du nom de l'app indiquent « Coming soon · en développement » : c'est l'app elle-même qui est en cours de développement.
 
 Paramètres → À propos → « Animer l'écran d'ouverture » : décoché, la scène reste figée, mais la connexion reste demandée. L'animation est aussi réduite si le système demande de limiter les animations.
+
+## Pilotage au quotidien
+
+- **Bandeau « Aujourd'hui »** en haut du tableau de bord : préparation (passe ou non), quai d'expédition, quai de réception, camions du jour (↘ entrées · ↗ sorties). Un clic ouvre la journée.
+- **Feu tricolore de la semaine** : une pastille par jour, vert / orange / rouge. La couleur combine préparation, quai d'expédition et quai de réception ; orange au-delà de 85 % de la capacité. Un clic ouvre la journée.
+- **Overlay « Journée »** : état des trois contraintes, entrées et sorties du jour, détail de la préparation, et bouton **Imprimer / PDF** (seul le contenu de la journée est imprimé).
+- **Écran atelier** (icône écran en haut) : plein écran, gros chiffres, statut du jour, semaine, horloge. Les chiffres sont rafraîchis chaque minute ; les dossiers SharePoint et la sauvegarde partagée sont relus toutes les 10 minutes. Échap pour quitter.
+- **Recherche globale (Ctrl+K)** ou bouton « Rechercher » : n° de livraison, client, transporteur, entrepôt, sous-traitant, navette ou onglet. Entrée ouvre le résultat ; une livraison ouvre sa fiche (chargement, préparation, transporteur, fin estimée, quai, postes).
+- **Menu en 3 groupes** : Pilotage, Flux, Données.
+- **Planning de préparation replié** : seuls aujourd'hui et le prochain jour travaillé sont dépliés ; ▸ pour déplier les autres.
+- **Alertes avec bouton d'action** : « Voir », « Voir la liste », « Compléter les heures » (saisie directe des heures de chargement manquantes), etc.
+- **Comparaison avec la semaine précédente** sur les palettes entrantes, les palettes expédiées et les blocs (↑ / ↓ en %, valeur de S-1 au survol).
+- **Densité d'affichage** dans Paramètres → À propos : standard, compact (bureau) ou aéré (tablette). Elle est mémorisée sur le poste.
 
 ## Onglet Sources
 

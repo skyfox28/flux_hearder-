@@ -471,6 +471,73 @@ body.modal-open{overflow:hidden}
 .sp-skip:focus-visible{outline:2px solid var(--accent)}
 @media (prefers-reduced-motion: reduce){.splash *{animation:none!important}.splash{transition:none}}
 @media (max-width:560px){.sp-stage{height:44vh}}
+/* ---------- Pilotage : bandeau du jour, feu tricolore, écran atelier, recherche, densité ---------- */
+.nav .ngrp{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);padding:14px 12px 4px}
+.nav .ngrp:first-of-type{padding-top:6px}
+.st-ok{--st:var(--good)} .st-warn{--st:var(--warn)} .st-ko{--st:var(--crit)} .st-none{--st:var(--text-3)}
+.today-strip{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:12px 16px}
+.ts-today{display:flex;align-items:center;gap:16px;flex-wrap:wrap;flex:1;min-width:0;cursor:pointer}
+.ts-h{display:flex;flex-direction:column;line-height:1.2}.ts-h b{font-size:15px}.ts-h span{font-size:12px;color:var(--text-3)}
+.ts-items{display:flex;gap:8px;flex-wrap:wrap}
+.ts-it{display:flex;align-items:center;gap:7px;padding:6px 11px;border-radius:12px;background:var(--glass-soft);border:1px solid var(--glass-border);font-size:12.5px}
+.ts-it i{width:9px;height:9px;border-radius:50%;background:var(--st);flex:none}
+.ts-it span{color:var(--text-3)} .ts-it b{font-weight:650;color:color-mix(in srgb,var(--st) 70%,var(--text-1))}
+.ts-it.st-none b{color:var(--text-1)}
+.ts-week{display:flex;align-items:center;gap:10px}.ts-lab{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.tl-dots{display:flex;gap:6px}
+.tl-dot{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 8px;border-radius:12px;border:1px solid transparent;font-size:11px;line-height:1.1}
+.tl-dot i{width:14px;height:14px;border-radius:50%;background:var(--st);box-shadow:0 0 0 3px color-mix(in srgb,var(--st) 18%,transparent)}
+.tl-dot small{color:var(--text-3);font-size:10px}
+.tl-dot:hover{background:var(--glass-soft)} .tl-dot.today{border-color:var(--glass-border);background:var(--glass-soft)}
+.tl-dot:focus-visible{outline:2px solid var(--accent)}
+.kpi.st-box{border-left:4px solid var(--st)}
+.delta{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:600;color:var(--text-2);letter-spacing:0;vertical-align:3px}
+.delta em{font-style:normal;font-weight:500;color:var(--text-3)}
+.plan-tg{all:unset;cursor:pointer;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:7px;font-size:12px;color:var(--text-2);background:var(--glass-soft);border:1px solid var(--glass-border);vertical-align:2px;margin-right:4px}
+.plan-tg:hover{color:var(--accent)}
+.plan-day.folded{padding-bottom:12px}.plan-day.folded .plan-prog{display:none}
+#qkBtn kbd{font-size:10px;padding:1px 5px;border-radius:5px;background:var(--chip);border:1px solid var(--glass-border);color:var(--text-3)}
+#qkBtn svg{width:14px;height:14px}
+.qk{position:fixed;inset:0;z-index:900;display:flex;justify-content:center;align-items:flex-start;padding:10vh 16px 16px}
+.qk-back{position:absolute;inset:0;background:rgba(15,20,30,.35);backdrop-filter:blur(3px)}
+.qk-panel{position:relative;width:min(680px,100%);border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.25)}
+.qk-in{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--grid)}
+.qk-in svg{width:18px;height:18px;color:var(--text-3)}
+.qk-in input{all:unset;flex:1;font-size:16px;color:var(--text-1)}
+.qk-in kbd{font-size:10.5px;color:var(--text-3)}
+.qk-res{max-height:55vh;overflow:auto;padding:6px}
+.qk-it{all:unset;cursor:pointer;display:grid;grid-template-columns:110px 1fr;gap:0 10px;padding:8px 10px;border-radius:12px;width:calc(100% - 20px)}
+.qk-it .qk-t{grid-row:span 2;font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;align-self:center}
+.qk-it b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qk-it small{color:var(--text-3);font-size:12px}
+.qk-it.on,.qk-it:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.tv{position:fixed;inset:0;z-index:950;overflow:auto;padding:28px 36px;display:flex;flex-direction:column;gap:22px;color:var(--text-1);background:radial-gradient(1200px 700px at 30% 0%,var(--bg-1),var(--bg-2))}
+.tv-top{display:flex;align-items:center;gap:20px}.tv-top>div:first-child{flex:1;display:flex;flex-direction:column}.tv-top b{font-size:26px}.tv-top span{color:var(--text-3);font-size:16px}
+.tv-clock{font-size:44px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.tv-card{padding:22px 24px;border-radius:22px;background:var(--glass);border:1px solid var(--glass-border);border-top:8px solid var(--st);display:flex;flex-direction:column;gap:6px}
+.tv-card span{font-size:16px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.tv-card b{font-size:40px;line-height:1.1;color:color-mix(in srgb,var(--st) 65%,var(--text-1))}.tv-card.st-none b{color:var(--text-1)}
+.tv-card small{font-size:15px;color:var(--text-2)}
+.tv-week{display:flex;gap:14px}
+.tv-day{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px;border-radius:20px;background:var(--glass-soft);border:1px solid var(--glass-border)}
+.tv-day i{width:34px;height:34px;border-radius:50%;background:var(--st);box-shadow:0 0 0 6px color-mix(in srgb,var(--st) 18%,transparent)}
+.tv-day b{font-size:20px}.tv-day small{color:var(--text-3);font-size:14px}.tv-day.today{border:2px solid var(--accent)}
+.tv-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.tv-kpis>div{padding:18px 22px;border-radius:20px;background:var(--glass-soft);border:1px solid var(--glass-border)}
+.tv-kpis span{display:block;font-size:15px;color:var(--text-3);font-weight:600}.tv-kpis b{font-size:48px;font-variant-numeric:tabular-nums}.tv-kpis small{font-size:18px;color:var(--text-3);margin-left:6px}
+.tv-foot{margin-top:auto;font-size:13px;color:var(--text-3)}
+@media (max-width:900px){.tv-grid,.tv-kpis{grid-template-columns:repeat(2,1fr)}.tv-week{flex-wrap:wrap}}
+.dens-compact section.card{padding:12px 14px}.dens-compact .kpi{padding:9px 12px}.dens-compact .kpi .val{font-size:21px}.dens-compact .kpis{gap:8px}
+.dens-compact .t td{padding:4px 8px}.dens-compact .t th{padding-top:6px;padding-bottom:6px}.dens-compact main{gap:12px}.dens-compact .group-title{margin-top:10px!important}
+.dens-airy body{font-size:15px}.dens-airy section.card{padding:24px 28px}.dens-airy .kpi{padding:18px 20px}.dens-airy .kpi .val{font-size:30px}
+.dens-airy .t td{padding:10px 12px}.dens-airy table.t{font-size:14px}.dens-airy .nav button{padding:13px 14px}
+@media print{
+  body{background:#fff!important}.blobs,.nav,header.top,.toast,.tip,.noprint,#qk,#tv,.mback{display:none!important}
+  body.modal-open .app{display:none!important}
+  #modal{position:static!important;display:block!important}.mpanel{position:static!important;max-height:none!important;width:auto!important;box-shadow:none!important;border:none!important;animation:none!important}
+  .mbody{max-height:none!important;overflow:visible!important}.mhead button{display:none!important}
+  .glass{background:#fff!important;backdrop-filter:none!important;box-shadow:none!important}.tbl-wrap{max-height:none!important;overflow:visible!important}
+}
 </style>
 </head>
 <body>
@@ -497,7 +564,7 @@ body.modal-open{overflow:hidden}
 /* Écran d'ouverture : petite scène 3D en CSS (entrepôt, quais, camions, chariot, palettes) + étapes réelles du démarrage */
 const SPLASH = (() => {
   const el = document.getElementById('splash');
-  try { const th = localStorage.getItem('flux-theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
+  try { const th = localStorage.getItem('flux-theme'); if (th) document.documentElement.dataset.theme = th; const dn = localStorage.getItem('flux-density'); if (dn === 'compact' || dn === 'airy') document.documentElement.classList.add('dens-' + dn); } catch (e) {}
   let still = false; try { still = localStorage.getItem('flux-splash') === 'off'; } catch (e) {}
   const off = !/[?#&]splash\b/.test(location.href) && navigator.webdriver;   // tests automatisés : pas d'écran d'ouverture
   if (still) el.classList.add('still');
@@ -611,6 +678,8 @@ const SPLASH = (() => {
       <button class="btn sm" id="wToday">Cette semaine</button>
       <button class="btn sm sync-chip" id="syncChip" hidden></button>
       <button class="btn sm danger" data-detail="purge" title="Purger les données de l’app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg> Purger</button>
+      <button class="btn sm" id="qkBtn" title="Rechercher une livraison, un client, un transporteur… (Ctrl+K)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg> Rechercher <kbd>Ctrl K</kbd></button>
+      <button class="iconbtn" id="tvBtn" aria-label="Écran atelier" title="Écran atelier (plein écran, rafraîchi automatiquement)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button>
       <button class="iconbtn" id="themeBtn" aria-label="Changer de thème" title="Thème clair / sombre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
     </header>
     <div id="view" class="grid"></div>
@@ -629,9 +698,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.27.2';
+const APP_VERSION = '1.28.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.28.0', '01/10/2026', 'Bandeau « Aujourd’hui » et feu tricolore de la semaine ; overlay journée imprimable (PDF) ; écran atelier plein écran ; recherche globale Ctrl+K (livraison, client, transporteur…) ; menu en 3 groupes ; planning replié sauf aujourd’hui et demain ; alertes avec bouton d’action ; comparaison avec la semaine précédente ; densité d’affichage réglable.'],
   ['1.27.2', '01/10/2026', 'Frise du planning : étiquettes des repères (extraction, fin picking, fin SILO) sur des lignes séparées et libellés de créneaux tronqués à la largeur du bloc.'],
   ['1.27.1', '01/10/2026', 'Navettes : sans nombre de colis, la navette n’est pas encore chargée → 0 palette (plus d’estimation au poids).'],
   ['1.27.0', '01/10/2026', 'Écran d’ouverture : propose seulement de charger la sauvegarde partagée (dossiers SharePoint relus ensuite dans l’app) ; confirmation systématique avant de fermer l’onglet.'],
@@ -814,7 +884,8 @@ const S = {
   nav: null,           // navettes usines : { at, snap, rows } (copier-coller VL06I)
   ui: { tab: 'dash', week: null, prepView: 'plan', pf: {}, af: {}, rf: {}, sort: {} },
 };
-const save = k => { if (typeof syncDirty === 'function' && SYNC_KEYS.includes(k)) syncDirty(); return DB.set(k, S[k]); };
+let DATA_V = 0;   // version des données : invalide les caches de calcul (projection, quais)
+const save = k => { DATA_V++; if (typeof syncDirty === 'function' && SYNC_KEYS.includes(k)) syncDirty(); return DB.set(k, S[k]); };
 const ref = () => S.ref || window.REF_DEFAULT || { articles: {}, mlgt: {}, magasins: {} };
 // Codes article comparés sans les zéros de tête (SAP exporte parfois 000000000000278710)
 const artNorm = a => { a = String(a ?? '').trim(); return /^\d+$/.test(a) ? a.replace(/^0+(?=\d)/, '') : a.toUpperCase(); };
@@ -1248,15 +1319,15 @@ function shiftWeek(n) { const mon = addDays(mondayOf(S.ui.week.y, S.ui.week.w), 
 
 // ---------- Navigation ----------
 const TABS = [
-  ['dash', 'Tableau de bord', 'dash'],
-  ['src', 'Sources', 'upload'],
-  ['prep', 'Préparation', 'prep'],
-  ['out', 'Expéditions', 'out'],
-  ['interco', 'Intercos', 'interco'],
-  ['rapat', 'Rapatriements', 'rapat'],
-  ['nav', 'Navettes usines', 'out'],
-  ['sst', 'Réceptions SST', 'sst'],
-  ['set', 'Paramètres', 'set'],
+  ['dash', 'Tableau de bord', 'dash', 'Pilotage'],
+  ['prep', 'Préparation', 'prep', 'Pilotage'],
+  ['out', 'Expéditions', 'out', 'Flux'],
+  ['interco', 'Intercos', 'interco', 'Flux'],
+  ['rapat', 'Rapatriements', 'rapat', 'Flux'],
+  ['nav', 'Navettes usines', 'out', 'Flux'],
+  ['sst', 'Réceptions SST', 'sst', 'Flux'],
+  ['src', 'Sources', 'upload', 'Données'],
+  ['set', 'Paramètres', 'set', 'Données'],
 ];
 // Fraîcheur des sources (vert < 12 h, orange plus ancien, gris absent) — clic = onglet concerné
 function renderSources() {
@@ -1282,7 +1353,7 @@ function navBadges() {
 }
 function renderNav() {
   $('#nav').innerHTML = `<div class="brand"><div class="logo">FX</div><div><b>Flux Hebdo</b><small>Dépôt ${esc(S.settings.site)}</small></div></div>` +
-    (() => { const nb = navBadges(); return TABS.map(([k, l, i], n) => (k === 'set' ? '<div class="sep"></div>' : '') + `<button class="${S.ui.tab === k ? 'on' : ''}" data-tab="${k}" ${S.ui.tab === k ? 'aria-current="page"' : ''}>${icon(i)}<span>${l}</span>${nb[k] ? `<em class="navb ${nb[k][1]}" title="${esc(nb[k][2])}">${nb[k][0]}</em>` : ''}</button>`).join(''); })() +
+    (() => { const nb = navBadges(); return TABS.map(([k, l, i, g], n) => (n === 0 || TABS[n - 1][3] !== g ? `<div class="ngrp">${g}</div>` : '') + `<button class="${S.ui.tab === k ? 'on' : ''}" data-tab="${k}" ${S.ui.tab === k ? 'aria-current="page"' : ''}>${icon(i)}<span>${l}</span>${nb[k] ? `<em class="navb ${nb[k][1]}" title="${esc(nb[k][2])}">${nb[k][0]}</em>` : ''}</button>`).join(''); })() +
     `<div class="foot">${S.prep ? `VL06O : ${esc(new Date(S.prep.importedAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }))}` : 'VL06O : non importé'}<br>Données locales au navigateur<br>${(() => { let u = ''; try { u = sessionStorage.getItem('flux-user') || ''; } catch (e) {} return u ? `Connecté : <b>${esc(u)}</b> · <button class="linkbtn" data-act="logout">déconnexion</button><br>` : ''; })()}<button class="linkbtn" data-detail="version">v${APP_VERSION}</button> · Développé par ${APP_AUTHOR}</div>`;
 }
 $('#nav').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) { S.ui.tab = b.dataset.tab; S.ui.modal = null; render(); window.scrollTo({ top: 0 }); } });
@@ -1342,15 +1413,16 @@ function viewDash() {
   const cats = pd.map(r => ({ label: DAYS[dayIdx(r.d)].slice(0, 3) + '.', sub: fdate(r.d), tip: `${DAYS[dayIdx(r.d)]} ${fdate(r.d)}` }));
 
   const empty = !prep.length && !aff.length && !rap.length && !sst.length;
-  const kpi = (lab, val, unit, det, color, key) => `<div class="kpi"${key ? ` data-detail="${key}" role="button" tabindex="0"` : ''}><div class="lab">${color ? `<i style="background:${color}"></i>` : ''}${lab}</div><div class="val">${val}${unit ? `<small>${unit}</small>` : ''}</div>${det ? `<div class="det">${det}</div>` : ''}</div>`;
+  const kpi = (lab, val, unit, det, color, key, extra = '') => `<div class="kpi"${key ? ` data-detail="${key}" role="button" tabindex="0"` : ''}><div class="lab">${color ? `<i style="background:${color}"></i>` : ''}${lab}</div><div class="val">${val}${unit ? `<small>${unit}</small>` : ''}${extra}</div>${det ? `<div class="det">${det}</div>` : ''}</div>`;
 
-  const alerts = buildAlerts(aff, prep);
+  const alerts = buildAlerts(aff, prep), PW = prevWeekTotals();
   return `
+  ${empty ? '' : todayStrip()}
   ${empty ? `<section class="card glass"><div class="empty"><b>Aucune donnée pour cette semaine</b>Importez la VL06O (Préparation), collez la base affrètement (Expéditions) et déposez les fichiers de rapatriement pour alimenter le tableau de bord.</div></section>` : ''}
   <section class="card glass">
     <div class="group-title">Entrées</div>
     <div class="kpis">
-      ${kpi('Palettes entrantes', n0(palIn), 'pal', `Rapatriements ${n0(sum(rin, l => l.pal))} · SST ${n0(sum(sst, r => r.pal))} · Navettes ${n0(sum(nav, r => r.pal))}`, 'var(--in)', 'in')}
+      ${kpi('Palettes entrantes', n0(palIn), 'pal', `Rapatriements ${n0(sum(rin, l => l.pal))} · SST ${n0(sum(sst, r => r.pal))} · Navettes ${n0(sum(nav, r => r.pal))}`, 'var(--in)', 'in', deltaTag(palIn, PW.palIn, PW.lbl))}
       ${kpi('Camions rapatriement', n0(rin.length), '', uniq(rin.map(l => l.entrepot)).join(' · ') || '—', '', 'rapin')}
       ${kpi('Réceptions SST', n0(sum(sst, r => r.pal)), 'pal', `${n0(sum(sst, r => r.cam || 1))} camion(s) · dont retours interco ${n0(sum(sst.filter(r => isInterco(r.sst)), r => r.pal))} pal`, '', 'sst')}
       ${kpi('Transferts vers externes', n0(sum(rout, l => l.pal)), 'pal', `${rout.length} camion(s) · déstockages + navettes`, '', 'ext')}
@@ -1358,8 +1430,8 @@ function viewDash() {
     </div>
     <div class="group-title" style="margin-top:18px">Sorties</div>
     <div class="kpis">
-      ${kpi('Palettes expédiées', n0(palOut), 'pal', `${n0(aff.length)} livraisons affrétées · ${tons(sum(aff, r => r.poids))} t${vlOnlyRows().length ? ` · +${vlOnlyRows().length} VL06O non affrétées` : ''}`, 'var(--out)', 'out')}
-      ${kpi('Blocs sol', n0(sum(aff, r => r.blocs)), '', `${uniq(aff.map(r => r.transp)).length} transporteurs`, '', 'blocs')}
+      ${kpi('Palettes expédiées', n0(palOut), 'pal', `${n0(aff.length)} livraisons affrétées · ${tons(sum(aff, r => r.poids))} t${vlOnlyRows().length ? ` · +${vlOnlyRows().length} VL06O non affrétées` : ''}`, 'var(--out)', 'out', deltaTag(palOut, PW.palOut, PW.lbl))}
+      ${kpi('Blocs sol', n0(sum(aff, r => r.blocs)), '', `${uniq(aff.map(r => r.transp)).length} transporteurs`, '', 'blocs', deltaTag(sum(aff, r => r.blocs), PW.blocs, PW.lbl))}
       ${dockTile()}
       ${(() => { const ir = intercoRows(); return kpi('Intercos envoyés', n0(sum(ir, r => r.pal ?? r.palSilo)), 'pal', `${ir.length} livraisons`, '', 'interco'); })()}
     </div>
@@ -1415,18 +1487,18 @@ function buildAlerts(aff, prep) {
   const t = today(), tomorrow = addDays(t, dayIdx(t) === 4 ? 3 : 1);
   if (S.prep) {
     const late = aff.filter(r => r.date <= tomorrow && idx.has(r.liv) && idx.get(r.liv).prep !== 'C');
-    if (late.length) out.push(['crit', `<b>${late.length} livraison(s) à enlever d’ici ${fdateL(tomorrow)} non terminées en préparation</b><div class="x">${late.slice(0, 12).map(r => `${r.liv} ${esc(r.nom)} (${PREP_LABEL[idx.get(r.liv).prep][0]})`).join(' · ')}${late.length > 12 ? ' …' : ''}</div>`]);
+    if (late.length) out.push(['crit', { lbl: 'Voir', detail: 'ready' }, `<b>${late.length} livraison(s) à enlever d’ici ${fdateL(tomorrow)} non terminées en préparation</b><div class="x">${late.slice(0, 12).map(r => `${r.liv} ${esc(r.nom)} (${PREP_LABEL[idx.get(r.liv).prep][0]})`).join(' · ')}${late.length > 12 ? ' …' : ''}</div>`]);
     const missing = aff.filter(r => !idx.has(r.liv));
-    if (missing.length) out.push(['info', `<b>${missing.length} livraison(s) affrétée(s) absentes de la VL06O : considérées comme expédiées</b><div class="x">${missing.slice(0, 12).map(r => r.liv).join(' · ')}${missing.length > 12 ? ' …' : ''}</div>`]);
+    if (missing.length) out.push(['info', { lbl: 'Voir', detail: 'ready' }, `<b>${missing.length} livraison(s) affrétée(s) absentes de la VL06O : considérées comme expédiées</b><div class="x">${missing.slice(0, 12).map(r => r.liv).join(' · ')}${missing.length > 12 ? ' …' : ''}</div>`]);
     const noRef = prep.filter(l => l.noRef);
-    if (noRef.length) out.push(['warn', `<b>${noRef.length} ligne(s) VL06O sans fiche article (UQ/PAL)</b><div class="x">Non comptées en SILO/picking, comme dans le fichier Excel. Articles : ${uniq(noRef.map(l => l.art)).slice(0, 15).join(', ')}</div>`]);
+    if (noRef.length) out.push(['warn', { lbl: 'Référentiel', tab: 'set' }, `<b>${noRef.length} ligne(s) VL06O sans fiche article (UQ/PAL)</b><div class="x">Non comptées en SILO/picking, comme dans le fichier Excel. Articles : ${uniq(noRef.map(l => l.art)).slice(0, 15).join(', ')}</div>`]);
     const affLivs = new Set(Object.keys(S.affret.rows));
     const notPlanned = [...idx.values()].filter(l => inWeek(l.dc) && !affLivs.has(l.liv) && Object.keys(S.affret.rows).length);
-    if (notPlanned.length) out.push(['info', `<b>${notPlanned.length} livraison(s) VL06O pas encore dans la base affrètement</b><div class="x">${notPlanned.slice(0, 12).map(l => `${l.liv} ${esc(l.nom)}`).join(' · ')}${notPlanned.length > 12 ? ' …' : ''}</div>`]);
-  } else out.push(['info', '<b>VL06O non importée</b><div class="x">Importez l’extraction dans l’onglet Préparation pour activer les contrôles.</div>']);
+    if (notPlanned.length) out.push(['info', { lbl: 'Voir la liste', detail: 'out' }, `<b>${notPlanned.length} livraison(s) VL06O pas encore dans la base affrètement</b><div class="x">${notPlanned.slice(0, 12).map(l => `${l.liv} ${esc(l.nom)}`).join(' · ')}${notPlanned.length > 12 ? ' …' : ''}</div>`]);
+  } else out.push(['info', { lbl: 'Importer', tab: 'src' }, '<b>VL06O non importée</b><div class="x">Importez l’extraction dans l’onglet Sources pour activer les contrôles.</div>']);
   const approx = Object.values(S.rapat.loads).filter(l => l.approx && inWeek(l.date));
-  if (approx.length) out.push(['info', `<b>${approx.length} chargement(s) de rapatriement sans jour identifié</b><div class="x">Placés au lundi : ${approx.map(l => esc(l.entrepot + ' / ' + l.sheet)).join(' · ')}</div>`]);
-  return out.map(([c, h]) => `<div class="alert ${c}">${icon(c === 'info' ? 'info' : 'warn')}<div>${h}</div></div>`).join('');
+  if (approx.length) out.push(['info', { lbl: 'Rapatriements', tab: 'rapat' }, `<b>${approx.length} chargement(s) de rapatriement sans jour identifié</b><div class="x">Placés au lundi : ${approx.map(l => esc(l.entrepot + ' / ' + l.sheet)).join(' · ')}</div>`]);
+  return out.map(([c, a, h]) => `<div class="alert ${c}">${icon(c === 'info' ? 'info' : 'warn')}<div style="flex:1;min-width:0">${h}</div>${actBtn(a)}</div>`).join('');
 }
 
 // ============================================================
@@ -2047,7 +2119,7 @@ function viewSettings() {
     <div class="drop" data-drop="ref">${icon('upload')}<div><b>Déposez un référentiel</b> ou <button class="btn sm" data-pick="ref">choisir</button></div></div>
     ${S.ref ? `<div class="row" style="margin-top:10px"><button class="btn sm" data-act="ref-reset">Revenir au référentiel par défaut</button></div>` : ''}
   </section>
-  <section class="card glass"><h2>À propos</h2><label class="row" style="float:right;gap:6px;font-size:13px"><input type="checkbox" data-splash ${(() => { try { return localStorage.getItem('flux-splash') === 'off' ? '' : 'checked'; } catch (e) { return 'checked'; } })()}> Animer l’écran d’ouverture</label><p class="hint" style="margin:0">Flux Hebdo Dépôt — version <button class="linkbtn" data-detail="version">${APP_VERSION}</button> — développé par <b>${APP_AUTHOR}</b>. Application 100 % locale : les données restent dans ce navigateur et, si vous l’activez, dans le dossier de sauvegarde partagé.</p></section>
+  <section class="card glass"><h2>À propos</h2><label class="row" style="float:right;gap:6px;font-size:13px;margin-left:16px">Affichage <select class="inp" data-density style="padding:4px 8px;width:auto">${(() => { let v = 'std'; try { v = localStorage.getItem('flux-density') || 'std'; } catch (e) {} return [['std', 'standard'], ['compact', 'compact (bureau)'], ['airy', 'aéré (tablette)']].map(([k, l]) => `<option value="${k}" ${v === k ? 'selected' : ''}>${l}</option>`).join(''); })()}</select></label><label class="row" style="float:right;gap:6px;font-size:13px"><input type="checkbox" data-splash ${(() => { try { return localStorage.getItem('flux-splash') === 'off' ? '' : 'checked'; } catch (e) { return 'checked'; } })()}> Animer l’écran d’ouverture</label><p class="hint" style="margin:0">Flux Hebdo Dépôt — version <button class="linkbtn" data-detail="version">${APP_VERSION}</button> — développé par <b>${APP_AUTHOR}</b>. Application 100 % locale : les données restent dans ce navigateur et, si vous l’activez, dans le dossier de sauvegarde partagé.</p></section>
     <section class="card glass"><h2>Sauvegarde</h2><p class="hint">Les données sont stockées dans ce navigateur. Elles peuvent aussi être enregistrées automatiquement dans le dossier partagé (ci-dessous), ou exportées à la main.</p>
     <div class="row">
       <button class="btn" data-act="backup">${icon('dl')} Exporter une sauvegarde</button>
@@ -2555,7 +2627,13 @@ const likpLbl = liv => { const k = likpOf(liv), si = slotInfo(liv); const D = k 
 
 // Projection livraison par livraison : reste à faire trié par échéance (heure de chargement LIKP − marge,
 // sinon règle du jour), cumulé et comparé à la capacité restante des équipes depuis l'extraction VL06O
+let _projM = { v: -1, at: 0, P: null };
 function projection() {
+  const at = snapTs(); if (!at) return null;
+  if (_projM.v === DATA_V && _projM.at === at) return _projM.P;
+  const P = projectionRaw(); _projM = { v: DATA_V, at, P }; return P;
+}
+function projectionRaw() {
   const at = snapTs(); if (!at) return null;
   const R = rendement(), adj = S.settings.projAjust !== false;
   const effS = adj && R.s ? R.s : 1, effP = adj && R.p ? R.p : 1;
@@ -2739,8 +2817,9 @@ function prepPlanning(lines) {
     const lateN = xs.filter(x => x.st === 'late').length;
     const dockV = P ? dockVerdict(dockSim(P), D) : null;
     const vd = (ok, m, lbl) => !row ? '' : `<div class="pv ${ok ? 'ok' : 'ko'}"><span>${lbl}</span><b>${ok ? '✓ passe' : '✗ ne passe pas'}</b><small>${ok ? `marge ${n1(m)} h` : `manque ${n1(-m)} h`}</small></div>`;
+    const isOpenDay = planOpen(D);
     const head = `<div class="plan-head">
-      <div><h3>${DAYS[dayIdx(D)]} ${fdate(D)}</h3><div class="meta">${xs.length} livraisons · ${n0(sum(xs, x => x.palSilo))} pal SILO · ${n0(sum(xs, x => x.colisPick))} colis picking · ${n1(hrsT)} h de prépa</div>
+      <div><h3><button class="plan-tg" data-planfold="${D}" aria-expanded="${isOpenDay}">${isOpenDay ? '▾' : '▸'}</button> ${DAYS[dayIdx(D)]} ${fdate(D)}</h3><div class="meta">${xs.length} livraisons · ${n0(sum(xs, x => x.palSilo))} pal SILO · ${n0(sum(xs, x => x.colisPick))} colis picking · ${n1(hrsT)} h de prépa</div>
         <div class="plan-prog"><span>Avancement ${pct(hrsT ? 1 - hrsR / hrsT : NaN)}</span>${pr(hrsT - hrsR, hrsT)}<span class="meta">reste ${n1(hrsR)} h (SILO ${n1(sum(xs, x => x.rS))} h · picking ${n1(sum(xs, x => x.rP))} h)</span></div></div>
       <div class="pvs">${vd(row?.okP, row?.mP, 'Picking')}${vd(row?.okS, row?.mS, 'SILO')}${dockV ? `<div class="pv ${dockV.ok ? 'ok' : 'ko'}"><span>Quai exp.</span><b>${dockV.ok ? '✓ fluide' : '✗ saturé'}</b><small>${esc(dockV.lbl)}</small></div>` : ''}${lateN ? `<div class="pv ko"><span>Livraisons</span><b>${lateN} en retard</b><small>sur ${xs.length}</small></div>` : `<div class="pv ok"><span>Livraisons</span><b>${xs.filter(x => x.st === 'ready').length} prêtes</b><small>sur ${xs.length}</small></div>`}</div>
     </div>`;
@@ -2783,14 +2862,16 @@ function prepPlanning(lines) {
     ], [...xs].sort((a, b) => sortKey(a).localeCompare(sortKey(b))), { limit: 500 })}
       ${noSlot.length ? `<div class="alert warn" style="margin-top:10px">${icon('warn')}<div><b>${noSlot.length} livraison(s) à préparer sans créneau</b> — saisissez l’heure ci-dessus, ou extrayez-les de la LIKP (n° à copier) :<textarea class="inp" readonly style="min-height:60px;margin-top:6px" onclick="this.select()">${noSlot.map(x => x.liv).join('\n')}</textarea></div></div>` : ''}</div>` : '';
     const dayBtn = `<div class="row" style="margin-top:10px"><button class="btn sm" data-openday="${D}">${dayOpen ? '▾ Masquer' : '▸ Détail des'} ${xs.length} livraisons du jour</button>${noSlot.length ? `<span class="badge b-warn">${noSlot.length} à préparer sans créneau</span>` : ''}</div>`;
+    if (!isOpenDay) return `<div class="plan-day folded ${lateN ? 'late' : ''}">${head}</div>`;
     return `<div class="plan-day ${lateN ? 'late' : ''}">${head}${dayTimeline(D, xs, P)}
       <div class="tbl-wrap" style="max-height:none"><table class="t"><thead><tr><th>Créneau de chargement</th><th class="num">Livr. prêtes</th><th class="num">Pal SILO</th><th class="num">Colis picking</th><th class="num">Reste SILO</th><th class="num">Reste picking</th><th>Échéance prépa</th><th>Fin estimée</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table></div>${dayBtn}${dayTable}</div>`;
   }).join('');
   const missing = L.filter(x => !x.t && x.st !== 'ready');
-  const miss = missing.length ? `<div class="alert warn" style="margin-bottom:14px">${icon('warn')}<div><b>${missing.length} livraison(s) sans créneau de chargement</b> (${uniq(missing.map(x => fdateL(x.D))).join(', ')}) : échéance estimée.</div></div>` : '';
+  const miss = missing.length ? `<div class="alert warn" style="margin-bottom:14px">${icon('warn')}<div style="flex:1"><b>${missing.length} livraison(s) sans créneau de chargement</b> (${uniq(missing.map(x => fdateL(x.D))).join(', ')}) : échéance estimée.</div>${actBtn({ lbl: 'Compléter les heures', detail: 'noslot' })}</div>` : '';
   const info = P ? `<h3 class="mh" style="margin-top:0">Planning de chargement</h3><p class="hint">chaque jour de chargement est découpé par créneau LIKP (${num(S.settings.likpSlot)} h). « Reste » = postes pas encore au statut C, en heures (cadences). La fin estimée enchaîne le travail restant dans l’ordre des créneaux avec les équipes (${esc(teamsLbl())} ; SILO : ${esc(siloLbl())})${P.R.p ? `, au rendement réel mesuré (${pct(P.R.p)})` : ''}, à partir de la VL06O extraite le <b>${esc(fdt(P.at))}</b>. « En retard » = la fin estimée dépasse l’échéance (début du créneau − ${num(S.settings.likpMarge)} min ; créneaux fixes : ${(S.settings.creneauxClients || []).map(r => `${esc(r.key)} ${hLbl(r.debut)}–${hLbl(r.fin)}`).join(', ')} ; sans heure LIKP, échéance estimée ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}). Cliquez un créneau pour voir ses livraisons.${S.likp ? '' : ' <b>Collez la LIKP ci-dessus pour obtenir les créneaux.</b>'}</p>` : '';
   return info + miss + `<div class="plan">${dayCards}</div>`;
 }
+document.addEventListener('click', e => { const f = e.target.closest('[data-planfold]'); if (f) { S.ui.planFold = S.ui.planFold || {}; S.ui.planFold[f.dataset.planfold] = !planOpen(f.dataset.planfold); render(); } });
 document.addEventListener('click', e => { const d = e.target.closest('[data-openday]'); if (d) { S.ui.openDay = S.ui.openDay === d.dataset.openday ? null : d.dataset.openday; render(); } });
 document.addEventListener('click', e => { if (e.target.closest('input,select')) return; const r = e.target.closest('[data-openslot]'); if (!r || e.target.closest('th')) return; S.ui.openSlot = S.ui.openSlot === r.dataset.openslot ? null : r.dataset.openslot; render(); });
 
@@ -2821,7 +2902,9 @@ function livPal(l) {
   const pal = l.palSilo + (l.colisPick > 0 ? Math.ceil(l.colisPick / cpp) : 0);
   return { pal: Math.ceil(pal * ratio.v), src: `estimé : ⌈(${n0(l.palSilo)} SILO + ⌈${n0(l.colisPick)} colis ÷ ${n0(cpp)}⌉) × ${nf2.format(ratio.v)}⌉` };
 }
-function dockSim(P) {
+const _dockM = new WeakMap();
+function dockSim(P) { if (!_dockM.has(P)) _dockM.set(P, dockSimRaw(P)); return _dockM.get(P); }
+function dockSimRaw(P) {
   const cap = num(S.settings.capaQuaiExp), at = P.at, itemBy = new Map(P.items.map(i => [i.liv, i]));
   const rows = [];
   for (const l of livIndex().values()) {
@@ -2953,7 +3036,12 @@ function occStats(series, cap) {
   const dayPeak = D => { const d0 = dayStartTs(D), d1 = d0 + 24 * H; let pk = occAt(d0), pt = d0; for (const [t, o] of series) if (t >= d0 && t < d1 && o > pk) { pk = o; pt = t; } return { peak: pk, at: pt }; };
   return { sat, occAt, dayPeak };
 }
+let _recM = { v: -1, m: new Map() };
 function recSim(days = recDays()) {
+  if (_recM.v !== DATA_V) _recM = { v: DATA_V, m: new Map() };
+  const k = days.join(','); if (!_recM.m.has(k)) _recM.m.set(k, recSimRaw(days)); return _recM.m.get(k);
+}
+function recSimRaw(days) {
   const st = S.settings, cap = num(st.capaQuaiRec), ratio = num(st.blocParPalRec) || 1, cad = Math.max(1, num(st.cadRecep) || 25);
   const doors = Math.max(1, Math.round(num(st.portesRec) || 1)), dur = Math.max(5, num(st.dechDuree) || 45) * 60e3;
   const tr = recTrucks(days), free = Array(doors).fill(0);
@@ -3212,7 +3300,7 @@ function renderModal() {
   m.innerHTML = `<div class="mback" data-close></div>
     <div class="mpanel glass${r.xl ? ' xl' : ''}" role="dialog" aria-modal="true" aria-labelledby="mTitle">
       <div class="mhead">${(S.ui.mstack || []).length ? `<button class="btn sm" data-mprev>← Retour</button>` : ''}<div style="flex:1;min-width:0"><h2 id="mTitle">${r.title}</h2><p class="hint" style="margin:2px 0 0">${r.sub || ''}</p></div>
-        ${S.ui.modal.d ? `<button class="btn sm" data-mweek>Toute la semaine</button>` : ''}
+        ${S.ui.modal.d && key !== 'day' ? `<button class="btn sm" data-mweek>Toute la semaine</button>` : ''}
         <button class="iconbtn" data-close aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
       <div class="mbody">${r.body}</div>
     </div>`;
@@ -3568,6 +3656,173 @@ document.addEventListener('click', e => {
     return; }
   const x = e.target.closest('.alert .x'); if (x) x.classList.toggle('open');
 }, true);
+
+// ============================================================
+//   PILOTAGE : statut d'une journée (préparation, quai exp., quai réception), bandeau « Aujourd'hui »,
+//   feu tricolore de la semaine, overlay journée (imprimable), comparaison S-1
+// ============================================================
+const nextWork = iso => { let d = addDays(iso, 1); for (let i = 0; i < 7 && !workDay(d); i++) d = addDays(d, 1); return d; };
+const planOpen = D => { const f = (S.ui.planFold || {})[D]; return f != null ? f : D <= nextWork(today()); };
+function dayData(D) {
+  return {
+    aff: Object.values(S.affret.rows).filter(r => r.date === D && !isExtShip(r)),
+    rin: Object.values(S.rapat.loads).filter(l => l.date === D && l.sens === 'in'), rout: Object.values(S.rapat.loads).filter(l => l.date === D && l.sens === 'out'),
+    sst: S.sst.rows.filter(r => r.date === D), nav: navRows().filter(r => r.dateEff === D), prep: prepLines().filter(l => l.dc === D),
+  };
+}
+const ST_RANK = { none: 0, ok: 1, warn: 2, ko: 3 };
+function dayStatus(D) {
+  const P = projection(), row = P ? P.rows.find(r => r.D === D) : null, dd = dayData(D);
+  let prep = null;
+  if (row) prep = { st: !(row.okP && row.okS) ? 'ko' : Math.max(row.tP || 0, row.tS || 0) > .85 ? 'warn' : 'ok', lbl: row.okP && row.okS ? '✓ passe' : '✗ ne passe pas', det: `picking ${isFinite(row.tP) ? pct(row.tP) : '∞'} · SILO ${isFinite(row.tS) ? pct(row.tS) : '∞'}` };
+  else if (dd.prep.length && capaOf(D)) { const t = sum(dd.prep, l => l.hrPick) / capaOf(D); prep = { st: t > 1 ? 'ko' : t > .85 ? 'warn' : 'ok', lbl: `charge ${pct(t)}`, det: 'taux de charge picking' }; }
+  let dock = null;
+  if (P && P.rows.some(r => r.D === D)) { const sim = dockSim(P), v = dockVerdict(sim, D); dock = { st: !v.ok ? 'ko' : v.peak > sim.cap * .85 ? 'warn' : 'ok', lbl: v.ok ? '✓ fluide' : '✗ saturé', det: v.lbl }; }
+  let rec = null;
+  const R = recSim([D]), rr = recDayRow(R, D);
+  if (rr.cam) rec = { st: !rr.ok ? 'ko' : rr.taux > .85 ? 'warn' : 'ok', lbl: rr.ok ? '✓ fluide' : '✗ en tension', det: rr.lbl };
+  const inPal = sum(dd.rin, l => l.pal) + sum(dd.sst, r => r.pal) + sum(dd.nav, r => r.pal), inCam = dd.rin.length + sum(dd.sst, r => r.cam || 1) + dd.nav.filter(r => r.pal > 0).length;
+  const outPal = sum(dd.aff, r => r.pal) + sum(dd.rout, l => l.pal), outN = dd.aff.length + dd.rout.length;
+  const parts = [prep, dock, rec].filter(Boolean);
+  const overall = parts.length ? parts.reduce((m, x) => ST_RANK[x.st] > ST_RANK[m] ? x.st : m, 'ok') : (inPal || outPal ? 'ok' : 'none');
+  return { D, prep, dock, rec, inPal, inCam, outPal, outN, overall, dd, row, R, rr };
+}
+const stLbl = { ok: 'OK', warn: 'à surveiller', ko: 'en tension', none: 'pas de données' };
+function todayStrip() {
+  const t = today(), ds = dayStatus(t);
+  const it = (lab, x, key) => `<div class="ts-it st-${x ? x.st : 'none'}"${key ? ` data-detail="${key}" role="button" tabindex="0"` : ''} title="${esc(x ? x.det : 'pas de données')}"><i></i><span>${lab}</span><b>${x ? x.lbl : '—'}</b></div>`;
+  const days = weekDays().filter(d => workDay(d) || dayData(d).aff.length);
+  const dots = days.map(d => { const x = d === t ? ds : dayStatus(d); return `<button class="tl-dot st-${x.overall}${d === t ? ' today' : ''}" data-detail="day" data-day="${d}" title="${esc(`${DAYS[dayIdx(d)]} ${fdate(d)} : ${stLbl[x.overall]}`)}"><i></i><b>${DAYS[dayIdx(d)].slice(0, 3)}.</b><small>${fdate(d)}</small></button>`; }).join('');
+  return `<section class="card glass today-strip">
+    <div class="ts-today" data-detail="day" data-day="${t}" role="button" tabindex="0"><div class="ts-h"><b>Aujourd’hui</b><span>${esc(fdateL(t))}</span></div>
+      <div class="ts-items">${it('Préparation', ds.prep)}${it('Quai exp.', ds.dock)}${it('Quai réc.', ds.rec)}<div class="ts-it st-none"><span>Camions</span><b>↘ ${n0(ds.inCam)} · ↗ ${n0(ds.outN)}</b></div></div></div>
+    <div class="ts-week"><span class="ts-lab">Semaine ${S.ui.week.w}</span><div class="tl-dots">${dots}</div></div>
+  </section>`;
+}
+DETAILS.day = (d) => {
+  const D = d || today(), x = dayStatus(D), dd = x.dd;
+  const box = (lab, y, key) => `<div class="kpi st-box st-${y ? y.st : 'none'}"${key ? ` data-detail="${key}" role="button" tabindex="0"` : ''}><div class="lab">${lab}</div><div class="val" style="font-size:20px">${y ? y.lbl : '—'}</div><div class="det">${esc(y ? y.det : 'pas de données')}</div></div>`;
+  const byT = uniq(dd.aff.map(r => r.transp)).map(t => { const a = dd.aff.filter(r => r.transp === t); return { t: transpName(t), liv: a.length, pal: sum(a, r => r.pal), bl: sum(a, r => r.blocs) }; }).sort((a, b) => b.pal - a.pal);
+  const ins = [...dd.rin.map(l => ({ h: '', src: 'Rapatriement', nom: l.entrepot + ' · ' + l.ref, pal: l.pal })), ...dd.sst.map(r => ({ h: r.heure, src: isInterco(r.sst) ? 'Retour interco' : 'Sous-traitant', nom: r.sst, pal: r.pal })), ...dd.nav.filter(r => r.pal > 0).map(r => ({ h: '', src: 'Navette usine', nom: r.nom + ' · ' + r.liv, pal: r.pal }))].sort((a, b) => (a.h || '99').localeCompare(b.h || '99'));
+  const row = x.row;
+  return { xl: true, title: `Journée du ${DAYS[dayIdx(D)].toLowerCase()} ${fdate(D)}`, sub: `État : ${stLbl[x.overall]}`, body:
+    `<div class="row noprint" style="justify-content:flex-end;margin:-6px 0 10px"><button class="btn sm" data-print>${icon('dl')} Imprimer / PDF</button></div>` +
+    `<div class="kpis" style="margin-bottom:18px">${box('Préparation', x.prep, 'prepxl')}${box('Quai expédition', x.dock, 'quai')}${box('Quai réception', x.rec, 'recq')}
+      <div class="kpi"><div class="lab">Entrées</div><div class="val">${n0(x.inPal)}<small>pal</small></div><div class="det">${n0(x.inCam)} camion(s)</div></div>
+      <div class="kpi"><div class="lab">Sorties</div><div class="val">${n0(x.outPal)}<small>pal</small></div><div class="det">${n0(x.outN)} livraison(s) / transfert(s)</div></div></div>` +
+    (row ? h3('Préparation') + `<div class="kpis" style="margin-bottom:14px"><div class="kpi"><div class="lab">Picking</div><div class="val" style="font-size:18px">${row.okP ? '✓ passe' : '✗ ne passe pas'}</div><div class="det">${n1(row.cumP)} h à faire / ${n1(row.capP)} h dispo</div></div><div class="kpi"><div class="lab">SILO</div><div class="val" style="font-size:18px">${row.okS ? '✓ passe' : '✗ ne passe pas'}</div><div class="det">${n1(row.cumS)} h à faire / ${n1(row.capS)} h dispo</div></div><div class="kpi"><div class="lab">Fin estimée</div><div class="val" style="font-size:18px">${row.finP ? esc(new Date(row.finP).toTimeString().slice(0, 5)) : '—'}</div><div class="det">dernière échéance ${esc(fdt(row.dl))}</div></div></div>` : '') +
+    h3('Entrées') + (ins.length ? table('dayIn', [{ k: 'h', label: 'Heure' }, { k: 'src', label: 'Type' }, { k: 'nom', label: 'Origine', cls: 'wrap' }, { k: 'pal', label: 'Palettes', num: true, fmt: n0 }], ins, { total: { pal: sum(ins, i => i.pal) } }) : none('Aucune entrée prévue.')) +
+    h3('Sorties par transporteur') + (byT.length ? table('dayOut', [{ k: 't', label: 'Transporteur' }, { k: 'liv', label: 'Livraisons', num: true, fmt: n0 }, { k: 'pal', label: 'Palettes', num: true, fmt: n0 }, { k: 'bl', label: 'Blocs', num: true, fmt: n0 }], byT, { total: { liv: sum(byT, r => r.liv), pal: sum(byT, r => r.pal), bl: sum(byT, r => r.bl) } }) : none('Aucune expédition affrétée.')) };
+};
+DETAILS.noslot = () => {
+  const P = projection(), items = new Map((P ? P.items : []).map(i => [i.liv, i]));
+  const xs = [...livIndex().values()].filter(l => l.prep !== 'C' && !slotInfo(l.liv, l.nom) && !isExtShip(l)).map(l => Object.assign({}, l, { D: (likpOf(l.liv) || {}).d || l.dc, it: items.get(l.liv) })).sort((a, b) => (a.D || '').localeCompare(b.D || '') || a.liv.localeCompare(b.liv));
+  return { title: 'Livraisons sans créneau de chargement', sub: `${xs.length} livraison(s) · saisissez l’heure de début du créneau (ou collez la LIKP dans Sources)`, body: xs.length ? table('noslot', [
+    { k: 'D', label: 'Chargement', fmt: fdateL }, { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' },
+    { k: 'heure', label: 'Heure de chargement', html: x => `<input class="inp" type="time" style="padding:4px 8px" data-likpset="${esc(x.liv)}|${esc(x.D)}" value="">` },
+    { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis picking', num: true, fmt: n0 }, { k: 'prep', label: 'Prépa', html: x => prepBadge(x.prep) },
+  ], xs, { limit: 500 }) + `<p class="meta" style="margin-top:10px">N° à copier pour une extraction LIKP :</p><textarea class="inp" readonly style="min-height:60px" onclick="this.select()">${xs.map(x => x.liv).join('\n')}</textarea>` : none('Toutes les livraisons à préparer ont un créneau.') };
+};
+DETAILS.liv = (d, liv) => {
+  const l = livIndex().get(liv), a = S.affret.rows[liv], P = projection(), it = P ? P.items.find(i => i.liv === liv) : null, si = l ? slotInfo(liv, l.nom) : null;
+  if (!l && !a) return { title: `Livraison ${esc(liv)}`, body: none('Livraison introuvable dans la VL06O et la base affrètement.') };
+  const dk = P ? dockSim(P).rows.find(r => r.liv === liv) : null;
+  return { title: `Livraison ${esc(liv)}`, sub: esc((l || a).nom || ''), body:
+    mini([['Chargement', esc(fdateL((likpOf(liv) || {}).d || l?.dc || a?.date)), '', si ? siLbl(si) : 'sans créneau'], ['Préparation', l ? PREP_LABEL[l.prep][0] : 'expédiée', '', l ? `${n0(l.palSilo)} pal SILO · ${n0(l.colisPick)} colis picking` : 'absente de la VL06O'],
+      ['Transporteur', a ? esc(transpName(a.transp)) : '—', '', a ? `${n0(a.pal)} pal · ${n0(a.blocs)} blocs` : 'pas encore affrétée'], ['Fin estimée', it && (it.finP || it.finS) ? esc(new Date(Math.max(it.finP || 0, it.finS || 0)).toTimeString().slice(0, 5)) : '—', '', it ? `échéance ${esc(fdt(it.dl))}` : ''],
+      ['Quai expédition', dk ? n0(dk.pal) : '—', dk ? 'blocs' : '', dk ? `départ ${esc(fdt(dk.dep))}` : '']]) +
+    (l ? h3('Postes') + table('livL', [{ k: 'art', label: 'Article' }, { k: 'des', label: 'Désignation', cls: 'wrap' }, { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis picking', num: true, fmt: n0 }, { k: 'sgp', label: 'Statut', html: x => prepBadge(x.sgp || 'A') }], l.lines, { total: { palSilo: l.palSilo, colisPick: l.colisPick } }) : '') };
+};
+const actBtn = a => !a ? '' : `<button class="btn sm"${a.detail ? ` data-detail="${a.detail}"` : ''}${a.tab ? ` data-gotab="${a.tab}"` : ''} style="align-self:center;flex:none">${esc(a.lbl)} ›</button>`;
+// comparaison avec la semaine précédente (mêmes calculs, semaine S-1)
+function prevWeekTotals() {
+  const cur = S.ui.week, mon = addDays(mondayOf(cur.y, cur.w), -7), pw = isoWeek(mon);
+  S.ui.week = pw;
+  try { const w = weekData(); const rin = w.rap.filter(l => l.sens === 'in');
+    return { palIn: sum(rin, l => l.pal) + sum(w.sst, r => r.pal) + sum(w.nav, r => r.pal), palOut: sum(w.aff, r => r.pal), blocs: sum(w.aff, r => r.blocs), lbl: `S${pw.w}` };
+  } finally { S.ui.week = cur; }
+}
+const deltaTag = (cur, prev, lbl) => { if (!prev) return ''; const d = (cur - prev) / prev; if (!isFinite(d)) return ''; const a = Math.round(d * 100); return `<span class="delta ${a > 0 ? 'up' : a < 0 ? 'down' : ''}" title="${esc(`${lbl} : ${n0(prev)}`)}">${a > 0 ? '↑' : a < 0 ? '↓' : '='} ${Math.abs(a)} % <em>vs ${lbl}</em></span>`; };
+document.addEventListener('click', e => { if (e.target.closest('[data-print]')) window.print(); });
+
+// ============================================================
+//   RECHERCHE GLOBALE (Ctrl+K)
+// ============================================================
+const normS = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+function qkIndex() {
+  const out = [], seen = new Set(), push = x => { const k = x.type + '|' + x.key; if (seen.has(k)) return; seen.add(k); out.push(x); };
+  for (const [k, l, ic] of TABS) push({ type: 'Onglet', key: k, label: l, sub: '', go: () => { S.ui.tab = k; S.ui.modal = null; render(); } });
+  for (const l of livIndex().values()) push({ type: 'Livraison', key: l.liv, label: `${l.liv} · ${l.nom}`, sub: `${fdateL(l.dc)} · ${PREP_LABEL[l.prep][0]}`, go: () => openDetail('liv|' + l.liv) });
+  for (const a of Object.values(S.affret.rows)) push({ type: 'Livraison', key: a.liv, label: `${a.liv} · ${a.nom}`, sub: `${fdateL(a.date)} · ${transpName(a.transp)}`, go: () => openDetail('liv|' + a.liv) });
+  const clients = uniq([...[...livIndex().values()].map(l => l.nom), ...Object.values(S.affret.rows).map(a => a.nom)].filter(Boolean));
+  for (const c of clients) push({ type: 'Client', key: c, label: c, sub: 'expéditions', go: () => { S.ui.tab = 'out'; S.ui.af = { q: c }; S.ui.modal = null; render(); } });
+  for (const t of uniq(Object.values(S.affret.rows).map(a => a.transp)).filter(Boolean)) push({ type: 'Transporteur', key: t, label: transpName(t), sub: `code ${t}`, go: () => openDetail('tr|' + t) });
+  for (const e of uniq(Object.values(S.rapat.loads).map(l => l.entrepot))) push({ type: 'Entrepôt', key: e, label: e, sub: 'rapatriements', go: () => openDetail('ent|' + e) });
+  for (const n of uniq(S.sst.rows.map(r => r.sst)).filter(Boolean)) push({ type: 'Sous-traitant', key: n, label: n, sub: 'réceptions SST', go: () => openDetail('sstn|' + n) });
+  for (const r of navRows()) push({ type: 'Navette', key: r.liv, label: `${r.liv} · ${r.nom}`, sub: `${fdateL(r.date)} · ${r.loaded ? n0(r.pal) + ' pal' : 'pas encore chargée'}`, go: () => openDetail('nav') });
+  return out;
+}
+let QK = null;
+function qkOpen() {
+  if ($('#qk')) return;
+  QK = { idx: qkIndex(), sel: 0, res: [] };
+  const el = document.createElement('div'); el.id = 'qk'; el.className = 'qk';
+  el.innerHTML = `<div class="qk-back" data-qkclose></div><div class="qk-panel glass" role="dialog" aria-label="Recherche"><div class="qk-in">${'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>'}<input id="qkInput" placeholder="N° de livraison, client, transporteur, sous-traitant, onglet…" autocomplete="off"><kbd>Échap</kbd></div><div class="qk-res" id="qkRes"></div></div>`;
+  document.body.appendChild(el); qkSearch(''); setTimeout(() => $('#qkInput').focus(), 10);
+}
+function qkClose() { const el = $('#qk'); if (el) el.remove(); QK = null; }
+function qkSearch(q) {
+  const toks = normS(q).split(/\s+/).filter(Boolean);
+  QK.res = (toks.length ? QK.idx.filter(x => { const h = normS(x.label + ' ' + x.sub + ' ' + x.type); return toks.every(t => h.includes(t)); }) : QK.idx.filter(x => x.type === 'Onglet')).slice(0, 40);
+  QK.sel = 0; qkPaint();
+}
+function qkPaint() {
+  $('#qkRes').innerHTML = QK.res.length ? QK.res.map((x, i) => `<button class="qk-it${i === QK.sel ? ' on' : ''}" data-qki="${i}"><span class="qk-t">${esc(x.type)}</span><b>${esc(x.label)}</b><small>${esc(x.sub)}</small></button>`).join('') : '<div class="empty" style="padding:24px">Aucun résultat</div>';
+  $('#qkRes .on')?.scrollIntoView({ block: 'nearest' });
+}
+function qkGo(i) { const x = QK && QK.res[i]; qkClose(); if (x) x.go(); }
+document.addEventListener('input', e => { if (e.target.id === 'qkInput') qkSearch(e.target.value); });
+document.addEventListener('click', e => { if (e.target.closest('#qkBtn')) return qkOpen(); if (e.target.closest('[data-qkclose]')) return qkClose(); const b = e.target.closest('[data-qki]'); if (b) qkGo(+b.dataset.qki); });
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); if (!$('#splash')) qkOpen(); return; }
+  if (!QK) return;
+  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); qkClose(); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); QK.sel = Math.min(QK.res.length - 1, QK.sel + 1); qkPaint(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); QK.sel = Math.max(0, QK.sel - 1); qkPaint(); }
+  else if (e.key === 'Enter') { e.preventDefault(); qkGo(QK.sel); }
+}, true);
+
+// ============================================================
+//   ÉCRAN ATELIER (plein écran, gros chiffres, rafraîchi automatiquement)
+// ============================================================
+let TV = null;
+function tvHtml() {
+  const t = today(), x = dayStatus(t), P = projection(), sim = P ? dockSim(P) : null, w = weekData();
+  const card = (lab, y) => `<div class="tv-card st-${y ? y.st : 'none'}"><span>${lab}</span><b>${y ? y.lbl : '—'}</b><small>${esc(y ? y.det : 'pas de données')}</small></div>`;
+  const days = weekDays().filter(workDay);
+  const reste = sum(w.prep.filter(l => l.sgp !== 'C'), l => l.hrSilo + l.hrPick);
+  const wIn = sum(w.rap.filter(l => l.sens === 'in'), l => l.pal) + sum(w.sst, r => r.pal) + sum(w.nav, r => r.pal), wOut = sum(w.aff, r => r.pal) + sum(w.rap.filter(l => l.sens === 'out'), l => l.pal);
+  return `<div class="tv-top"><div><b>Flux Hebdo · ${esc(S.settings.site)}</b><span>${esc(fdateL(t))} · semaine ${S.ui.week.w}</span></div><div class="tv-clock">${new Date().toTimeString().slice(0, 5)}</div><button class="btn" data-tvclose>Quitter (Échap)</button></div>
+    <div class="tv-grid">${card('Préparation', x.prep)}${card('Quai expédition', x.dock)}${card('Quai réception', x.rec)}<div class="tv-card st-none"><span>Camions aujourd’hui</span><b>↘ ${n0(x.inCam)} · ↗ ${n0(x.outN)}</b><small>${n0(x.inPal)} pal entrantes · ${n0(x.outPal)} pal sortantes</small></div></div>
+    <div class="tv-week">${days.map(d => { const y = d === t ? x : dayStatus(d); return `<div class="tv-day st-${y.overall}${d === t ? ' today' : ''}"><i></i><b>${DAYS[dayIdx(d)]}</b><small>${fdate(d)} · ${stLbl[y.overall]}</small></div>`; }).join('')}</div>
+    <div class="tv-kpis"><div><span>Entrées semaine</span><b>${n0(wIn)}</b><small>pal</small></div><div><span>Sorties semaine</span><b>${n0(wOut)}</b><small>pal</small></div><div><span>Reste à préparer</span><b>${n1(reste)}</b><small>h</small></div><div><span>Quai expédition</span><b>${sim ? n0(sim.occAt(Date.now())) : '—'}</b><small>/ ${n0(num(S.settings.capaQuaiExp))} blocs</small></div></div>
+    <div class="tv-foot">Données : VL06O ${S.prep ? esc(fdt(snapTs())) : 'non importée'} · actualisé à ${new Date().toTimeString().slice(0, 5)} · Flux Hebdo v${APP_VERSION}</div>`;
+}
+function tvOpen() {
+  if ($('#tv')) return;
+  const el = document.createElement('div'); el.id = 'tv'; el.className = 'tv'; el.innerHTML = tvHtml(); document.body.appendChild(el);
+  try { el.requestFullscreen && el.requestFullscreen().catch(() => {}); } catch (e) {}
+  let n = 0;
+  TV = setInterval(async () => { n++; if (n % 10 === 0) { try { await srcRefresh(); if (SY.perm === 'granted' && !syncMeta().dirty) await syncPull('écran atelier'); } catch (e) {} } const t = $('#tv'); if (t) t.innerHTML = tvHtml(); }, 60000);
+}
+function tvClose() { clearInterval(TV); TV = null; const el = $('#tv'); if (el) el.remove(); try { document.fullscreenElement && document.exitFullscreen(); } catch (e) {} }
+document.addEventListener('click', e => { if (e.target.closest('#tvBtn')) tvOpen(); if (e.target.closest('[data-tvclose]')) tvClose(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#tv')) tvClose(); });
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && $('#tv') && TV) { /* on reste en mode atelier fenêtré */ } });
+
+// densité d'affichage
+const applyDensity = v => { document.documentElement.classList.remove('dens-compact', 'dens-airy'); if (v === 'compact' || v === 'airy') document.documentElement.classList.add('dens-' + v); };
+document.addEventListener('change', e => { if (e.target.matches('[data-density]')) { try { localStorage.setItem('flux-density', e.target.value); } catch (x) {} applyDensity(e.target.value); } });
 
 // ---------- Démarrage ----------
 (async function init() {
