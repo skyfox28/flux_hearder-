@@ -231,6 +231,23 @@ table.t{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;font
 .b-nodot::before{display:none}
 
 .alerts{display:flex;flex-direction:column;gap:8px}
+.srcbar{display:flex;align-items:center;gap:10px;padding:9px 12px 9px 14px;border-radius:14px;margin-bottom:0;font-size:13px;color:var(--text-2)}
+.srcbar svg{width:16px;height:16px;color:var(--text-3);flex:none}.srcbar span{flex:1;min-width:0}
+.srcbar.empty{border-color:color-mix(in srgb,var(--warn) 45%,var(--glass-border))}
+.srctop{padding:14px 18px}
+.srcgrid{align-items:start}
+.srchead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}.srchead h2{margin:0;flex:1}.srchead h2 small{font-size:12px;font-weight:500;color:var(--text-3);margin-left:6px}
+.drop.sm{padding:14px;min-height:0}
+.srcrows{margin-top:10px;border-top:1px solid var(--grid);padding-top:6px}
+.srcrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:5px 0;font-size:12.5px}
+.srcrow .nm{font-weight:600;min-width:72px}
+.btn.ghost{background:transparent;border-color:transparent;box-shadow:none}
+.infoi{all:unset;cursor:pointer;display:inline-grid;place-items:center;width:16px;height:16px;margin-left:7px;border-radius:50%;font:italic 700 11px/1 Georgia,serif;color:var(--text-3);border:1.5px solid var(--grid);vertical-align:2px;transition:color .15s,border-color .15s}
+.infoi:hover,.infoi[aria-expanded="true"]{color:var(--accent);border-color:var(--accent)}
+.infoi:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.alert .x{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+.alert .x.open{display:block}
+.mhead .hint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .alert{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:14px;background:var(--glass-soft);border:1px solid var(--glass-border);font-size:13px}
 .alert svg{width:18px;height:18px;flex:none;margin-top:1px}
 .alert.crit svg{color:var(--crit-ink)} .alert.warn svg{color:var(--warn-ink)} .alert.info svg{color:var(--accent)}
@@ -533,7 +550,7 @@ const SPLASH = (() => {
   const fit = () => { const st = el.querySelector('.sp-stage'); const k = Math.min(1, st.clientWidth / 900, st.clientHeight / 500) * .92; document.getElementById('spCam').style.scale = k; };
   fit(); addEventListener('resize', fit);
   // étapes
-  const STEPS = [['db', 'Données locales'], ['calc', 'Calcul des flux de la semaine'], ['sync', 'Sauvegarde partagée'], ['src', 'Fichiers SharePoint (rapatriements, SST)']];
+  const STEPS = [['db', 'Données locales'], ['calc', 'Calcul des flux de la semaine'], ['sync', 'Sauvegarde partagée'], ['src', 'Fichiers SharePoint']];
   const ol = document.getElementById('spSteps');
   ol.innerHTML = STEPS.map(([k, l]) => `<li data-k="${k}"><i></i><span>${l}</span><small></small></li>`).join('');
   // Connexion de test (temporaire, à supprimer) : identifiant admin. Contrôle côté navigateur uniquement, ce n'est pas une sécurité.
@@ -612,9 +629,11 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.23.0';
+const APP_VERSION = '1.25.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.25.0', '01/10/2026', 'Onglet Sources : toutes les mises à jour au même endroit (VL06O, LIKP, affrètement, navettes VL06I, rapatriements, planning SST) ; dossier SharePoint reliable pour VL06O, LIKP, SST et un par entrepôt de rapatriement (FM, Mutual, Tempo One).'],
+  ['1.24.0', '01/10/2026', 'Navettes usines (copier-coller VL06I, sites 2560 et 2510, palettes = colis, date dépassée = jour de la VL06I) dans les entrées et le quai de réception ; overlay flux sans solde ni retours interco ; affichage épuré (explications repliées derrière ⓘ, alertes sur une ligne).'],
   ['1.23.0', '01/10/2026', 'Dossiers sources SharePoint (rapatriements, planning SST) relus automatiquement à l’ouverture ; une seule autorisation pour tous les dossiers ; confirmation à la fermeture tant que la sauvegarde partagée n’est pas à jour.'],
   ['1.22.0', '01/10/2026', 'Quai de réception : portes de déchargement, palettes au sol (blocs) et rangement par l’équipe réception ; attente des camions, saturation du sol, fin de rangement par jour ; tuile et overlay dédiés, réglages et équipes de rangement.'],
   ['1.21.1', '30/09/2026', 'Mention « Coming soon · en développement » portée par l’app elle-même (panneau de la scène et en-tête de l’écran d’ouverture).'],
@@ -757,7 +776,9 @@ const DEFAULT_SETTINGS = {
   dechDuree: 45,       // minutes de déchargement par camion
   cadRecep: 25,        // palettes rangées par heure et par cariste réception
   blocParPalRec: 1,    // blocs par palette reçue (palettes entières non gerbées)
-  rapatDebut: '06:00', rapatFin: '14:00',   // plage d'arrivée des camions sans heure (rapatriements)
+  rapatDebut: '06:00', rapatFin: '14:00',
+  navSites: '2560, 2510',   // sites usines retenus dans la VL06I
+  navDebut: '05:00', navFin: '20:00',   // navettes ramenées au fil de la journée par les chauffeurs de parc   // plage d'arrivée des camions sans heure (rapatriements)
   equipesRecep: [{ nom: 'Matin', debut: '05:00', fin: '12:30', prep: 1 }, { nom: 'Après-midi', debut: '12:30', fin: '20:00', prep: 1 }],
   quaiDepart: 1,       // départ du camion : 0 = début du créneau, 1 = milieu, 2 = fin
   colisParPalPick: 80, // estimation des palettes de picking quand la livraison n'est pas affrétée
@@ -786,6 +807,7 @@ const S = {
   prepHist: null,       // photos successives de la VL06O (rendement réel)
   likp: null,           // heures de chargement par livraison (table LIKP)
   sst: { rows: [] },
+  nav: null,           // navettes usines : { at, snap, rows } (copier-coller VL06I)
   ui: { tab: 'dash', week: null, prepView: 'plan', pf: {}, af: {}, rf: {}, sort: {} },
 };
 const save = k => { if (typeof syncDirty === 'function' && SYNC_KEYS.includes(k)) syncDirty(); return DB.set(k, S[k]); };
@@ -1223,10 +1245,12 @@ function shiftWeek(n) { const mon = addDays(mondayOf(S.ui.week.y, S.ui.week.w), 
 // ---------- Navigation ----------
 const TABS = [
   ['dash', 'Tableau de bord', 'dash'],
+  ['src', 'Sources', 'upload'],
   ['prep', 'Préparation', 'prep'],
   ['out', 'Expéditions', 'out'],
   ['interco', 'Intercos', 'interco'],
   ['rapat', 'Rapatriements', 'rapat'],
+  ['nav', 'Navettes usines', 'out'],
   ['sst', 'Réceptions SST', 'sst'],
   ['set', 'Paramètres', 'set'],
 ];
@@ -1239,9 +1263,10 @@ function renderSources() {
     ['Affrètement', S.affret.importedAt || (Object.keys(S.affret.rows).length ? 1 : null), 'out', Object.keys(S.affret.rows).length ? `${n0(Object.keys(S.affret.rows).length)} livraisons` : 'non collé'],
     ['Rapatriements', Object.keys(S.rapat.loads).length ? 1 : null, 'rapat', `${n0(Object.keys(S.rapat.loads).length)} camions`],
     ['SST', S.sst.rows.length ? 1 : null, 'sst', `${n0(S.sst.rows.length)} RDV`],
+    ['Navettes', S.nav?.at, 'nav', S.nav ? `${navRows().length} navettes` : 'non collée'],
   ];
   $('#sources').innerHTML = src.map(([n, ts, tab, det]) => { const a = age(ts); const cls = ts == null ? 'off' : ts > 1 && a > 12 ? 'old' : 'ok';
-    return `<button class="src ${cls}" data-tab="${tab}" title="${esc(det)}"><i></i>${n}${ts > 1 ? `<small>${esc(ts === snapTs() ? new Date(ts).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }))}</small>` : ''}</button>`; }).join('');
+    return `<button class="src ${cls}" data-tab="src" title="${esc(det)}"><i></i>${n}${ts > 1 ? `<small>${esc(ts === snapTs() ? new Date(ts).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }))}</small>` : ''}</button>`; }).join('');
 }
 $('#sources').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) { S.ui.tab = b.dataset.tab; S.ui.modal = null; render(); } });
 // pastilles du menu : livraisons en retard prévu, RDV SST passés non pointés
@@ -1253,7 +1278,7 @@ function navBadges() {
 }
 function renderNav() {
   $('#nav').innerHTML = `<div class="brand"><div class="logo">FX</div><div><b>Flux Hebdo</b><small>Dépôt ${esc(S.settings.site)}</small></div></div>` +
-    (() => { const nb = navBadges(); return TABS.map(([k, l, i], n) => (n === 6 ? '<div class="sep"></div>' : '') + `<button class="${S.ui.tab === k ? 'on' : ''}" data-tab="${k}" ${S.ui.tab === k ? 'aria-current="page"' : ''}>${icon(i)}<span>${l}</span>${nb[k] ? `<em class="navb ${nb[k][1]}" title="${esc(nb[k][2])}">${nb[k][0]}</em>` : ''}</button>`).join(''); })() +
+    (() => { const nb = navBadges(); return TABS.map(([k, l, i], n) => (k === 'set' ? '<div class="sep"></div>' : '') + `<button class="${S.ui.tab === k ? 'on' : ''}" data-tab="${k}" ${S.ui.tab === k ? 'aria-current="page"' : ''}>${icon(i)}<span>${l}</span>${nb[k] ? `<em class="navb ${nb[k][1]}" title="${esc(nb[k][2])}">${nb[k][0]}</em>` : ''}</button>`).join(''); })() +
     `<div class="foot">${S.prep ? `VL06O : ${esc(new Date(S.prep.importedAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }))}` : 'VL06O : non importé'}<br>Données locales au navigateur<br>${(() => { let u = ''; try { u = sessionStorage.getItem('flux-user') || ''; } catch (e) {} return u ? `Connecté : <b>${esc(u)}</b> · <button class="linkbtn" data-act="logout">déconnexion</button><br>` : ''; })()}<button class="linkbtn" data-detail="version">v${APP_VERSION}</button> · Développé par ${APP_AUTHOR}</div>`;
 }
 $('#nav').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) { S.ui.tab = b.dataset.tab; S.ui.modal = null; render(); window.scrollTo({ top: 0 }); } });
@@ -1274,17 +1299,18 @@ function weekData() {
   const aff = Object.values(S.affret.rows).filter(r => inWeek(r.date) && !isExtShip(r));   // départs directs d'un autre site exclus
   const rap = Object.values(S.rapat.loads).filter(l => inWeek(l.date));
   const sst = S.sst.rows.filter(r => inWeek(r.date));
-  return { days, prep, aff, rap, sst };
+  const nav = navRows().filter(r => inWeek(r.dateEff));
+  return { days, prep, aff, rap, sst, nav };
 }
 
 // ============================================================
 //   VUE : TABLEAU DE BORD
 // ============================================================
 function viewDash() {
-  const { days, prep, aff, rap, sst } = weekData();
+  const { days, prep, aff, rap, sst, nav } = weekData();
   const rin = rap.filter(l => l.sens === 'in'), rout = rap.filter(l => l.sens === 'out');
   const A = agg(prep), fait = agg(prep.filter(l => l.sgp === 'C'));
-  const palIn = sum(rin, l => l.pal) + sum(sst, r => r.pal);
+  const palIn = sum(rin, l => l.pal) + sum(sst, r => r.pal) + sum(nav, r => r.pal);
   const palOut = sum(aff, r => r.pal);
   const hrs = A.hrSilo + A.hrPick, hrsFait = fait.hrSilo + fait.hrPick;
   const livIdx = livIndex();
@@ -1292,11 +1318,12 @@ function viewDash() {
 
   const perDay = days.map(d => {
     const p = prep.filter(l => l.dc === d), pa = agg(p);
-    const a = aff.filter(r => r.date === d), ri = rin.filter(l => l.date === d), ro = rout.filter(l => l.date === d), s = sst.filter(r => r.date === d);
+    const a = aff.filter(r => r.date === d), ri = rin.filter(l => l.date === d), ro = rout.filter(l => l.date === d), s = sst.filter(r => r.date === d), nv = nav.filter(r => r.dateEff === d), pIn = sum(ri, l => l.pal) + sum(s, r => r.pal) + sum(nv, r => r.pal);
     return {
+      palNav: sum(nv, r => r.pal), camNav: nv.length,
       livNA: vlOnlyRows(x => x === d).length,
       d, palRap: sum(ri, l => l.pal), camRap: ri.length, palSst: sum(s, r => r.pal), camSst: sum(s, r => r.cam || 1), palIntercoBack: sum(s.filter(r => isInterco(r.sst)), r => r.pal),
-      palIn: sum(ri, l => l.pal) + sum(s, r => r.pal), palOut: sum(a, r => r.pal), palOutAll: sum(a, r => r.pal) + sum(ro, l => l.pal), capIn: capaInDay(d), capOut: capaOutDay(d), tIn: capaInDay(d) ? (sum(ri, l => l.pal) + sum(s, r => r.pal)) / capaInDay(d) : NaN, tOut: capaOutDay(d) ? (sum(a, r => r.pal) + sum(ro, l => l.pal)) / capaOutDay(d) : NaN, blocs: sum(a, r => r.blocs), livOut: a.length,
+      palIn: pIn, palOut: sum(a, r => r.pal), palOutAll: sum(a, r => r.pal) + sum(ro, l => l.pal), capIn: capaInDay(d), capOut: capaOutDay(d), tIn: capaInDay(d) ? pIn / capaInDay(d) : NaN, tOut: capaOutDay(d) ? (sum(a, r => r.pal) + sum(ro, l => l.pal)) / capaOutDay(d) : NaN, blocs: sum(a, r => r.blocs), livOut: a.length,
       poids: sum(a, r => r.poids), palExt: sum(ro, l => l.pal),
       palInterco: sum(a.filter(r => isInterco(r.nom, livIdx.get(r.liv)?.prio)), r => r.pal),
       hrSilo: pa.hrSilo, hrPick: pa.hrPick, hrs: pa.hrSilo + pa.hrPick, codes: pa.codes, livPrep: pa.liv,
@@ -1319,7 +1346,7 @@ function viewDash() {
   <section class="card glass">
     <div class="group-title">Entrées</div>
     <div class="kpis">
-      ${kpi('Palettes entrantes', n0(palIn), 'pal', `Rapatriements ${n0(sum(rin, l => l.pal))} · SST ${n0(sum(sst, r => r.pal))}`, 'var(--in)', 'in')}
+      ${kpi('Palettes entrantes', n0(palIn), 'pal', `Rapatriements ${n0(sum(rin, l => l.pal))} · SST ${n0(sum(sst, r => r.pal))} · Navettes ${n0(sum(nav, r => r.pal))}`, 'var(--in)', 'in')}
       ${kpi('Camions rapatriement', n0(rin.length), '', uniq(rin.map(l => l.entrepot)).join(' · ') || '—', '', 'rapin')}
       ${kpi('Réceptions SST', n0(sum(sst, r => r.pal)), 'pal', `${n0(sum(sst, r => r.cam || 1))} camion(s) · dont retours interco ${n0(sum(sst.filter(r => isInterco(r.sst)), r => r.pal))} pal`, '', 'sst')}
       ${kpi('Transferts vers externes', n0(sum(rout, l => l.pal)), 'pal', `${rout.length} camion(s) · déstockages + navettes`, '', 'ext')}
@@ -1347,7 +1374,7 @@ function viewDash() {
     </div>
     ${reelTiles()}
   </section>
-  ${alerts ? `<section class="card glass"><h2>Points d’attention</h2><p class="hint">Contrôles croisés affrètement × VL06O.</p><div class="alerts">${alerts}</div></section>` : ''}
+  ${alerts ? `<section class="card glass"><h2>Points d’attention</h2><div class="alerts">${alerts}</div></section>` : ''}
   <div class="grid g2">
     <section class="card glass clickcard" data-detail="flux" role="button" tabindex="0"><span class="expand">Agrandir ⤢</span><h2>Flux palettes par jour</h2><p class="hint">Entrées = rapatriements + réceptions SST · Sorties = expéditions affrétées + transferts vers externes. Pointillés : capacité quai (${n0(S.settings.capaInWeek)} pal/sem. en entrée, ${n0(S.settings.capaOutWeek)} en sortie, sur ${nbWorkDays()} jours).</p>
       ${barChart({ cats, series: [{ key: 'palIn', label: 'Entrées', color: cssVar('--in') }, { key: 'palOutAll', label: 'Sorties', color: cssVar('--out') }], data: pd, unit: ' pal', ref: [{ value: num(S.settings.capaInWeek) / nbWorkDays(), label: `cap. entrées ${n0(num(S.settings.capaInWeek) / nbWorkDays())}`, legend: 'Capacité entrées / jour', color: cssVar('--in') }, { value: num(S.settings.capaOutWeek) / nbWorkDays(), label: `cap. sorties ${n0(num(S.settings.capaOutWeek) / nbWorkDays())}`, legend: 'Capacité sorties / jour', color: cssVar('--out') }] })}
@@ -1361,11 +1388,11 @@ function viewDash() {
   </section>
 `;
 }
-const MATRIX_DETAIL = { palRap: 'rapin', camRap: 'rapin', palSst: 'sst', camSst: 'sst', palIntercoBack: 'sst', palIn: 'in', livOut: 'out', livNA: 'out', palOut: 'out', palOutAll: 'flux', capIn: 'flux', capOut: 'flux', tIn: 'flux', tOut: 'flux', blocs: 'blocs', palInterco: 'interco', poids: 'poids', palExt: 'ext', livPrep: 'livprep', codes: 'livprep', hrs: 'charge', hrsFait: 'avanc', hrSilo: 'charge', capaS: 'charge', tauxS: 'charge', hrPick: 'charge', capa: 'charge', taux: 'charge', prepNeed: 'charge', dureeEq: 'charge' };
+const MATRIX_DETAIL = { palNav: 'nav', camNav: 'nav', palRap: 'rapin', camRap: 'rapin', palSst: 'sst', camSst: 'sst', palIntercoBack: 'sst', palIn: 'in', livOut: 'out', livNA: 'out', palOut: 'out', palOutAll: 'flux', capIn: 'flux', capOut: 'flux', tIn: 'flux', tOut: 'flux', blocs: 'blocs', palInterco: 'interco', poids: 'poids', palExt: 'ext', livPrep: 'livprep', codes: 'livprep', hrs: 'charge', hrsFait: 'avanc', hrSilo: 'charge', capaS: 'charge', tauxS: 'charge', hrPick: 'charge', capa: 'charge', taux: 'charge', prepNeed: 'charge', dureeEq: 'charge' };
 const MATRIX_WEEK = { hrSilo: 'prepxl', capaS: 'prepxl', tauxS: 'prepxl', palIn: 'flux', palOut: 'flux', palOutAll: 'flux', capIn: 'flux', capOut: 'flux', tIn: 'flux', tOut: 'flux', hrs: 'prepxl', hrPick: 'prepxl', capa: 'prepxl', taux: 'prepxl', prepNeed: 'prepxl', dureeEq: 'prepxl' };
 function dayMatrix(pd) {
   const rowsDef = [
-    ['Rapatriements (pal)', 'palRap', n0], ['Camions rapatriement', 'camRap', n0], ['Réceptions SST (pal)', 'palSst', n0], ['Camions SST', 'camSst', n0], ['dont retours interco (pal)', 'palIntercoBack', n0],
+    ['Rapatriements (pal)', 'palRap', n0], ['Camions rapatriement', 'camRap', n0], ['Réceptions SST (pal)', 'palSst', n0], ['Camions SST', 'camSst', n0], ['dont retours interco (pal)', 'palIntercoBack', n0], ['Navettes usines (pal)', 'palNav', n0], ['Navettes usines (nb)', 'camNav', n0],
     ['Total entrées (pal)', 'palIn', n0, true], ['Capacité entrées (pal)', 'capIn', n0], ['Taux entrées / capacité', 'tIn', v => isFinite(v) ? pct(v) : '–', false, pd => { const c = sum(pd, r => r.capIn); return c ? sum(pd, r => r.palIn) / c : NaN; }], ['Livraisons affrétées', 'livOut', n0], ['Livraisons VL06O non affrétées', 'livNA', n0], ['Palettes expédiées', 'palOut', n0, true], ['Total sorties quai (pal)', 'palOutAll', n0, true], ['Capacité sorties (pal)', 'capOut', n0], ['Taux sorties / capacité', 'tOut', v => isFinite(v) ? pct(v) : '–', false, pd => { const c = sum(pd, r => r.capOut); return c ? sum(pd, r => r.palOutAll) / c : NaN; }],
     ['Blocs sol', 'blocs', n0], ['dont envois interco (pal)', 'palInterco', n0], ['Poids expédié (t)', 'poids', tons],
     ['Transferts vers externes (pal)', 'palExt', n0], ['Livraisons à préparer', 'livPrep', n0], ['Codes (lignes)', 'codes', n0],
@@ -1427,20 +1454,7 @@ document.addEventListener('click', e => {
 function viewPrep() {
   const all = prepLines();
   let body0 = '';
-  const imp = `
-  <section class="card glass">
-    <div class="card-head"><div><h2>Extraction SAP VL06O</h2>
-      <p class="hint">Même méthode que <i>Analyse_Activité_Préparation</i> : Pal SILO = arrondi inférieur (colis ÷ UQ/PAL) · Colis picking = reste · Heures SILO = pal ÷ ${S.settings.cadSilo} · Heures picking = colis ÷ cadence (Entrepôt/Interco/GMS ${S.settings.cadEntrepot}, Export ${S.settings.cadExport}, MDD ${S.settings.cadMdd}).</p></div>
-      ${S.prep ? `<div class="meta" style="text-align:right">${esc(S.prep.file)}<br>importé le ${esc(new Date(S.prep.importedAt).toLocaleString('fr-FR'))} · ${n0(S.prep.rows.length)} postes</div>` : ''}
-    </div>
-    <div class="drop" data-drop="vl06o">${icon('upload')}<div><b>Déposez VL06O.XLSX ici</b> ou <button class="btn sm" data-pick="vl06o">choisir le fichier</button><small>L’import remplace la photo précédente (comme l’actualisation du fichier Excel).</small></div></div>
-    <details class="paste" style="margin-top:14px" ${S.likp ? '' : 'open'}><summary>${icon('paste')} Heures de chargement (table LIKP) <span class="meta" style="font-weight:400">— ${S.likp ? `${n0(Object.keys(S.likp.map).length)} livraisons avec heure, mis à jour le ${esc(new Date(S.likp.importedAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }))}` : 'non renseignées'}</span></summary>
-      <p class="hint" style="margin-top:10px">Collez l’extraction LIKP (avec ou sans en-têtes : n° de livraison, date et heure de début du créneau de chargement de ${num(S.settings.likpSlot)} h) ou déposez le fichier Excel. Chaque livraison est alors préparée dans l’ordre de son heure de chargement pour le calcul « réel ». Les imports successifs se complètent.</p>
-      <textarea class="inp" id="likpPaste" placeholder="1&#9;472618252&#9;FRDTS&#9;2530&#9;01.10.2026&#9;&#9;01.10.2026&#9;06:00:00&#9;…"></textarea>
-      <div class="row" style="margin-top:10px"><button class="btn primary" data-act="likp-import">${icon('upload')} Importer le collage</button><button class="btn sm" data-pick="likp">ou choisir un fichier Excel</button>${S.likp ? '<button class="btn sm danger" data-act="likp-clear">Effacer les heures</button>' : ''}</div>
-    </details>
-    <div class="meta" style="margin-top:10px">Référentiel utilisé : ${n0(Object.keys(ref().articles).length)} articles palettisés (UQ/PAL) · ${n0(Object.keys(ref().mlgt).length)} emplacements picking — ${S.ref ? 'importé' : 'intégré, extrait du fichier Analyse_Activité_Préparation'}.</div>
-  </section>`;
+  const imp = S.prep ? srcBar(`VL06O extraite ${esc(fdt(snapTs()))} · ${n0(S.prep.rows.length)} postes${S.likp ? ` · LIKP ${n0(Object.keys(S.likp.map).length)} créneaux` : ' · LIKP non collée'}`) : srcBar('<b>VL06O non importée</b> — importez l’extraction SAP pour suivre la préparation.', true);
   if (!S.prep) return imp;
 
   const f = S.ui.pf;
@@ -1606,17 +1620,8 @@ function viewOut() {
     (!f.days || !f.days.length || f.days.includes(r.date)) && (!f.tr || !f.tr.length || f.tr.includes(r.transp)) &&
     (!f.st || !f.st.length || f.st.includes(affStatus(r))) && (!f.src || !f.src.length || f.src.includes(r.src)) &&
     (!q || r.liv.includes(q) || r.nom.toUpperCase().includes(q) || r.ville.toUpperCase().includes(q) || r.comm.toUpperCase().includes(q)));
-  const pasteCard = `
-  <section class="card glass">
-    <details class="paste" ${Object.keys(S.affret.rows).length ? '' : 'open'}>
-      <summary>${icon('paste')} Coller l’export de la base affrètement <span class="meta" style="font-weight:400">— ${n0(Object.keys(S.affret.rows).length)} livraisons en mémoire</span></summary>
-      <p class="hint" style="margin-top:10px">Copiez les lignes depuis Access (avec ou sans en-têtes, format <kbd>affret · Prep · Code Depot · Liv · Date enlevement · code transporteur · Nom transporteur …</kbd> ou l’ancien format) et collez-les ci-dessous. Les livraisons déjà connues sont mises à jour, la ligne de totaux est ignorée.</p>
-      <textarea class="inp" id="affPaste" placeholder="affret&#9;Prep&#9;Code Depot&#9;Liv&#9;Date enlevement&#9;code transporteur&#9;Nom transporteur&#9;CodeClient&#9;nom&#9;ville&#9;…"></textarea>
-      <div class="row" style="margin-top:10px"><button class="btn primary" data-act="aff-import">${icon('upload')} Importer</button>
-      <label class="row meta"><input type="checkbox" id="affReplace"> remplacer les jours présents dans le collage</label></div>
-    </details>
-  </section>`;
-  if (!rows.length) return pasteCard + `<section class="card glass"><div class="empty"><b>Aucune expédition cette semaine</b>Collez l’export de la base affrètement ci-dessus ou importez la VL06O.</div></section>`;
+  const pasteCard = srcBar(Object.keys(S.affret.rows).length ? `Base affrètement : ${n0(Object.keys(S.affret.rows).length)} livraisons en mémoire` : '<b>Base affrètement non collée</b>', !Object.keys(S.affret.rows).length);
+  if (!rows.length) return pasteCard + `<section class="card glass"><div class="empty"><b>Aucune expédition cette semaine</b>Collez l’export de la base affrètement dans l’onglet Sources.</div></section>`;
 
   // matrice transporteur × jour
   const dshow = days.filter((d, i) => i < 6 || rows.some(r => r.date === d));
@@ -1752,11 +1757,7 @@ function viewRapat() {
   const filt = loads.filter(l => (!f.ent || !f.ent.length || f.ent.includes(l.entrepot)) && (!f.sens || !f.sens.length || f.sens.includes(l.sens)))
     .sort((a, b) => a.date.localeCompare(b.date) || a.entrepot.localeCompare(b.entrepot) || a.sheet.localeCompare(b.sheet));
   const files = uniq(all.map(l => l.file));
-  const imp = `<section class="card glass">
-    <div class="card-head"><div><h2>Fichiers de rapatriement</h2><p class="hint">Un classeur par entrepôt externe et par semaine (ex. <kbd>2026_S40_FM.xlsx</kbd>). Chaque onglet après « LUNDI&gt;&gt; », « MARDI&gt;&gt; »… est un camion : palettes, poids et articles sont calculés automatiquement.</p></div>
-    ${files.length ? `<div class="meta" style="text-align:right">${files.length} fichier(s) en mémoire</div>` : ''}</div>
-    <div class="drop" data-drop="rapat">${icon('upload')}<div><b>Déposez un ou plusieurs fichiers ici</b> ou <button class="btn sm" data-pick="rapat">choisir</button>${SRC.rapat.dir ? ` <button class="btn sm" data-act="src-refresh" data-k="rapat">Actualiser depuis SharePoint</button>` : ` <button class="btn sm" data-act="src-choose" data-k="rapat">Relier un dossier SharePoint…</button>`}<small>Un fichier ré-importé remplace sa version précédente.</small></div></div>
-  </section>`;
+  const imp = srcBar(files.length ? `${files.length} fichier(s) de rapatriement en mémoire` : '<b>Aucun fichier de rapatriement</b>', !files.length);
   if (!loads.length) return imp + `<section class="card glass"><div class="empty"><b>Aucun rapatriement pour cette semaine</b>${all.length ? 'Des données existent sur d’autres semaines : ' + uniq(all.map(l => 'S' + isoWeek(l.date).w)).sort().join(', ') : ''}</div></section>`;
   const dshow = days.filter((d, i) => i < 6 || loads.some(l => l.date === d));
   const lin = loads.filter(l => l.sens === 'in'), lout = loads.filter(l => l.sens === 'out');
@@ -1800,6 +1801,96 @@ document.addEventListener('click', e => {
 // ============================================================
 //   VUE : RÉCEPTIONS SOUS-TRAITANTS
 // ============================================================
+// ============================================================
+//   NAVETTES USINES (copier-coller VL06I) : entrées au dépôt
+//   - seuls les sites usines retenus (2560 Carpentras, 2510 usine épices par défaut)
+//   - palettes = nombre de colis (si vide : estimé au poids, kg/palette moyen des autres navettes)
+//   - date dépassée : la navette est encore attendue, elle compte le jour de la VL06I
+//   - pas d'horaire : ramenées au fil de la journée par les chauffeurs de parc
+// ============================================================
+function parseVL06I(txt) {
+  const rows = [];
+  for (const line of String(txt).split(/\r?\n/)) {
+    let c = line.split('\t'); if (c.length < 6) c = line.trim().split(/\s{2,}/);
+    const liv = str(c[0]).replace(/\D/g, ''), dm = /^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/.exec(str(c[1]));
+    if (!/^\d{6,}$/.test(liv) || !dm) continue;
+    rows.push({ liv, date: `${dm[3]}-${pad(+dm[2])}-${pad(+dm[1])}`, site: str(c[2]), nom: str(c[3]), dest: str(c[4]), colis: num(c[5]), user: str(c[6]), ref: str(c[7]), poids: num(c[8]) });
+  }
+  return rows;
+}
+const navSites = () => String(S.settings.navSites || '').split(/[\s,;]+/).filter(Boolean);
+function navRows() {
+  if (!S.nav) return [];
+  const sites = navSites(), rows = S.nav.rows.filter(r => !sites.length || sites.includes(r.site));
+  const ref = rows.filter(r => r.colis > 0 && r.poids > 0), kg = ref.length >= 3 ? sum(ref, r => r.poids) / sum(ref, r => r.colis) : 150;
+  return rows.map(r => Object.assign({}, r, {
+    pal: r.colis > 0 ? r.colis : r.poids > 0 ? Math.max(1, Math.round(r.poids / kg)) : 0,
+    palSrc: r.colis > 0 ? 'colis' : r.poids > 0 ? `≈ ${n0(r.poids)} kg ÷ ${n0(kg)} kg/pal` : 'inconnu',
+    dateEff: r.date < S.nav.snap ? S.nav.snap : r.date, late: r.date < S.nav.snap,
+  }));
+}
+function viewNav() {
+  // la VL06I remplace la précédente : une navette absente du nouveau collage a été déchargée → on affiche simplement les navettes en cours
+  const all = navRows(), ex = S.nav ? S.nav.rows.length - all.length : 0;
+  const bar = srcBar(S.nav ? `VL06I du ${esc(fdt(S.nav.at))}${ex ? ` · ${ex} ligne(s) d’autres sites ignorée(s)` : ''}` : '<b>VL06I non collée</b>', !S.nav);
+  if (!all.length) return bar + `<section class="card glass"><div class="empty"><b>Aucune navette en cours</b>${S.nav ? 'Toutes les navettes de la dernière VL06I ont été déchargées.' : 'Collez la VL06I dans l’onglet Sources.'}</div></section>`;
+  const rows = all.slice().sort((a, b) => a.date.localeCompare(b.date) || a.nom.localeCompare(b.nom));
+  return bar + `<section class="card glass"><h2>Navettes en cours <span class="meta" style="font-weight:500">· ${rows.length} navette${rows.length > 1 ? 's' : ''} · ${n0(sum(rows, r => r.pal))} palettes</span></h2>
+    ${table('navT', [
+      { k: 'date', label: 'Date', html: r => `${esc(fdateL(r.date))}${r.late ? ` ${badge('en retard', 'b-warn')}` : ''}` },
+      { k: 'nom', label: 'Usine', cls: 'wrap' }, { k: 'liv', label: 'Livraison' },
+      { k: 'pal', label: 'Palettes', num: true, html: r => r.palSrc === 'colis' ? n0(r.pal) : `${n0(r.pal)} <span class="muted" title="${esc(r.palSrc)}">≈</span>` },
+    ], rows, { total: { pal: sum(rows, r => r.pal) } })}</section>`;
+}
+const navTable = (id, rows) => table(id, [
+  { k: 'dateEff', label: 'Jour retenu', fmt: fdateL }, { k: 'date', label: 'Date VL06I', html: r => r.late ? `${esc(fdate(r.date))} ${badge('en retard', 'b-warn')}` : esc(fdate(r.date)) },
+  { k: 'liv', label: 'Livraison' }, { k: 'site', label: 'Site' }, { k: 'nom', label: 'Usine', cls: 'wrap' },
+  { k: 'pal', label: 'Palettes', num: true, html: r => r.palSrc === 'colis' ? n0(r.pal) : `${n0(r.pal)} <span class="muted" title="${esc(r.palSrc)}">≈</span>` },
+  { k: 'poids', label: 'Poids kg', num: true, fmt: n0 }, { k: 'ref', label: 'Réf.' },
+], rows, { total: { pal: sum(rows, r => r.pal), poids: sum(rows, r => r.poids) } });
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-act="nav-import"],[data-act="nav-clear"]'); if (!b) return;
+  if (b.dataset.act === 'nav-clear') { if (!confirm('Vider les navettes ?')) return; S.nav = null; await save('nav'); return render(); }
+  const rows = parseVL06I($('#navPaste').value);
+  if (!rows.length) return toast('Aucune ligne reconnue : collez les lignes de la VL06I (livraison, date jj.mm.aaaa, site, nom, …).', 6000);
+  S.nav = { at: Date.now(), snap: today(), rows }; await save('nav');
+  const k = navRows(); toast(`<b>${rows.length} lignes VL06I</b> · ${k.length} navettes retenues (${n0(sum(k, r => r.pal))} pal)`, 5000); render();
+});
+// ============================================================
+//   ONGLET SOURCES : toutes les mises à jour au même endroit
+// ============================================================
+function viewSources() {
+  const nAff = Object.keys(S.affret.rows).length, loads = Object.values(S.rapat.loads), files = uniq(loads.map(l => l.file));
+  const sstFiles = uniq(S.sst.rows.filter(r => r.src !== 'saisie').map(r => r.src.split(' / ')[0]));
+  const ok = (v, t) => `<span class="badge ${v ? 'b-good' : 'b-neutral'}">${t}</span>`;
+  const card = (title, status, body, rows = '') => `<section class="card glass srccard"><div class="srchead"><h2>${title}</h2>${status}</div>${body}${rows ? `<div class="srcrows">${rows}</div>` : ''}</section>`;
+  const linked = Object.values(SRC).some(c => c.dir);
+  return `<section class="card glass srctop"><div class="row" style="gap:10px;flex-wrap:wrap"><b>Mettre à jour les données</b><span class="muted">Déposez un fichier, collez un export, ou reliez un dossier SharePoint (relu automatiquement à chaque ouverture).</span><span class="spacer"></span>${linked ? `<button class="btn primary" data-act="src-all">Tout actualiser depuis SharePoint</button>` : ''}</div></section>
+  <div class="grid g2 srcgrid">
+  ${card('VL06O <small>préparation</small>', ok(S.prep, S.prep ? `extraite ${esc(fdt(snapTs()))} · ${n0(S.prep.rows.length)} postes` : 'non importée'),
+    `<div class="drop sm" data-drop="vl06o">${icon('upload')}<div><b>Déposez VL06O.XLSX</b> ou <button class="btn sm" data-pick="vl06o">choisir</button></div></div>`, srcRow('vl06o'))}
+  ${card('LIKP <small>créneaux de chargement</small>', ok(S.likp, S.likp ? `${n0(Object.keys(S.likp.map).length)} livraisons · ${esc(fdt(S.likp.importedAt))}` : 'non collée'),
+    `<textarea class="inp" id="likpPaste" rows="3" placeholder="Collez l’extraction LIKP (Ctrl+V)"></textarea>
+     <div class="row" style="margin-top:8px"><button class="btn primary sm" data-act="likp-import">Importer le collage</button><button class="btn sm" data-pick="likp">ou un fichier Excel</button>${S.likp ? '<button class="btn sm danger" data-act="likp-clear">Effacer</button>' : ''}</div>`, srcRow('likp'))}
+  ${card('Base affrètement <small>expéditions</small>', ok(nAff, nAff ? `${n0(nAff)} livraisons${S.affret.importedAt > 1 ? ` · ${esc(fdt(S.affret.importedAt))}` : ''}` : 'non collée'),
+    `<textarea class="inp" id="affPaste" rows="3" placeholder="Collez les lignes copiées depuis Access (Ctrl+V)"></textarea>
+     <div class="row" style="margin-top:8px"><button class="btn primary sm" data-act="aff-import">Importer</button><label class="row meta"><input type="checkbox" id="affReplace"> remplacer les jours collés</label></div>`)}
+  ${card('Navettes usines <small>VL06I</small>', ok(S.nav, S.nav ? `${navRows().length} navettes · ${esc(fdt(S.nav.at))}` : 'non collée'),
+    `<textarea class="inp" id="navPaste" rows="3" placeholder="Collez les lignes de la VL06I (Ctrl+V) — sites ${esc(navSites().join(', '))}"></textarea>
+     <div class="row" style="margin-top:8px"><button class="btn primary sm" data-act="nav-import">Importer</button>${S.nav ? `<button class="btn sm danger" data-act="nav-clear">Vider</button>` : ''}</div>`)}
+  ${card('Rapatriements <small>FM · Mutual · Tempo One</small>', ok(loads.length, loads.length ? `${n0(loads.length)} camions · ${files.length} fichier(s)` : 'aucun fichier'),
+    `<div class="drop sm" data-drop="rapat">${icon('upload')}<div><b>Déposez les fichiers AAAA_Sxx_…xlsx</b> ou <button class="btn sm" data-pick="rapat">choisir</button></div></div>`, ['rapatFM', 'rapatMutual', 'rapatTempo'].map(srcRow).join(''))}
+  ${card('Planning réception SST', ok(S.sst.rows.length, S.sst.rows.length ? `${n0(S.sst.rows.length)} RDV · ${esc(sstFiles[0] || 'saisie')}` : 'non importé'),
+    `<div class="drop sm" data-drop="sst">${icon('upload')}<div><b>Déposez le planning .xlsb</b> ou <button class="btn sm" data-pick="sst">choisir</button></div></div>`, srcRow('sst'))}
+  </div>
+  <p class="meta" style="margin:4px 4px 0">Référentiel articles, sauvegarde partagée et paramètres : onglet <button class="linkbtn" data-gotab="set">Paramètres</button>.</p>`;
+}
+// barre d'état compacte affichée dans les autres onglets
+const srcBar = (txt, empty) => `<div class="srcbar glass${empty ? ' empty' : ''}">${icon('upload')}<span>${txt}</span><button class="btn sm" data-gotab="src">Mettre à jour ›</button></div>`;
+document.addEventListener('click', async e => {
+  const g = e.target.closest('[data-gotab]'); if (g) { S.ui.tab = g.dataset.gotab; S.ui.modal = null; render(); window.scrollTo({ top: 0 }); return; }
+  if (e.target.closest('[data-act="src-all"]')) { for (const c of Object.values(SRC)) if (c.dir && c.perm !== 'granted') c.perm = await permOf(c.dir, true); const r = await srcRefresh(null, false); toast(esc(r.join(' · ') || 'Aucun dossier accessible'), 6000); render(); }
+});
 function viewSST() {
   const { days } = weekData();
   const rows = S.sst.rows.filter(r => inWeek(r.date)).sort((a, b) => a.date.localeCompare(b.date) || a.heure.localeCompare(b.heure));
@@ -1828,7 +1919,7 @@ function viewSST() {
     <div class="card-head"><div><h2>Planning de réception sous-traitants</h2>
     <p class="hint">Déposez <kbd>Planning_Reception_SST_Monteux3.xlsb</kbd> : les onglets « PlanningReception AAAA » sont lus (créneaux avec RDV ou palettes). Le pointage « Reçu » est conservé lors des ré-imports.</p></div>
     ${files.length ? `<div class="meta" style="text-align:right">${files.map(esc).join('<br>')}<br>${n0(S.sst.rows.length)} RDV en mémoire</div>` : ''}</div>
-    <div class="drop" data-drop="sst">${icon('upload')}<div><b>Déposez le planning ici</b> ou <button class="btn sm" data-pick="sst">choisir</button>${SRC.sst.dir ? ` <button class="btn sm" data-act="src-refresh" data-k="sst">Actualiser depuis SharePoint</button>` : ` <button class="btn sm" data-act="src-choose" data-k="sst">Relier un dossier SharePoint…</button>`}<small>Un fichier ré-importé remplace ses lignes précédentes.</small></div></div>
+    ${srcBar(files.length ? `${files.map(esc).join(', ')} · ${n0(S.sst.rows.length)} RDV` : '<b>Planning non importé</b>', !files.length)}
     <details class="paste" style="margin-top:14px"><summary>+ Ajouter un RDV manuellement</summary>
     <div class="form" style="margin-top:10px">
       <label>Date<input class="inp" type="date" id="sDate" value="${weekDays()[Math.min(4, dayIdx(today()))]}"></label>
@@ -1900,6 +1991,9 @@ function viewSettings() {
       <label>Blocs par palette reçue<input class="inp" type="number" min="0.1" step="0.05" data-set="blocParPalRec" value="${num(st.blocParPalRec)}"></label>
       <label>Camions sans heure (rapatriements) : de<input class="inp" type="time" data-setstr="rapatDebut" value="${esc(st.rapatDebut || '06:00')}"></label>
       <label>à<input class="inp" type="time" data-setstr="rapatFin" value="${esc(st.rapatFin || '14:00')}"></label>
+      <label>Navettes usines : sites retenus<input class="inp" data-setstr="navSites" value="${esc(st.navSites || '')}" placeholder="2560, 2510"></label>
+      <label>Navettes ramenées de<input class="inp" type="time" data-setstr="navDebut" value="${esc(st.navDebut || '05:00')}"></label>
+      <label>à<input class="inp" type="time" data-setstr="navFin" value="${esc(st.navFin || '20:00')}"></label>
     </div>
   </section>
   ${teamEditor('equipesRecep', 'Équipes de rangement (réception)', 'caristes', sum(teams('equipesRecep'), e => num(e.prep) * teamDur(e)), `h de rangement par jour, soit ${n0(sum(teams('equipesRecep'), e => num(e.prep) * teamDur(e)) * num(st.cadRecep))} pal à ${num(st.cadRecep)} pal/h`)}
@@ -1950,8 +2044,7 @@ function viewSettings() {
     ${S.ref ? `<div class="row" style="margin-top:10px"><button class="btn sm" data-act="ref-reset">Revenir au référentiel par défaut</button></div>` : ''}
   </section>
   <section class="card glass"><h2>À propos</h2><label class="row" style="float:right;gap:6px;font-size:13px"><input type="checkbox" data-splash ${(() => { try { return localStorage.getItem('flux-splash') === 'off' ? '' : 'checked'; } catch (e) { return 'checked'; } })()}> Animer l’écran d’ouverture</label><p class="hint" style="margin:0">Flux Hebdo Dépôt — version <button class="linkbtn" data-detail="version">${APP_VERSION}</button> — développé par <b>${APP_AUTHOR}</b>. Application 100 % locale : les données restent dans ce navigateur et, si vous l’activez, dans le dossier de sauvegarde partagé.</p></section>
-  ${srcCard()}
-  <section class="card glass"><h2>Sauvegarde</h2><p class="hint">Les données sont stockées dans ce navigateur. Elles peuvent aussi être enregistrées automatiquement dans le dossier partagé (ci-dessous), ou exportées à la main.</p>
+    <section class="card glass"><h2>Sauvegarde</h2><p class="hint">Les données sont stockées dans ce navigateur. Elles peuvent aussi être enregistrées automatiquement dans le dossier partagé (ci-dessous), ou exportées à la main.</p>
     <div class="row">
       <button class="btn" data-act="backup">${icon('dl')} Exporter une sauvegarde</button>
       <button class="btn" data-pick="restore">${icon('upload')} Restaurer</button>
@@ -2116,7 +2209,7 @@ async function handleFiles(kind, files, auto) {
 // ============================================================
 function wk(d) {
   const w = weekData(); if (!d) return w;
-  return { days: [d], prep: w.prep.filter(l => l.dc === d), aff: w.aff.filter(r => r.date === d), rap: w.rap.filter(l => l.date === d), sst: w.sst.filter(r => r.date === d) };
+  return { days: [d], prep: w.prep.filter(l => l.dc === d), aff: w.aff.filter(r => r.date === d), rap: w.rap.filter(l => l.date === d), sst: w.sst.filter(r => r.date === d), nav: w.nav.filter(r => r.dateEff === d) };
 }
 const scopeLbl = d => d ? `${DAYS[dayIdx(d)]} ${fdate(d)}` : `Semaine ${S.ui.week.w} · ${fdate(mondayOf(S.ui.week.y, S.ui.week.w))} → ${fdate(addDays(mondayOf(S.ui.week.y, S.ui.week.w), 6))}`;
 const mini = items => `<div class="kpis" style="margin-bottom:18px">${items.map(([l, v, u, det]) => `<div class="kpi"><div class="lab">${l}</div><div class="val">${v}${u ? `<small>${u}</small>` : ''}</div>${det ? `<div class="det">${det}</div>` : ''}</div>`).join('')}</div>`;
@@ -2229,22 +2322,21 @@ function pairStackChart({ cats, data, groups, unit = ' pal', fmt = n0, height = 
 }
 const cellPal = (pal, n, unitN) => pal || n ? `<b>${n0(pal)}</b>${n ? ` <span class="muted">${n0(n)} ${unitN}</span>` : ''}` : '<span class="muted">·</span>';
 function flowDetail() {
-  const w = weekData(); const days = w.days.filter((d, i) => i < 5 || w.aff.some(r => r.date === d) || w.rap.some(l => l.date === d) || w.sst.some(r => r.date === d));
+  const w = weekData(); const days = w.days.filter((d, i) => i < 5 || w.aff.some(r => r.date === d) || w.rap.some(l => l.date === d) || w.sst.some(r => r.date === d) || w.nav.some(r => r.dateEff === d));
   const rin = w.rap.filter(l => l.sens === 'in'), rout = w.rap.filter(l => l.sens === 'out');
   const na = vlOnlyRows(), idx = livIndex();
   const ext = Object.values(S.affret.rows).filter(r => inWeek(r.date) && isExtShip(r));
-  const back = w.sst.filter(r => isInterco(r.sst));
   const per = days.map(d => {
-    const ri = rin.filter(l => l.date === d), s = w.sst.filter(r => r.date === d), a = w.aff.filter(r => r.date === d), ro = rout.filter(l => l.date === d);
-    return { d, rap: sum(ri, l => l.pal), sst: sum(s, r => r.pal), aff: sum(a, r => r.pal), ext: sum(ro, l => l.pal), camIn: ri.length + sum(s, r => r.cam || 1), camOut: uniq(a.map(r => r.transp + '|' + (r.camion || r.liv))).length + ro.length };
+    const ri = rin.filter(l => l.date === d), s = w.sst.filter(r => r.date === d), a = w.aff.filter(r => r.date === d), ro = rout.filter(l => l.date === d), nv = w.nav.filter(r => r.dateEff === d);
+    return { d, rap: sum(ri, l => l.pal), sst: sum(s, r => r.pal), nav: sum(nv, r => r.pal), aff: sum(a, r => r.pal), ext: sum(ro, l => l.pal), camIn: ri.length + sum(s, r => r.cam || 1) + nv.length, camOut: uniq(a.map(r => r.transp + '|' + (r.camion || r.liv))).length + ro.length };
   });
   const T = k => sum(per, p => p[k]);
-  const tin = T('rap') + T('sst'), tout = T('aff') + T('ext');
-  const peak = [...per].sort((a, b) => (b.rap + b.sst + b.aff + b.ext) - (a.rap + a.sst + a.aff + a.ext))[0];
+  const tin = T('rap') + T('sst') + T('nav'), tout = T('aff') + T('ext');
+  const peak = [...per].sort((a, b) => (b.rap + b.sst + b.nav + b.aff + b.ext) - (a.rap + a.sst + a.nav + a.aff + a.ext))[0];
   const cats = days.map(d => ({ label: DAYS[dayIdx(d)], sub: fdate(d), tip: `${DAYS[dayIdx(d)]} ${fdate(d)}` }));
   const ci = num(S.settings.capaInWeek), co = num(S.settings.capaOutWeek);
   const chart = pairStackChart({ cats, data: per, caps: [{ g: 0, value: ci / nbWorkDays(), color: cssVar('--in'), label: 'cap. entrées' }, { g: 1, value: co / nbWorkDays(), color: cssVar('--out'), label: 'cap. sorties' }], groups: [
-    { label: 'Entrées', short: 'Entrées', series: [{ key: 'rap', label: 'Rapatriements', color: cssVar('--in') }, { key: 'sst', label: 'Réceptions SST', color: cssVar('--pick') }] },
+    { label: 'Entrées', short: 'Entrées', series: [{ key: 'rap', label: 'Rapatriements', color: cssVar('--in') }, { key: 'sst', label: 'Réceptions SST', color: cssVar('--pick') }, { key: 'nav', label: 'Navettes usines', color: cssVar('--silo') }] },
     { label: 'Sorties', short: 'Sorties', series: [{ key: 'aff', label: 'Expéditions affrétées', color: cssVar('--out') }, { key: 'ext', label: 'Transferts vers externes', color: cssVar('--c4') }] },
   ] });
   // matrice détaillée
@@ -2255,34 +2347,34 @@ function flowDetail() {
   const trs = uniq(w.aff.map(r => r.transp)).sort((a, b) => sum(w.aff.filter(r => r.transp === b), r => r.pal) - sum(w.aff.filter(r => r.transp === a), r => r.pal));
   const oents = uniq(rout.map(l => l.entrepot)).sort();
   const capRow = (lab, capOf, valOf, wv, wc) => `<tr><td class="muted">${lab}</td>${per.map(p => { const c = capOf(p.d); return `<td class="num">${c ? tauxBadge(valOf(p) / c) : '<span class="muted">·</span>'}</td>`; }).join('')}<td class="num">${wc ? tauxBadge(wv / wc) : '–'}</td></tr>`;
-  const soldeRow = `<tr class="tot"><td>Solde entrées − sorties</td>${per.map(p => { const v = p.rap + p.sst - p.aff - p.ext; return `<td class="num" style="color:${v > 0 ? 'var(--in)' : v < 0 ? 'var(--out)' : 'inherit'}">${v > 0 ? '+' : ''}${n0(v)}</td>`; }).join('')}<td class="num">${tin - tout > 0 ? '+' : ''}${n0(tin - tout)}</td></tr>`;
+  const _unusedSolde = `<tr class="tot"><td>Solde entrées − sorties</td>${per.map(p => { const v = p.rap + p.sst - p.aff - p.ext; return `<td class="num" style="color:${v > 0 ? 'var(--in)' : v < 0 ? 'var(--out)' : 'inherit'}">${v > 0 ? '+' : ''}${n0(v)}</td>`; }).join('')}<td class="num">${tin - tout > 0 ? '+' : ''}${n0(tin - tout)}</td></tr>`;
   const mtx = `<div class="tbl-wrap matrix"><table class="t"><thead><tr>${th}</tr></thead><tbody>
     ${sec('Entrées au dépôt')}
     ${ents.map(e => row(`Rapatriement · ${esc(e)}`, rin.filter(l => l.entrepot === e), l => l.date, l => l.pal, x => x.length, 'cam.', 'ent|' + e)).join('')}
     ${ssts.map(n => row(`Réception SST · ${esc(n || '—')}${isInterco(n) ? ' <span class="badge b-info b-nodot">retour interco</span>' : ''}`, w.sst.filter(r => r.sst === n), r => r.date, r => r.pal, x => sum(x, r => r.cam || 1), 'cam.', 'sstn|' + n)).join('')}
-    ${row('<b>Total entrées</b>', [...rin.map(l => ({ date: l.date, pal: l.pal, c: 1 })), ...w.sst.map(r => ({ date: r.date, pal: r.pal, c: r.cam || 1 }))], i => i.date, i => i.pal, x => sum(x, i => i.c), 'cam.', 'in', 'sub')}
-    ${capRow(`Taux / capacité entrées (${n0(ci / nbWorkDays())} pal/j)`, capaInDay, p => p.rap + p.sst, tin, ci)}
+    ${uniq(w.nav.map(r => r.nom)).map(n => row(`Navette · ${esc(n)}`, w.nav.filter(r => r.nom === n), r => r.dateEff, r => r.pal, x => x.length, 'nav.', 'nav')).join('')}
+    ${row('<b>Total entrées</b>', [...rin.map(l => ({ date: l.date, pal: l.pal, c: 1 })), ...w.sst.map(r => ({ date: r.date, pal: r.pal, c: r.cam || 1 })), ...w.nav.map(r => ({ date: r.dateEff, pal: r.pal, c: 1 }))], i => i.date, i => i.pal, x => sum(x, i => i.c), 'cam.', 'in', 'sub')}
+    ${capRow(`Taux / capacité entrées (${n0(ci / nbWorkDays())} pal/j)`, capaInDay, p => p.rap + p.sst + p.nav, tin, ci)}
     ${sec('Sorties du dépôt')}
     ${trs.map(t => row(`Expédition · ${esc(transpName(t))}`, w.aff.filter(r => r.transp === t), r => r.date, r => r.pal, x => x.length, 'liv.', 'tr|' + t)).join('')}
     ${oents.map(e => row(`Transfert externe · ${esc(e)}`, rout.filter(l => l.entrepot === e), l => l.date, l => l.pal, x => x.length, 'cam.', 'ext')).join('')}
     ${row('<b>Total sorties</b>', [...w.aff.map(r => ({ date: r.date, pal: r.pal, c: 1 })), ...rout.map(l => ({ date: l.date, pal: l.pal, c: 1 }))], i => i.date, i => i.pal, x => sum(x, i => i.c), 'mvt', 'out', 'sub')}
     ${capRow(`Taux / capacité sorties (${n0(co / nbWorkDays())} pal/j)`, capaOutDay, p => p.aff + p.ext, tout, co)}
-    ${soldeRow}
     ${sec('Pour information (hors totaux)')}
     ${row('VL06O non affrétées · pal SILO estimées', na, r => r.date, r => idx.get(r.liv)?.palSilo, x => x.length, 'liv.', 'out')}
     ${ext.length ? row(`Départs directs ${esc(S.settings.siteExt)}`, ext, r => r.date, r => r.pal, x => x.length, 'liv.', null) : ''}
   </tbody></table></div>`;
   // journal par jour
   const cards = days.map(d => {
-    const ri = rin.filter(l => l.date === d), s = w.sst.filter(r => r.date === d).sort((a, b) => a.heure.localeCompare(b.heure)), a = w.aff.filter(r => r.date === d), ro = rout.filter(l => l.date === d);
+    const ri = rin.filter(l => l.date === d), s = w.sst.filter(r => r.date === d).sort((a, b) => a.heure.localeCompare(b.heure)), a = w.aff.filter(r => r.date === d), ro = rout.filter(l => l.date === d), nv = w.nav.filter(r => r.dateEff === d);
     const byT = uniq(a.map(r => r.transp)).map(t => { const x = a.filter(r => r.transp === t); return `<li><span>${esc(transpName(t))}</span><b>${n0(sum(x, r => r.pal))} pal</b><small>${x.length} liv. · ${n0(sum(x, r => r.blocs))} bl</small></li>`; }).join('');
-    return `<div class="daycard"><div class="dch"><b>${DAYS[dayIdx(d)]} ${fdate(d)}</b><span class="meta">↘ ${n0(sum(ri, l => l.pal) + sum(s, r => r.pal))} · ↗ ${n0(sum(a, r => r.pal) + sum(ro, l => l.pal))}</span></div>
-      <div class="dcs in">Entrées</div><ul>${ri.map(l => `<li><span>${esc(l.entrepot)} · ${esc(l.ref)}</span><b>${n0(l.pal)} pal</b><small>${KIND[l.kind]}</small></li>`).join('')}${s.map(r => `<li><span>${esc(r.heure)} · ${esc(r.sst)}</span><b>${n0(r.pal)} pal</b><small>${r.recu ? '✓ reçu' : 'SST'}</small></li>`).join('') || (ri.length ? '' : '<li class="muted">—</li>')}</ul>
+    return `<div class="daycard"><div class="dch"><b>${DAYS[dayIdx(d)]} ${fdate(d)}</b><span class="meta">↘ ${n0(sum(ri, l => l.pal) + sum(s, r => r.pal) + sum(nv, r => r.pal))} · ↗ ${n0(sum(a, r => r.pal) + sum(ro, l => l.pal))}</span></div>
+      <div class="dcs in">Entrées</div><ul>${ri.map(l => `<li><span>${esc(l.entrepot)} · ${esc(l.ref)}</span><b>${n0(l.pal)} pal</b><small>${KIND[l.kind]}</small></li>`).join('')}${s.map(r => `<li><span>${esc(r.heure)} · ${esc(r.sst)}</span><b>${n0(r.pal)} pal</b><small>${r.recu ? '✓ reçu' : 'SST'}</small></li>`).join('')}${nv.length ? `<li><span>Navettes usines</span><b>${n0(sum(nv, r => r.pal))} pal</b><small>${nv.length} nav.</small></li>` : ''}${ri.length || s.length || nv.length ? '' : '<li class="muted">—</li>'}</ul>
       <div class="dcs out">Sorties</div><ul>${byT}${ro.map(l => `<li><span>${esc(l.entrepot)} · ${esc(l.ref)}</span><b>${n0(l.pal)} pal</b><small>${KIND[l.kind]}</small></li>`).join('') || (byT ? '' : '<li class="muted">—</li>')}</ul></div>`;
   }).join('');
-  return { xl: true, title: 'Flux palettes de la semaine', sub: `${scopeLbl()} · entrées (rapatriements, réceptions SST) et sorties (expéditions affrétées, transferts vers les entrepôts externes) — cliquez un chiffre pour le détail`, body:
-    mini([['Entrées', n0(tin), 'pal', `${n0(T('camIn'))} camions · ${ci ? pct(tin / ci) : '–'} de la capacité (${n0(ci)})`], ['Sorties', n0(tout), 'pal', `expéditions ${n0(T('aff'))} · transferts ${n0(T('ext'))} · ${co ? pct(tout / co) : '–'} de la capacité (${n0(co)})`], ['Solde', `${tin - tout > 0 ? '+' : ''}${n0(tin - tout)}`, 'pal', tin - tout >= 0 ? 'le stock du dépôt augmente' : 'le stock du dépôt diminue'], ['Jour le plus chargé', peak ? `${DAYS[dayIdx(peak.d)]}` : '–', '', peak ? `${n0(peak.rap + peak.sst + peak.aff + peak.ext)} pal manipulées` : ''], ['Retours interco', n0(sum(back, r => r.pal)), 'pal', `${back.length} RDV`], ['VL06O non affrétées', n0(na.length), 'liv.', `≈ ${n0(sum(na, r => idx.get(r.liv)?.palSilo))} pal SILO`]]) +
-    `<div class="xlchart">${chart}</div>` + h3('Détail par jour', 'Chaque chiffre : palettes, puis nombre de camions / livraisons.') + mtx + h3('Journal des flux par jour') + `<div class="daycards">${cards}</div>` };
+  return { xl: true, title: 'Flux palettes de la semaine', sub: scopeLbl(), body:
+    mini([['Entrées', n0(tin), 'pal', `${n0(T('camIn'))} camions · ${ci ? pct(tin / ci) : '–'} de la capacité (${n0(ci)})`], ['Sorties', n0(tout), 'pal', `expéditions ${n0(T('aff'))} · transferts ${n0(T('ext'))} · ${co ? pct(tout / co) : '–'} de la capacité (${n0(co)})`], ['Jour le plus chargé', peak ? `${DAYS[dayIdx(peak.d)]}` : '–', '', peak ? `${n0(peak.rap + peak.sst + peak.nav + peak.aff + peak.ext)} pal manipulées` : ''], ['Navettes usines', n0(T('nav')), 'pal', `${w.nav.length} navette(s)`], ['VL06O non affrétées', n0(na.length), 'liv.', `≈ ${n0(sum(na, r => idx.get(r.liv)?.palSilo))} pal SILO`]]) +
+    `<div class="xlchart">${chart}</div>` + h3('Détail par jour') + mtx + h3('Journal des flux par jour') + `<div class="daycards">${cards}</div>` };
 }
 const CIRC_ORDER = ['Entrepot', 'Export', 'MDD', 'Interco', 'GMS', 'Allotie', '???'];
 const circColor = c => cssVar(['--in', '--out', '--pick', '--c4', '--c5', '--c6', '--silo'][Math.max(0, CIRC_ORDER.indexOf(c))]);
@@ -2823,7 +2915,7 @@ function dockDetail() {
 //   - sol : les palettes d'un camion sont posées à la fin du déchargement, rangées dans l'ordre d'arrivée
 //     au rythme cadence × caristes présents (équipes de rangement)
 // ============================================================
-const recDays = () => { const w = weekData(); return w.days.filter(d => workDay(d) || S.sst.rows.some(r => r.date === d) || Object.values(S.rapat.loads).some(l => l.sens === 'in' && l.date === d)); };
+const recDays = () => { const w = weekData(); return w.days.filter(d => workDay(d) || w.sst.some(r => r.date === d) || w.nav.some(r => r.dateEff === d) || w.rap.some(l => l.sens === 'in' && l.date === d)); };
 function recTrucks(days) {
   const set = new Set(days), out = [], st = S.settings;
   for (const r of S.sst.rows) {
@@ -2832,6 +2924,9 @@ function recTrucks(days) {
     for (let i = 0; i < n; i++) out.push({ kind: isInterco(r.sst) ? 'Retour interco' : 'Sous-traitant', lbl: r.sst || '—', ref: r.ref || '', date: r.date, pal: r.pal / n, t: h ? dayStartTs(r.date) + hm(h) * H : null, src: r.arr ? 'arrivée pointée' : r.heure ? 'RDV planning' : '' });
   }
   for (const l of Object.values(S.rapat.loads)) if (l.sens === 'in' && set.has(l.date) && l.pal > 0) out.push({ kind: 'Rapatriement', lbl: l.entrepot, ref: l.ref, date: l.date, pal: l.pal, t: null, src: '' });
+  // navettes usines : ramenées au fil de la journée
+  const na = hm(st.navDebut || '05:00'), nb = Math.max(na + .5, hm(st.navFin || '20:00'));
+  for (const D of days) { const xs = navRows().filter(r => r.dateEff === D && r.pal > 0); xs.forEach((r, i) => out.push({ kind: 'Navette usine', lbl: r.nom, ref: r.liv, date: D, pal: r.pal, t: dayStartTs(D) + (na + (nb - na) * (i + .5) / xs.length) * H, src: `réparti ${st.navDebut}–${st.navFin}` })); }
   const a = hm(st.rapatDebut || '06:00'), b = Math.max(a + .5, hm(st.rapatFin || '14:00'));
   for (const D of days) { const xs = out.filter(x => x.date === D && x.t == null); xs.forEach((x, i) => { x.t = dayStartTs(D) + (a + (b - a) * (i + .5) / xs.length) * H; x.src = `réparti ${st.rapatDebut}–${st.rapatFin}`; }); }
   return out.sort((x, y) => x.t - y.t);
@@ -2909,7 +3004,7 @@ function recDetail() {
 function recTile() {
   const R = recSim(); if (!R.trucks.length) return '';
   const rows = R.days.map(D => recDayRow(R, D)).filter(r => r.cam), bad = rows.filter(r => !r.ok), pk = Math.max(0, ...rows.map(r => r.peak));
-  return `<div class="kpi" data-detail="recq" role="button" tabindex="0"><div class="lab"><i style="background:var(--in)"></i>Quai réception (blocs)</div><div class="val">${n0(pk)}<small>/ ${n0(R.cap)} blocs</small></div><div class="bar"><span style="width:${Math.min(100, Math.round(pk / Math.max(1, R.cap) * 100))}%;background:${pk > R.cap ? 'var(--crit)' : pk > R.cap * .85 ? 'var(--warn)' : 'var(--good)'}"></span></div><div class="det">${bad.length ? `<strong style="color:var(--crit-ink)">${bad.length} jour${bad.length > 1 ? 's' : ''} en tension : ${esc(fdateL(bad[0].D))} ${esc(bad[0].lbl)}</strong>` : `pic de la semaine · ${R.trucks.length} camions · pas de saturation`}</div></div>`;
+  return `<div class="kpi" data-detail="recq" role="button" tabindex="0"><div class="lab"><i style="background:var(--in)"></i>Quai réception (blocs)</div><div class="val">${n0(pk)}<small>/ ${n0(R.cap)} blocs</small></div><div class="bar"><span style="width:${Math.min(100, Math.round(pk / Math.max(1, R.cap) * 100))}%;background:${pk > R.cap ? 'var(--crit)' : pk > R.cap * .85 ? 'var(--warn)' : 'var(--good)'}"></span></div><div class="det">${bad.length ? `<strong style="color:var(--crit-ink)">en tension : ${bad.map(r => esc(fdateL(r.D))).join(', ')}</strong>` : `pic de la semaine · ${R.trucks.length} camions · pas de saturation`}</div></div>`;
 }
 function dockSection(P) {
   const dock = dockSim(P); const days = P.rows.map(r => r.D);
@@ -2936,6 +3031,7 @@ function purgeCounts(before) {
     affret: Object.values(S.affret.rows).filter(r => old(r.date)).length,
     rapat: Object.values(S.rapat.loads).filter(l => old(l.date)).length,
     sst: S.sst.rows.filter(r => old(r.date)).length,
+    nav: S.nav ? S.nav.rows.length : 0,
   };
 }
 function purgeView() {
@@ -2953,6 +3049,7 @@ function purgeView() {
       ${opt('affret', 'Base affrètement', all.affret, old.affret, 'livraisons collées')}
       ${opt('rapat', 'Rapatriements', all.rapat, old.rapat, 'camions des fichiers FM, Mutual, Tempo One…')}
       ${opt('sst', 'Réceptions sous-traitants', all.sst, old.sst, 'planning SST et pointages')}
+      ${opt('nav', 'Navettes usines', all.nav, null, 'VL06I collée (toujours supprimée en entier)')}
     </div>
     <h3 class="mh">Configuration</h3>
     <div class="purge-list">
@@ -2975,15 +3072,16 @@ async function purgeRun() {
   const old = document.querySelector('input[name="pscope"]:checked')?.value === 'old';
   const before = old ? mondayOf(S.ui.week.y, S.ui.week.w) : null;
   const keep = d => before && d && d >= before;
-  const keys = ['prep', 'affret', 'rapat', 'sst', 'ref', 'settings'].filter(sel);
+  const keys = ['prep', 'affret', 'rapat', 'sst', 'nav', 'ref', 'settings'].filter(sel);
   if (!keys.length) return toast('Rien de sélectionné.');
   const n = purgeCounts(before);
-  const recap = keys.map(k => ({ prep: `VL06O (${n0(n.prep)} postes)`, affret: `affrètement (${n0(n.affret)})`, rapat: `rapatriements (${n0(n.rapat)})`, sst: `réceptions SST (${n0(n.sst)})`, ref: 'référentiel importé', settings: 'paramètres' })[k]).join(', ');
+  const recap = keys.map(k => ({ prep: `VL06O (${n0(n.prep)} postes)`, affret: `affrètement (${n0(n.affret)})`, rapat: `rapatriements (${n0(n.rapat)})`, sst: `réceptions SST (${n0(n.sst)})`, nav: `navettes (${n0(n.nav)})`, ref: 'référentiel importé', settings: 'paramètres' })[k]).join(', ');
   if (!confirm(`Supprimer définitivement ${before ? 'avant le ' + fdate(before) + ' : ' : ''}${recap} ?`)) return;
   if (sel('prep')) { S.prep = null; S.prepHist = null; S.likp = null; await save('prepHist'); await save('likp'); }
   if (sel('affret')) { for (const [k, r] of Object.entries(S.affret.rows)) if (!keep(r.date)) delete S.affret.rows[k]; if (!before) S.affret = { rows: {} }; }
   if (sel('rapat')) for (const [k, l] of Object.entries(S.rapat.loads)) if (!keep(l.date)) delete S.rapat.loads[k];
   if (sel('sst')) S.sst.rows = S.sst.rows.filter(r => keep(r.date));
+  if (sel('nav')) S.nav = null;
   if (sel('ref')) S.ref = null;
   if (sel('settings')) S.settings = structuredClone(DEFAULT_SETTINGS);
   S.ui.pf = {}; S.ui.af = {}; S.ui.rf = {}; S.ui.modal = null;
@@ -3003,12 +3101,16 @@ const DETAILS = {
   },
   version: () => ({ title: `Flux Hebdo · version ${APP_VERSION}`, sub: `Développé par ${APP_AUTHOR}`, body: h3('Historique des versions') + table('vers', [{ k: 0, label: 'Version' }, { k: 1, label: 'Date' }, { k: 2, label: 'Nouveautés', cls: 'wrap' }], CHANGELOG) }),
   in(d) {
-    const { rap, sst } = wk(d); const rin = rap.filter(l => l.sens === 'in');
-    const items = [...rin.map(l => ({ date: l.date, rap: l.pal, sst: 0 })), ...sst.map(r => ({ date: r.date, rap: 0, sst: r.pal }))];
-    return { title: 'Palettes entrantes', sub: scopeLbl(d) + ' · rapatriements (DT) + réceptions sous-traitants', body:
-      mini([['Total', n0(sum(items, i => i.rap + i.sst)), 'pal'], ['Rapatriements', n0(sum(rin, l => l.pal)), 'pal', `${rin.length} camion(s)`], ['Réceptions SST', n0(sum(sst, r => r.pal)), 'pal', `${sst.length} RDV`]]) +
-      (d ? '' : h3('Par jour') + byDay('dInDay', items, i => i.date, [{ label: 'Rapatriements', f: x => sum(x, i => i.rap) }, { label: 'SST', f: x => sum(x, i => i.sst) }, { label: 'Total', f: x => sum(x, i => i.rap + i.sst) }])) +
-      h3('Camions de rapatriement') + rapTable('dInR', rin) + h3('Réceptions sous-traitants') + sstTable('dInS', sst) };
+    const { rap, sst, nav } = wk(d); const rin = rap.filter(l => l.sens === 'in');
+    const items = [...rin.map(l => ({ date: l.date, rap: l.pal, sst: 0, nav: 0 })), ...sst.map(r => ({ date: r.date, rap: 0, sst: r.pal, nav: 0 })), ...nav.map(r => ({ date: r.dateEff, rap: 0, sst: 0, nav: r.pal }))];
+    return { title: 'Palettes entrantes', sub: scopeLbl(d), body:
+      mini([['Total', n0(sum(items, i => i.rap + i.sst + i.nav)), 'pal'], ['Rapatriements', n0(sum(rin, l => l.pal)), 'pal', `${rin.length} camion(s)`], ['Réceptions SST', n0(sum(sst, r => r.pal)), 'pal', `${sst.length} RDV`], ['Navettes usines', n0(sum(nav, r => r.pal)), 'pal', `${nav.length} navette(s)`]]) +
+      (d ? '' : h3('Par jour') + byDay('dInDay', items, i => i.date, [{ label: 'Rapatriements', f: x => sum(x, i => i.rap) }, { label: 'SST', f: x => sum(x, i => i.sst) }, { label: 'Navettes', f: x => sum(x, i => i.nav) }, { label: 'Total', f: x => sum(x, i => i.rap + i.sst + i.nav) }])) +
+      h3('Camions de rapatriement') + rapTable('dInR', rin) + h3('Réceptions sous-traitants') + sstTable('dInS', sst) + (nav.length ? h3('Navettes usines') + navTable('dInN', nav) : '') };
+  },
+  nav(d) {
+    const nav = wk(d).nav;
+    return { title: 'Navettes usines', sub: scopeLbl(d) + (S.nav ? ` · VL06I du ${fdt(S.nav.at)}` : ''), body: mini([['Palettes', n0(sum(nav, r => r.pal))], ['Navettes', n0(nav.length)], ['En retard', n0(nav.filter(r => r.late).length), '', 'comptées le jour de la VL06I']]) + navTable('dNav', nav) };
   },
   rapin(d, ent) {
     const rin = wk(d).rap.filter(l => l.sens === 'in' && (!ent || l.entrepot === ent));
@@ -3102,6 +3204,7 @@ function renderModal() {
         <button class="iconbtn" data-close aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
       <div class="mbody">${r.body}</div>
     </div>`;
+  tidyHints(m.querySelector('.mbody'));
   m.querySelector('.mbody').scrollTop = sc;
   document.body.classList.add('modal-open');
   if (isNew) m.querySelector('.iconbtn[data-close]').focus();
@@ -3121,11 +3224,13 @@ document.addEventListener('keydown', e => {
 // ---------- Rendu ----------
 const TITLES = {
   dash: ['Tableau de bord', 'Vision hebdomadaire des flux entrants, sortants et de la préparation'],
+  src: ['Sources', 'Mettre à jour les données'],
   prep: ['Activité préparation', 'Avancement par date de chargement, livraison et code'],
   out: ['Expéditions', 'Base affrètement + livraisons VL06O pas encore affrétées, par transporteur'],
   interco: ['Intercos', 'Envois et retours avec Plateforme 38, Compans, McCormick…'],
   rapat: ['Rapatriements', 'Flux avec les entrepôts externes'],
   sst: ['Réceptions sous-traitants', 'Planning de réception'],
+  nav: ['Navettes usines', 'Navettes en cours (dernière VL06I)'],
   set: ['Paramètres', 'Cadences, référentiels et sauvegarde'],
 };
 function render() {
@@ -3136,8 +3241,8 @@ function render() {
   renderNav();
   renderSources();
   $('#footVer').textContent = 'v' + APP_VERSION;
-  const v = { dash: viewDash, prep: viewPrep, out: viewOut, interco: viewInterco, rapat: viewRapat, sst: viewSST, set: viewSettings }[S.ui.tab];
-  try { $('#view').innerHTML = v(); } catch (err) { console.error(err); $('#view').innerHTML = `<section class="card glass"><div class="empty"><b>Erreur d’affichage</b>${esc(err.message)}</div></section>`; }
+  const v = { src: viewSources, dash: viewDash, prep: viewPrep, out: viewOut, interco: viewInterco, rapat: viewRapat, nav: viewNav, sst: viewSST, set: viewSettings }[S.ui.tab];
+  try { $('#view').innerHTML = v(); tidyHints($('#view')); } catch (err) { console.error(err); $('#view').innerHTML = `<section class="card glass"><div class="empty"><b>Erreur d’affichage</b>${esc(err.message)}</div></section>`; }
   renderModal();
   const stored = { tab: S.ui.tab, prepView: S.ui.prepView };
   try { localStorage.setItem('flux-ui', JSON.stringify(stored)); } catch (e) {}
@@ -3150,7 +3255,7 @@ function render() {
 //   - après chaque modification (quelques secondes) et à la fermeture : une copie horodatée est écrite
 //   - plusieurs utilisateurs : la sauvegarde la plus récente l'emporte ; on garde les SYNC_KEEP dernières copies
 // ============================================================
-const SYNC_KEYS = ['settings', 'ref', 'prep', 'affret', 'rapat', 'sst', 'prepHist', 'likp'];
+const SYNC_KEYS = ['settings', 'ref', 'prep', 'affret', 'rapat', 'sst', 'prepHist', 'likp', 'nav'];
 const SYNC_PATH = 'MC CORMICK & COMPANY INC\\WeDeliver - Documents\\101_Sandbox GP\\Flux_hebdo\\Sauvegarde';
 const SYNC_KEEP = 30, SYNC_DELAY = 4000;
 const SY = { dir: null, perm: 'none', busy: false, timer: null, files: [], err: '', muted: false, lastPull: 0 };
@@ -3158,10 +3263,10 @@ const syncSupported = () => typeof window.showDirectoryPicker === 'function';
 const syncMeta = () => { try { return JSON.parse(localStorage.getItem('flux-sync') || '{}'); } catch (e) { return {}; } };
 const setSyncMeta = m => { try { localStorage.setItem('flux-sync', JSON.stringify(Object.assign(syncMeta(), m))); } catch (e) {} };
 function backupPayload() {
-  return { app: 'flux-hebdo', v: 1, version: APP_VERSION, at: new Date().toISOString(), by: syncMeta().user || '', settings: S.settings, ref: S.ref, prep: S.prep, prepHist: S.prepHist, likp: S.likp, affret: S.affret, rapat: S.rapat, sst: S.sst };
+  return { app: 'flux-hebdo', v: 1, version: APP_VERSION, at: new Date().toISOString(), by: syncMeta().user || '', settings: S.settings, ref: S.ref, prep: S.prep, prepHist: S.prepHist, likp: S.likp, affret: S.affret, rapat: S.rapat, sst: S.sst, nav: S.nav };
 }
 async function applyBackup(j) {
-  Object.assign(S, { settings: Object.assign(structuredClone(DEFAULT_SETTINGS), j.settings), ref: j.ref || null, prep: j.prep || null, prepHist: j.prepHist || null, likp: j.likp || null, affret: j.affret || { rows: {} }, rapat: j.rapat || { loads: {} }, sst: j.sst || { rows: [] } });
+  Object.assign(S, { settings: Object.assign(structuredClone(DEFAULT_SETTINGS), j.settings), ref: j.ref || null, prep: j.prep || null, prepHist: j.prepHist || null, likp: j.likp || null, affret: j.affret || { rows: {} }, rapat: j.rapat || { loads: {} }, sst: j.sst || { rows: [] }, nav: j.nav || null });
   await Promise.all(SYNC_KEYS.map(save));
 }
 const pad2 = n => String(n).padStart(2, '0');
@@ -3311,10 +3416,16 @@ window.addEventListener('beforeunload', e => {
 //   - rapatriements : fichiers AAAA_Sxx_<Entrepôt>.xlsx des semaines proches (sous-dossiers compris)
 //   - planning SST : le fichier « Planning…Réception… » le plus récent
 // ============================================================
+const RAPAT_RE = /^(\d{4})_S(\d{1,2})_.+\.xls[xmb]?$/i;
 const SRC = {
-  rapat: { lbl: 'Rapatriements', hint: 'fichiers AAAA_Sxx_<Entrepôt>.xlsx (FM, Mutual, Tempo One…)', re: /^(\d{4})_S(\d{1,2})_.+\.xls[xmb]?$/i, dir: null, perm: 'none', last: null },
-  sst: { lbl: 'Planning réception SST', hint: 'fichier Planning_Reception_SST…xlsb (le plus récent)', re: /planning.*(r[ée]ception|sst).*\.xls[xmb]?$/i, dir: null, perm: 'none', last: null },
+  vl06o: { kind: 'vl06o', lbl: 'Dossier VL06O', hint: 'fichier VL06O…xlsx le plus récent', re: /vl06o.*\.xls[xmb]?$/i, newest: true },
+  likp: { kind: 'likp', lbl: 'Dossier LIKP', hint: 'fichier LIKP…xlsx le plus récent', re: /likp.*\.xls[xmb]?$/i, newest: true },
+  rapatFM: { kind: 'rapat', lbl: 'FM', hint: 'AAAA_Sxx_FM.xlsx', re: RAPAT_RE, weeks: true },
+  rapatMutual: { kind: 'rapat', lbl: 'Mutual', hint: 'AAAA_Sxx_Mutual.xlsx', re: RAPAT_RE, weeks: true },
+  rapatTempo: { kind: 'rapat', lbl: 'Tempo One', hint: 'AAAA_Sxx_Tempo_One.xlsx', re: RAPAT_RE, weeks: true },
+  sst: { kind: 'sst', lbl: 'Dossier planning SST', hint: 'Planning_Reception_SST…xlsb le plus récent', re: /planning.*(r[ée]ception|sst).*\.xls[xmb]?$/i, newest: true },
 };
+for (const c of Object.values(SRC)) Object.assign(c, { dir: null, perm: 'none', last: null, err: '' });
 const srcMeta = () => { try { return JSON.parse(localStorage.getItem('flux-src') || '{}'); } catch (e) { return {}; } };
 const setSrcMeta = m => { try { localStorage.setItem('flux-src', JSON.stringify(m)); } catch (e) {} };
 async function srcLoad() {
@@ -3339,12 +3450,12 @@ async function srcRefresh(only, force) {
     if ((only && only !== k) || !c.dir || c.perm !== 'granted') continue;
     try {
       let files = await srcScan(c.dir, c.re);
-      if (k === 'rapat') files = files.filter(f => { const m = c.re.exec(f.name); return Math.abs(wk(+m[1], +m[2]) - wk(cw.y, cw.w)) <= 3; });
+      if (c.weeks) files = files.filter(f => { const m = c.re.exec(f.name); return Math.abs(wk(+m[1], +m[2]) - wk(cw.y, cw.w)) <= 3; });
       const withF = await Promise.all(files.map(async f => Object.assign(f, { file: await f.h.getFile() })));
       let pick = withF;
-      if (k === 'sst') pick = withF.sort((a, b) => b.file.lastModified - a.file.lastModified).slice(0, 1);
+      if (c.newest) pick = withF.sort((a, b) => b.file.lastModified - a.file.lastModified).slice(0, 1);
       const todo = pick.filter(f => force || meta[k + '|' + f.path] !== f.file.lastModified);
-      if (todo.length) { await handleFiles(k, todo.map(f => f.file), true); for (const f of todo) meta[k + '|' + f.path] = f.file.lastModified; setSrcMeta(meta); }
+      if (todo.length) { for (const f of (c.newest ? todo : [todo])) await handleFiles(c.kind, c.newest ? [f.file] : f.map(x => x.file), true); for (const f of todo) meta[k + '|' + f.path] = f.file.lastModified; setSrcMeta(meta); }
       c.last = { at: Date.now(), n: todo.length, files: pick.map(f => f.path) }; c.err = '';
       res.push(`${c.lbl} : ${todo.length ? `${todo.length} fichier${todo.length > 1 ? 's' : ''} relu${todo.length > 1 ? 's' : ''}` : 'à jour'}`);
     } catch (e) { console.error(e); c.err = e.message; res.push(`${c.lbl} : erreur (${e.message})`); }
@@ -3358,18 +3469,15 @@ async function srcChoose(k) {
   const c = SRC[k]; c.dir = dir; await DB.set('srcDir_' + k, dir); c.perm = await permOf(dir, true);
   const r = await srcRefresh(k, true); toast(`<b>Dossier « ${esc(dir.name)} » relié</b><br>${esc(r.join(' · '))}`, 5000); render();
 }
-function srcCard() {
+function srcRow(k) {
+  const c = SRC[k];
   if (!syncSupported()) return '';
-  return `<section class="card glass"><h2>Dossiers sources (SharePoint)</h2><p class="hint">Choisissez une fois le dossier SharePoint synchronisé (OneDrive) où sont déposés les fichiers : à chaque ouverture de l’app, les fichiers nouveaux ou modifiés sont relus automatiquement. Bouton « Actualiser » pour relire sans fermer l’app.</p>
-    <div class="grid" style="gap:10px">${Object.entries(SRC).map(([k, c]) => `<div class="row" style="flex-wrap:wrap;gap:8px;align-items:center">
-      <b style="min-width:190px">${c.lbl}</b>
-      ${c.dir ? `<span class="badge ${c.perm === 'granted' ? 'b-good' : 'b-warn'}">${c.perm === 'granted' ? 'Relié' : 'Accès à reconfirmer'} : ${esc(c.dir.name)}</span>` : `<span class="badge b-warn">Aucun dossier</span>`}
-      <span class="muted" style="font-size:12px">${c.err ? `<span style="color:var(--crit-ink)">${esc(c.err)}</span>` : c.last ? `${c.last.files.length} fichier(s) suivi(s) · vérifié ${new Date(c.last.at).toTimeString().slice(0, 5)}` : esc(c.hint)}</span>
-      <div class="spacer"></div>
-      ${c.dir ? `<button class="btn sm" data-act="src-refresh" data-k="${k}">Actualiser</button>` : ''}
-      <button class="btn sm" data-act="src-choose" data-k="${k}">${c.dir ? 'Changer…' : 'Choisir le dossier…'}</button>
-      ${c.dir ? `<button class="btn sm" data-act="src-off" data-k="${k}">Retirer</button>` : ''}
-    </div>`).join('')}</div></section>`;
+  return `<div class="srcrow"><span class="nm">${esc(c.lbl)}</span>
+      ${c.dir ? `<span class="badge ${c.perm === 'granted' ? 'b-good' : 'b-warn'}">${c.perm === 'granted' ? 'relié' : 'à reconfirmer'} : ${esc(c.dir.name)}</span>` : `<span class="muted">${esc(c.hint)}</span>`}
+      ${c.err ? `<span style="color:var(--crit-ink)">${esc(c.err)}</span>` : c.last ? `<span class="muted">vérifié ${new Date(c.last.at).toTimeString().slice(0, 5)}</span>` : ''}
+      <span class="spacer"></span>
+      ${c.dir ? `<button class="btn sm" data-act="src-refresh" data-k="${k}">Actualiser</button><button class="btn sm ghost" data-act="src-off" data-k="${k}" title="Ne plus lire ce dossier">✕</button>` : `<button class="btn sm" data-act="src-choose" data-k="${k}">${icon('dl')} Relier un dossier SharePoint</button>`}
+    </div>`;
 }
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-act^="src-"]'); if (!b) return; const k = b.dataset.k, c = SRC[k];
@@ -3406,6 +3514,25 @@ async function syncInit() {
   } else { SPLASH.step('sync', 'warn', 'non chargée'); toast('Cliquez sur <b>« Sauvegarde : reconnecter »</b> en haut pour charger la dernière sauvegarde partagée.', 7000); }
 }
 
+// Épuration : les longues explications sont repliées derrière une icône ⓘ (survol = bulle, clic = déplier)
+function tidyHints(root) {
+  if (!root) return;
+  root.querySelectorAll('p.hint:not([data-tidy])').forEach(p => {
+    p.dataset.tidy = '1';
+    if (p.closest('.mhead') || p.querySelector('button,input,select,a,textarea')) return;
+    const head = p.previousElementSibling; if (!head || !/^H[23]$/.test(head.tagName)) return;
+    if (p.textContent.trim().length < 45) return;
+    const id = 'h' + Math.random().toString(36).slice(2, 8); p.id = id; p.hidden = true;
+    const b = document.createElement('button'); b.className = 'infoi'; b.type = 'button'; b.textContent = 'i';
+    b.setAttribute('aria-label', 'Explication'); b.setAttribute('aria-controls', id); b.setAttribute('aria-expanded', 'false'); b.dataset.tip = p.innerHTML;
+    head.appendChild(b);
+  });
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('.infoi'); if (b) { e.stopPropagation(); const p = document.getElementById(b.getAttribute('aria-controls')); if (p) { p.hidden = !p.hidden; b.setAttribute('aria-expanded', String(!p.hidden)); } return; }
+  const x = e.target.closest('.alert .x'); if (x) x.classList.toggle('open');
+}, true);
+
 // ---------- Démarrage ----------
 (async function init() {
   SPLASH.ver(APP_VERSION); SPLASH.step('db', 'active');
@@ -3413,7 +3540,8 @@ async function syncInit() {
   try { const th = localStorage.getItem('flux-theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) {}
   try { const u = JSON.parse(localStorage.getItem('flux-ui') || '{}'); if (u.tab && TITLES[u.tab]) S.ui.tab = u.tab; if (u.prepView) S.ui.prepView = u.prepView; } catch (e) {}
   S.ui.week = isoWeek(today());
-  const [settings, refd, prep, affret, rapat, sst, prepHist, likp] = await Promise.all(['settings', 'ref', 'prep', 'affret', 'rapat', 'sst', 'prepHist', 'likp'].map(k => DB.get(k)));
+  const [settings, refd, prep, affret, rapat, sst, prepHist, likp, nav] = await Promise.all(['settings', 'ref', 'prep', 'affret', 'rapat', 'sst', 'prepHist', 'likp', 'nav'].map(k => DB.get(k)));
+  if (nav) S.nav = nav;
   if (prepHist) S.prepHist = prepHist; if (likp) S.likp = likp;
   if (settings) S.settings = Object.assign(structuredClone(DEFAULT_SETTINGS), settings);
   if (!(S.settings.settingsV >= 2)) { S.settings.prepDelai = 0; S.settings.likpDefaut = '12:00'; S.settings.settingsV = 2; save('settings'); }   // v1.13 : règle « la veille » trop pessimiste

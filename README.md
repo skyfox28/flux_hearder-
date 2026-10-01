@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.23.0** · Développé par **Galaad Poivey**
+Version **1.25.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -216,6 +216,34 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
 
 Paramètres → À propos → « Animer l'écran d'ouverture » : décoché, la scène reste figée, mais la connexion reste demandée. L'animation est aussi réduite si le système demande de limiter les animations.
 
+## Onglet Sources
+
+Toutes les mises à jour se font au même endroit : l'onglet **Sources**, juste sous le tableau de bord. Une carte par source, chacune avec son état (date, volume) :
+
+| Source | Mise à jour | Dossier SharePoint possible |
+|---|---|---|
+| VL06O | dépôt du fichier | oui (VL06O le plus récent) |
+| LIKP | collage ou fichier Excel | oui (LIKP le plus récent) |
+| Base affrètement | collage depuis Access | – |
+| Navettes usines (VL06I) | collage | – |
+| Rapatriements | dépôt des fichiers | oui, **un dossier par entrepôt** : FM, Mutual, Tempo One |
+| Planning réception SST | dépôt du fichier | oui (planning le plus récent) |
+
+Les dossiers reliés sont relus automatiquement à chaque ouverture (étape « Fichiers SharePoint » de l'écran d'ouverture), et à la demande avec « Tout actualiser depuis SharePoint ». Les autres onglets n'affichent plus qu'une barre d'état avec un bouton « Mettre à jour › ». Les pastilles en haut de page mènent aussi à Sources. Le référentiel articles et la sauvegarde partagée restent dans Paramètres.
+
+## Navettes usines (VL06I)
+
+- On colle la VL06I dans Sources. Comme la VL06O, chaque collage **remplace** le précédent : une navette absente du nouveau collage a été déchargée.
+- Seuls les sites usines **2560** (Carpentras) et **2510** (usine épices) sont retenus. La liste est réglable dans Paramètres → Quai de réception.
+- **Palettes = nombre de colis.** Si le nombre de colis est vide, il est estimé au poids, à partir du poids moyen par palette des autres navettes (signalé par ≈).
+- **Date dépassée :** une navette encore présente compte le jour de la VL06I. Par exemple, une navette du 29/09 dans une VL06I du 01/10 compte le 01/10.
+- Pas d'horaire : les chauffeurs de parc les ramènent au fil de la journée. Pour le quai de réception, elles sont réparties de 05:00 à 20:00 (réglable).
+- Les navettes s'ajoutent aux **entrées** : tableau de bord, overlay flux palettes, matrice jour par jour, quai de réception. L'onglet **Navettes usines** liste simplement les navettes en cours (date, usine, livraison, palettes).
+
+## Affichage épuré
+
+Les longues explications sont repliées derrière une petite icône **ⓘ** à côté du titre (survol = bulle, clic = déplier). Les points d'attention tiennent sur une ligne (clic pour voir la liste). Dans l'overlay flux palettes, le solde et les retours interco ont été retirés, et les navettes usines ajoutées.
+
 ## Quai de réception
 
 Simulation, jour par jour, de la réception de la semaine affichée :
@@ -232,13 +260,14 @@ Verdict rouge pour un jour si le sol dépasse sa capacité ou si un camion atten
 
 **Les valeurs par défaut sont à ajuster** dans Paramètres → « Quai de réception » et « Équipes de rangement ».
 
-## Dossiers sources SharePoint (rapatriements, planning SST)
+## Dossiers sources SharePoint
 
-Paramètres → « Dossiers sources (SharePoint) ». On choisit une fois, pour chaque type, le dossier SharePoint synchronisé par OneDrive où les fichiers sont déposés. Ensuite :
+Onglet Sources → « Relier un dossier SharePoint ». On choisit une fois, pour chaque source, le dossier SharePoint synchronisé par OneDrive où les fichiers sont déposés. Ensuite :
 - **À chaque ouverture**, l'app relit automatiquement les fichiers nouveaux ou modifiés depuis le dernier import (étape « Fichiers SharePoint » de l'écran d'ouverture).
-- **Rapatriements :** fichiers `AAAA_Sxx_<Entrepôt>.xlsx` des semaines proches (± 3 semaines), sous-dossiers compris.
+- **Rapatriements :** un dossier par entrepôt (FM, Mutual, Tempo One) ; fichiers `AAAA_Sxx_<Entrepôt>.xlsx` des semaines proches (± 3 semaines), sous-dossiers compris.
+- **VL06O et LIKP :** le fichier le plus récent du dossier.
 - **Planning SST :** le fichier « Planning…Réception… » le plus récent.
-- Un bouton **Actualiser depuis SharePoint** dans les onglets Rapatriements et Réceptions SST relit sans fermer l'app.
+- Les boutons **Actualiser** (par dossier) et **Tout actualiser depuis SharePoint** de l'onglet Sources relisent sans fermer l'app.
 - Si le navigateur demande de reconfirmer l'accès, une seule question à l'ouverture couvre tous les dossiers : sauvegarde et sources.
 
 **Fermeture de l'onglet :** tant que la dernière modification n'est pas enregistrée dans le dossier de sauvegarde partagé, le navigateur demande confirmation avant de fermer, et l'enregistrement démarre pendant ce temps. Un navigateur ne permet pas d'empêcher totalement la fermeture : c'est le maximum autorisé.
