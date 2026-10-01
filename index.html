@@ -538,6 +538,131 @@ body.modal-open{overflow:hidden}
   .mbody{max-height:none!important;overflow:visible!important}.mhead button{display:none!important}
   .glass{background:#fff!important;backdrop-filter:none!important;box-shadow:none!important}.tbl-wrap{max-height:none!important;overflow:visible!important}
 }
+
+/* ============================================================
+   STYLE SOBRE (industriel) : surfaces opaques, contrastes renforcés, textes plus grands
+   activé par la classe html.style-sobre (Paramètres › À propos › Style)
+   ============================================================ */
+html.style-sobre{
+  --bg-1:#eceef1; --bg-2:#eceef1; --bg-3:#eceef1;
+  --glass:#ffffff; --glass-strong:#ffffff; --glass-soft:#f7f8fa; --glass-border:#d3d8de; --glass-edge:transparent; --glass-shine:transparent;
+  --shadow:0 1px 2px rgba(16,24,40,.06);
+  --text-1:#121822; --text-2:#333c4b; --text-3:#525b6a;
+  --grid:#e2e5ea; --axis:#8f97a3;
+  --accent:#1d5ea8; --in:#1d5ea8; --out:#c45a26; --silo:#5b4fb0; --pick:#1d8a6c;
+  --good:#2e8b45; --good-ink:#1f6a33; --warn:#c98a12; --warn-ink:#7a4f00; --crit:#c23b33; --crit-ink:#a12a24;
+  --chip:#f1f3f6; --chip-on:#121822; --chip-on-ink:#fff; --input:#ffffff;
+  --row-hover:#eaf1fa; --row-alt:#f7f8fa; --th-bg:#f1f3f6; --radius:8px;
+}
+@media (prefers-color-scheme: dark){
+  html.style-sobre:not([data-theme="light"]){
+    --bg-1:#15181d; --bg-2:#15181d; --bg-3:#15181d;
+    --glass:#1e232a; --glass-strong:#252b33; --glass-soft:#1a1f25; --glass-border:#353d48;
+    --shadow:none; --text-1:#eceff3; --text-2:#c5ccd6; --text-3:#a2abb7; --grid:#2c333d; --axis:#5c6673;
+    --accent:#6fa3e6; --in:#6fa3e6; --good-ink:#7fd08f; --warn-ink:#f0c060; --crit-ink:#f3948d;
+    --chip:#252b33; --chip-on:#eceff3; --chip-on-ink:#121822; --input:#15181d; --row-hover:#26303c; --row-alt:#1b2026; --th-bg:#252b33;
+  }
+}
+html.style-sobre[data-theme="dark"]{
+  --bg-1:#15181d; --bg-2:#15181d; --bg-3:#15181d;
+  --glass:#1e232a; --glass-strong:#252b33; --glass-soft:#1a1f25; --glass-border:#353d48;
+  --shadow:none; --text-1:#eceff3; --text-2:#c5ccd6; --text-3:#a2abb7; --grid:#2c333d; --axis:#5c6673;
+  --accent:#6fa3e6; --in:#6fa3e6; --good-ink:#7fd08f; --warn-ink:#f0c060; --crit-ink:#f3948d;
+  --chip:#252b33; --chip-on:#eceff3; --chip-on-ink:#121822; --input:#15181d; --row-hover:#26303c; --row-alt:#1b2026; --th-bg:#252b33;
+}
+html.style-sobre body{background:var(--bg-1);font-size:15px}
+html.style-sobre .blobs{display:none}
+html.style-sobre .glass{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:var(--shadow)}
+html.style-sobre .glass::before{display:none}
+html.style-sobre .app{gap:16px;padding:0 16px 16px 0;grid-template-columns:236px 1fr}
+html.style-sobre aside.nav{top:0;min-height:100vh;border-radius:0;border-width:0 1px 0 0;padding:16px 10px}
+html.style-sobre .brand .logo{border-radius:8px;background:var(--accent);box-shadow:none}
+html.style-sobre .nav button{border-radius:6px;padding:10px 12px;font-size:15px}
+html.style-sobre .nav button.on{background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);font-weight:600;box-shadow:none}
+/* barre du haut : une bande fine et fixe */
+html.style-sobre header.top{position:sticky;top:0;z-index:20;border-radius:0 0 8px 8px;border-top:0;padding:10px 16px;gap:10px;flex-wrap:nowrap}
+html.style-sobre header.top > div:first-child{min-width:0;flex:0 1 auto}
+html.style-sobre header.top .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.style-sobre header.top .btn{white-space:nowrap;flex:none}
+html.style-sobre #qkBtn{font-size:0;gap:0;padding:0;width:36px;height:36px;justify-content:center}
+html.style-sobre #qkBtn svg{width:18px;height:18px}
+html.style-sobre .weekpick b{min-width:130px}
+html.style-sobre .srcbar .btn{display:none}
+html.style-sobre #qkBtn kbd{display:none}
+html.style-sobre .kpi[data-detail] .lab::after{display:none}
+html.style-sobre .kpi[data-detail]{cursor:pointer}
+html.style-sobre header.top > div:first-child{flex:none}
+html.style-sobre header.top .sub{display:none}
+html.style-sobre header.top h1{white-space:nowrap}
+.sc-short{display:none}
+html.style-sobre .sc-long{display:none} html.style-sobre .sc-short{display:inline}
+html.style-sobre header.top h1{font-size:19px}
+html.style-sobre header.top .sub{font-size:13px;color:var(--text-2)}
+html.style-sobre #sources,html.style-sobre header.top .btn.danger,html.style-sobre #wToday{display:none}
+.only-sobre{display:none !important}
+html.style-sobre .only-sobre{display:inline-flex !important}
+.data-chip{gap:8px}
+.data-chip i{width:9px;height:9px;border-radius:50%;background:var(--good);flex:none}
+.data-chip.old i{background:var(--warn)} .data-chip.off i{background:var(--text-3)}
+.data-chip.old{color:var(--warn-ink);border-color:color-mix(in srgb,var(--warn) 60%,var(--glass-border))}
+html.style-sobre .weekpick{border-radius:6px;background:var(--chip)}
+html.style-sobre .weekpick b{font-size:15px}
+html.style-sobre .weekpick small{font-size:12px;color:var(--text-2)}
+/* boutons, puces, onglets */
+html.style-sobre .btn{border-radius:6px;box-shadow:none;font-size:14px;padding:9px 14px}
+html.style-sobre .btn.sm{font-size:13px;padding:7px 12px}
+html.style-sobre .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+html.style-sobre[data-theme="dark"] .btn.primary{color:#0d1520}
+@media (prefers-color-scheme: dark){html.style-sobre:not([data-theme="light"]) .btn.primary{color:#0d1520}}
+html.style-sobre .iconbtn{border-radius:6px;width:36px;height:36px}
+html.style-sobre .chip{border-radius:6px;font-size:13.5px;padding:6px 11px}
+html.style-sobre .tabs{border-radius:8px;background:var(--chip)}
+html.style-sobre .tabs button{border-radius:6px;font-size:14px}
+html.style-sobre .tabs button.on{background:var(--glass);box-shadow:0 0 0 1px var(--glass-border)}
+html.style-sobre input.search,html.style-sobre select.inp,html.style-sobre input.inp,html.style-sobre textarea.inp{border-radius:6px;font-size:14px}
+/* cartes et tuiles */
+html.style-sobre section.card{padding:18px 20px}
+html.style-sobre .card h2{font-size:17px;font-weight:700}
+html.style-sobre .card .hint{font-size:13.5px;color:var(--text-2)}
+html.style-sobre .group-title{font-size:13px;color:var(--text-2);font-weight:700}
+html.style-sobre .kpi{border-radius:8px;box-shadow:none;background:var(--glass-soft);padding:14px 16px}
+html.style-sobre .kpi .lab{font-size:13px;color:var(--text-2);font-weight:600;line-height:1.3}
+html.style-sobre .kpi .val{font-size:28px}
+html.style-sobre .kpi .val small{font-size:14px;color:var(--text-2)}
+html.style-sobre .kpi .det{font-size:13px;color:var(--text-2);line-height:1.4;margin-top:4px}
+html.style-sobre .kpi[data-detail]:hover{transform:none;box-shadow:0 0 0 1px var(--accent)}
+html.style-sobre .bar{height:8px;border-radius:2px}
+html.style-sobre .bar > span{border-radius:2px}
+html.style-sobre .reel-line span{font-size:13px;color:var(--text-2)}
+html.style-sobre .reel-line small{font-size:13px;color:var(--text-2)}
+/* badges : un symbole en plus de la couleur */
+html.style-sobre .badge{font-size:13px;border-radius:4px;padding:3px 9px}
+html.style-sobre .badge::before{width:auto;height:auto;background:none;border-radius:0;font-weight:800;content:"•"}
+html.style-sobre .b-good::before{content:"✓"} html.style-sobre .b-warn::before{content:"!"} html.style-sobre .b-crit::before{content:"✗"} html.style-sobre .b-info::before{content:"i"}
+html.style-sobre .b-nodot::before{display:none}
+/* tableaux */
+html.style-sobre .tbl-wrap{border-radius:6px;background:var(--glass)}
+html.style-sobre table.t{font-size:14px}
+html.style-sobre .t th{font-size:13px;color:var(--text-2);background:var(--th-bg);-webkit-backdrop-filter:none;backdrop-filter:none;padding:10px 12px}
+html.style-sobre .t td{padding:9px 12px}
+html.style-sobre .t tr.tot td{-webkit-backdrop-filter:none;backdrop-filter:none}
+html.style-sobre .dayhead small{font-size:12px;color:var(--text-2)}
+/* graphiques */
+html.style-sobre .chart .axis-t{font-size:12.5px;fill:var(--text-2)}
+html.style-sobre .chart .val-t{font-size:12.5px;fill:var(--text-1)}
+html.style-sobre .legend{font-size:13.5px}
+html.style-sobre .tip{-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:6px;font-size:13px}
+/* alertes, planning, journée */
+html.style-sobre .alert{border-radius:6px;font-size:14px;background:var(--glass)}
+html.style-sobre .alert .x{font-size:13px;color:var(--text-2)}
+html.style-sobre .plan-day,html.style-sobre .daycard,html.style-sobre .xlchart,html.style-sobre .xlcharts > div,html.style-sobre .purge-opt,html.style-sobre .drop{border-radius:8px}
+html.style-sobre .pv{border-radius:6px}
+html.style-sobre .pv span{font-size:12px;color:var(--text-2)} html.style-sobre .pv small{font-size:13px;color:var(--text-2)}
+html.style-sobre .ts-it{border-radius:6px;font-size:13.5px}
+html.style-sobre .ts-h span{font-size:13px;color:var(--text-2)}
+html.style-sobre .meta{font-size:13px;color:var(--text-2)}
+html.style-sobre .mpanel{background:var(--bg-1);border-radius:8px}
+html.style-sobre .appfoot{font-size:13px}
 </style>
 </head>
 <body>
@@ -564,7 +689,7 @@ body.modal-open{overflow:hidden}
 /* Écran d'ouverture : petite scène 3D en CSS (entrepôt, quais, camions, chariot, palettes) + étapes réelles du démarrage */
 const SPLASH = (() => {
   const el = document.getElementById('splash');
-  try { const th = localStorage.getItem('flux-theme'); if (th) document.documentElement.dataset.theme = th; const dn = localStorage.getItem('flux-density'); if (dn === 'compact' || dn === 'airy') document.documentElement.classList.add('dens-' + dn); } catch (e) {}
+  try { const th = localStorage.getItem('flux-theme'); if (th) document.documentElement.dataset.theme = th; if (localStorage.getItem('flux-style') === 'sobre') document.documentElement.classList.add('style-sobre'); const dn = localStorage.getItem('flux-density'); if (dn === 'compact' || dn === 'airy') document.documentElement.classList.add('dens-' + dn); } catch (e) {}
   let still = false; try { still = localStorage.getItem('flux-splash') === 'off'; } catch (e) {}
   const off = !/[?#&]splash\b/.test(location.href) && navigator.webdriver;   // tests automatisés : pas d'écran d'ouverture
   if (still) el.classList.add('still');
@@ -676,6 +801,8 @@ const SPLASH = (() => {
         <button class="iconbtn" id="wNext" aria-label="Semaine suivante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></button>
       </div>
       <button class="btn sm" id="wToday">Cette semaine</button>
+      <button class="btn sm data-chip only-sobre" id="dataChip" data-gotab="src" title="État des sources (clic : onglet Sources)"></button>
+      <button class="btn sm primary only-sobre" data-gotab="src">Mettre à jour</button>
       <button class="btn sm sync-chip" id="syncChip" hidden></button>
       <button class="btn sm danger" data-detail="purge" title="Purger les données de l’app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg> Purger</button>
       <button class="btn sm" id="qkBtn" title="Rechercher une livraison, un client, un transporteur… (Ctrl+K)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg> Rechercher <kbd>Ctrl K</kbd></button>
@@ -698,9 +825,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.28.3';
+const APP_VERSION = '1.29.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.29.0', '01/10/2026', 'Style « sobre » (industriel), au choix dans Paramètres › À propos : surfaces opaques sans flou, textes plus grands et plus contrastés, détail des tuiles visible en entier, badges avec symbole (✓ ! ✗), barre du haut sur une ligne (pastille d’état des données, bouton Mettre à jour ; Purger reste dans Paramètres).'],
   ['1.28.3', '01/10/2026', 'VL06O : chemin SharePoint prévu (Flux_hebdo\\VL06O), réglable dans Paramètres, rappelé dans l’onglet Sources et vérifié quand on relie le dossier.'],
   ['1.28.2', '01/10/2026', 'Paramètres : « Caristes SILO » avec le cariste entrée SILO (rangement des réceptions) et le cariste sortie SILO (palettes complètes des commandes), à la place des équipes de rangement ; les sorties se comptent en livraisons, pas en camions (une livraison n’est pas un camion).'],
   ['1.28.1', '01/10/2026', 'Réel : le rendement mesuré n’est appliqué qu’après 3 mesures et 15 h d’équipe mesurées, et il est borné entre 70 % et 130 % (réglable dans Paramètres) ; les palettes SILO des postes commencés (statut B) sont signalées à part.'],
@@ -1347,6 +1475,10 @@ function renderSources() {
     ['SST', S.sst.rows.length ? 1 : null, 'sst', `${n0(S.sst.rows.length)} RDV`],
     ['Navettes', S.nav?.at, 'nav', S.nav ? `${navRows().length} navettes` : 'non collée'],
   ];
+  const vl = snapTs(), va = age(vl), cnt = src.filter(x => x[1] != null).length, stale = src.filter(x => x[1] > 1 && age(x[1]) > 12).length;
+  const dc = $('#dataChip'); if (dc) { dc.className = `btn sm data-chip only-sobre ${!vl ? 'off' : va > 4 || stale ? 'old' : 'ok'}`;
+    dc.innerHTML = `<i></i>${!vl ? 'VL06O non importée' : `VL06O ${esc(new Date(vl).toLocaleString('fr-FR', { weekday: 'short', hour: '2-digit', minute: '2-digit' }))}${va > 4 ? ' · à actualiser' : ' · à jour'}`}`;
+    dc.title = src.map(([n, ts, , det]) => `${n} : ${det}`).join('\n'); }
   $('#sources').innerHTML = src.map(([n, ts, tab, det]) => { const a = age(ts); const cls = ts == null ? 'off' : ts > 1 && a > 12 ? 'old' : 'ok';
     return `<button class="src ${cls}" data-tab="src" title="${esc(det)}"><i></i>${n}${ts > 1 ? `<small>${esc(ts === snapTs() ? new Date(ts).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }))}</small>` : ''}</button>`; }).join('');
 }
@@ -2130,7 +2262,7 @@ function viewSettings() {
     <div class="drop" data-drop="ref">${icon('upload')}<div><b>Déposez un référentiel</b> ou <button class="btn sm" data-pick="ref">choisir</button></div></div>
     ${S.ref ? `<div class="row" style="margin-top:10px"><button class="btn sm" data-act="ref-reset">Revenir au référentiel par défaut</button></div>` : ''}
   </section>
-  <section class="card glass"><h2>À propos</h2><label class="row" style="float:right;gap:6px;font-size:13px;margin-left:16px">Affichage <select class="inp" data-density style="padding:4px 8px;width:auto">${(() => { let v = 'std'; try { v = localStorage.getItem('flux-density') || 'std'; } catch (e) {} return [['std', 'standard'], ['compact', 'compact (bureau)'], ['airy', 'aéré (tablette)']].map(([k, l]) => `<option value="${k}" ${v === k ? 'selected' : ''}>${l}</option>`).join(''); })()}</select></label><label class="row" style="float:right;gap:6px;font-size:13px"><input type="checkbox" data-splash ${(() => { try { return localStorage.getItem('flux-splash') === 'off' ? '' : 'checked'; } catch (e) { return 'checked'; } })()}> Animer l’écran d’ouverture</label><p class="hint" style="margin:0">Flux Hebdo Dépôt — version <button class="linkbtn" data-detail="version">${APP_VERSION}</button> — développé par <b>${APP_AUTHOR}</b>. Application 100 % locale : les données restent dans ce navigateur et, si vous l’activez, dans le dossier de sauvegarde partagé.</p></section>
+  <section class="card glass"><h2>À propos</h2><label class="row" style="float:right;gap:6px;font-size:13px;margin-left:16px">Style <select class="inp" data-style style="padding:4px 8px;width:auto">${(() => { const v = document.documentElement.classList.contains('style-sobre') ? 'sobre' : 'verre'; return [['sobre', 'sobre (industriel)'], ['verre', 'verre']].map(([k, l]) => `<option value="${k}" ${v === k ? 'selected' : ''}>${l}</option>`).join(''); })()}</select></label><label class="row" style="float:right;gap:6px;font-size:13px;margin-left:16px">Affichage <select class="inp" data-density style="padding:4px 8px;width:auto">${(() => { let v = 'std'; try { v = localStorage.getItem('flux-density') || 'std'; } catch (e) {} return [['std', 'standard'], ['compact', 'compact (bureau)'], ['airy', 'aéré (tablette)']].map(([k, l]) => `<option value="${k}" ${v === k ? 'selected' : ''}>${l}</option>`).join(''); })()}</select></label><label class="row" style="float:right;gap:6px;font-size:13px"><input type="checkbox" data-splash ${(() => { try { return localStorage.getItem('flux-splash') === 'off' ? '' : 'checked'; } catch (e) { return 'checked'; } })()}> Animer l’écran d’ouverture</label><p class="hint" style="margin:0">Flux Hebdo Dépôt — version <button class="linkbtn" data-detail="version">${APP_VERSION}</button> — développé par <b>${APP_AUTHOR}</b>. Application 100 % locale : les données restent dans ce navigateur et, si vous l’activez, dans le dossier de sauvegarde partagé.</p></section>
     <section class="card glass"><h2>Dossiers SharePoint des sources</h2><p class="hint">Chemin du dossier SharePoint synchronisé par OneDrive où arrivent les fichiers. Il est rappelé au moment de relier le dossier (onglet Sources) ; l’app vérifie que le dossier choisi porte le bon nom.</p>
       <div class="set-grid"><label style="grid-column:1/-1">Dossier VL06O<input class="inp" data-setstr="srcPathVl06o" value="${esc(st.srcPathVl06o || '')}" placeholder="MC CORMICK &amp; COMPANY INC\\WeDeliver - Documents\\…\\VL06O"></label></div>
     </section>
@@ -3493,7 +3625,7 @@ function syncChip() {
     : m.dirty ? ['warn', 'Modifications non enregistrées', 'Enregistrement automatique dans quelques secondes.']
     : ['ok', m.last ? `${m.last.act === 'load' ? 'Chargée' : 'Enregistrée'} ${hhmm(m.last.at)}` : 'Sauvegarde connectée', m.last ? m.last.name : ''];
   b.className = `btn sm sync-chip ${cls}`; b.title = tip;
-  b.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.2 9.1 4 4 0 0 0 6.5 19z"/></svg> ${esc(txt)}`;
+  b.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.2 9.1 4 4 0 0 0 6.5 19z"/></svg> <span class="sc-long">${esc(txt)}</span><span class="sc-short">${cls === 'ok' ? 'Sauvegardé' : cls === 'crit' ? 'Sauvegarde : erreur' : 'Sauvegarde !'}</span>`;
 }
 function syncCard() {
   const m = syncMeta();
@@ -3666,8 +3798,10 @@ function tidyHints(root) {
   });
   // petits textes des tuiles : on garde la première information, le reste passe derrière ⓘ
   const mk = (tip, id) => { const b = document.createElement('button'); b.className = 'infoi'; b.type = 'button'; b.textContent = 'i'; b.setAttribute('aria-label', 'Détail'); b.setAttribute('aria-controls', id); b.setAttribute('aria-expanded', 'false'); b.dataset.tip = tip; return b; };
+  const sobre = document.documentElement.classList.contains('style-sobre');
+  root.querySelectorAll('.badge:not(.b-nodot)').forEach(b => { if (/^[✓✗!]/.test(b.textContent.trim())) b.classList.add('b-nodot'); });   // le texte porte déjà son symbole
   root.querySelectorAll('.kpi .det:not([data-tidy])').forEach(d => {
-    d.dataset.tidy = '1';
+    d.dataset.tidy = '1'; if (sobre) return;
     const full = d.innerHTML, parts = full.split(' · ');
     if (d.textContent.trim().length <= 42 || parts.length < 2) return;
     const id = 'k' + Math.random().toString(36).slice(2, 8); d.id = id;
@@ -3675,7 +3809,7 @@ function tidyHints(root) {
     const lab = d.closest('.kpi').querySelector('.lab'); if (lab) lab.appendChild(mk(full, id));
   });
   root.querySelectorAll('.reel-line small:not([data-tidy])').forEach(sm => {
-    sm.dataset.tidy = '1'; const id = 'r' + Math.random().toString(36).slice(2, 8); sm.id = id; sm.hidden = true;
+    sm.dataset.tidy = '1'; if (sobre) return; const id = 'r' + Math.random().toString(36).slice(2, 8); sm.id = id; sm.hidden = true;
     const b = sm.parentElement.querySelector('b'); if (b) b.appendChild(mk(sm.innerHTML, id));
   });
 }
@@ -3852,6 +3986,7 @@ document.addEventListener('fullscreenchange', () => { if (!document.fullscreenEl
 
 // densité d'affichage
 const applyDensity = v => { document.documentElement.classList.remove('dens-compact', 'dens-airy'); if (v === 'compact' || v === 'airy') document.documentElement.classList.add('dens-' + v); };
+document.addEventListener('change', e => { if (e.target.matches('[data-style]')) { try { localStorage.setItem('flux-style', e.target.value); } catch (x) {} document.documentElement.classList.toggle('style-sobre', e.target.value === 'sobre'); render(); } });
 document.addEventListener('change', e => { if (e.target.matches('[data-density]')) { try { localStorage.setItem('flux-density', e.target.value); } catch (x) {} applyDensity(e.target.value); } });
 
 // ---------- Démarrage ----------

@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.28.3** · Développé par **Galaad Poivey**
+Version **1.29.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -202,6 +202,8 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
 - **Cariste sortie SILO** (palettes complètes des commandes) : 1 cariste de 5h00 à 12h30, 1 de 12h30 à 20h00 et **1 de nuit de 20h00 à 3h30**, soit 22,5 h par jour. La nuit est prise en compte dans le calcul « réel ».
 
 ## Interface
+
+- **Style sobre (industriel)**, au choix dans Paramètres › À propos (« Style : sobre / verre », mémorisé par poste) : fond uni, cartes opaques sans flou, textes à 15 px et gris plus foncés, détail des tuiles affiché en entier, badges avec symbole (✓ normal, ! tendu, ✗ dépassé). La barre du haut tient sur une ligne : titre, semaine, pastille d'état des données (survol = détail des sources, clic = onglet Sources), « Mettre à jour », sauvegarde, recherche, écran atelier, thème. « Purger » reste dans Paramètres.
 
 - **Couleurs sobres :** palette atténuée d'environ 20 %, fond et effet verre plus calmes. Les couleurs de séries sont vérifiées pour la lisibilité, y compris pour les daltoniens, en thème clair comme sombre.
 - **État des sources** sous le titre : VL06O, LIKP, affrètement, rapatriements, SST.
