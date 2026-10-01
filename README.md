@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.25.0** · Développé par **Galaad Poivey**
+Version **1.26.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -242,7 +242,7 @@ Les dossiers reliés sont relus automatiquement à chaque ouverture (étape « F
 
 ## Affichage épuré
 
-Les longues explications sont repliées derrière une petite icône **ⓘ** à côté du titre (survol = bulle, clic = déplier). Les points d'attention tiennent sur une ligne (clic pour voir la liste). Dans l'overlay flux palettes, le solde et les retours interco ont été retirés, et les navettes usines ajoutées.
+Dans tous les onglets, les longues explications sont repliées derrière une petite icône **ⓘ** à côté du titre (survol = bulle, clic = déplier). Dans les tuiles, seule la première information reste affichée, le détail est derrière ⓘ ; les verdicts « passe / ne passe pas » de la section Réel aussi. Au tableau de bord, la tuile **Quai expédition** est dans le groupe Sorties (le quai réception dans Entrées), et les **points d'attention** sont en bas de page. Les points d'attention tiennent sur une ligne (clic pour voir la liste). Dans l'overlay flux palettes, le solde et les retours interco ont été retirés, et les navettes usines ajoutées.
 
 ## Quai de réception
 

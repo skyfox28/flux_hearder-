@@ -629,9 +629,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.25.0';
+const APP_VERSION = '1.26.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.26.0', '01/10/2026', 'Tableau de bord : quai d’expédition dans Sorties, points d’attention en bas de page ; épuration de tous les onglets (petits textes des tuiles et explications derrière ⓘ, survol ou clic).'],
   ['1.25.0', '01/10/2026', 'Onglet Sources : toutes les mises à jour au même endroit (VL06O, LIKP, affrètement, navettes VL06I, rapatriements, planning SST) ; dossier SharePoint reliable pour VL06O, LIKP, SST et un par entrepôt de rapatriement (FM, Mutual, Tempo One).'],
   ['1.24.0', '01/10/2026', 'Navettes usines (copier-coller VL06I, sites 2560 et 2510, palettes = colis, date dépassée = jour de la VL06I) dans les entrées et le quai de réception ; overlay flux sans solde ni retours interco ; affichage épuré (explications repliées derrière ⓘ, alertes sur une ligne).'],
   ['1.23.0', '01/10/2026', 'Dossiers sources SharePoint (rapatriements, planning SST) relus automatiquement à l’ouverture ; une seule autorisation pour tous les dossiers ; confirmation à la fermeture tant que la sauvegarde partagée n’est pas à jour.'],
@@ -1356,6 +1357,7 @@ function viewDash() {
     <div class="kpis">
       ${kpi('Palettes expédiées', n0(palOut), 'pal', `${n0(aff.length)} livraisons affrétées · ${tons(sum(aff, r => r.poids))} t${vlOnlyRows().length ? ` · +${vlOnlyRows().length} VL06O non affrétées` : ''}`, 'var(--out)', 'out')}
       ${kpi('Blocs sol', n0(sum(aff, r => r.blocs)), '', `${uniq(aff.map(r => r.transp)).length} transporteurs`, '', 'blocs')}
+      ${dockTile()}
       ${(() => { const ir = intercoRows(); return kpi('Intercos envoyés', n0(sum(ir, r => r.pal ?? r.palSilo)), 'pal', `${ir.length} livraisons`, '', 'interco'); })()}
     </div>
     <div class="group-title" style="margin-top:18px">Capacité quai (semaine)</div>
@@ -1374,7 +1376,6 @@ function viewDash() {
     </div>
     ${reelTiles()}
   </section>
-  ${alerts ? `<section class="card glass"><h2>Points d’attention</h2><div class="alerts">${alerts}</div></section>` : ''}
   <div class="grid g2">
     <section class="card glass clickcard" data-detail="flux" role="button" tabindex="0"><span class="expand">Agrandir ⤢</span><h2>Flux palettes par jour</h2><p class="hint">Entrées = rapatriements + réceptions SST · Sorties = expéditions affrétées + transferts vers externes. Pointillés : capacité quai (${n0(S.settings.capaInWeek)} pal/sem. en entrée, ${n0(S.settings.capaOutWeek)} en sortie, sur ${nbWorkDays()} jours).</p>
       ${barChart({ cats, series: [{ key: 'palIn', label: 'Entrées', color: cssVar('--in') }, { key: 'palOutAll', label: 'Sorties', color: cssVar('--out') }], data: pd, unit: ' pal', ref: [{ value: num(S.settings.capaInWeek) / nbWorkDays(), label: `cap. entrées ${n0(num(S.settings.capaInWeek) / nbWorkDays())}`, legend: 'Capacité entrées / jour', color: cssVar('--in') }, { value: num(S.settings.capaOutWeek) / nbWorkDays(), label: `cap. sorties ${n0(num(S.settings.capaOutWeek) / nbWorkDays())}`, legend: 'Capacité sorties / jour', color: cssVar('--out') }] })}
@@ -1386,6 +1387,7 @@ function viewDash() {
   <section class="card glass"><h2>Semaine jour par jour</h2><p class="hint">Vue consolidée de tous les flux du dépôt — cliquez un chiffre ou une ligne pour le détail.</p>
     ${dayMatrix(pd)}
   </section>
+  ${alerts ? `<section class="card glass"><h2>Points d’attention</h2><div class="alerts">${alerts}</div></section>` : ''}
 `;
 }
 const MATRIX_DETAIL = { palNav: 'nav', camNav: 'nav', palRap: 'rapin', camRap: 'rapin', palSst: 'sst', camSst: 'sst', palIntercoBack: 'sst', palIn: 'in', livOut: 'out', livNA: 'out', palOut: 'out', palOutAll: 'flux', capIn: 'flux', capOut: 'flux', tIn: 'flux', tOut: 'flux', blocs: 'blocs', palInterco: 'interco', poids: 'poids', palExt: 'ext', livPrep: 'livprep', codes: 'livprep', hrs: 'charge', hrsFait: 'avanc', hrSilo: 'charge', capaS: 'charge', tauxS: 'charge', hrPick: 'charge', capa: 'charge', taux: 'charge', prepNeed: 'charge', dureeEq: 'charge' };
@@ -1918,7 +1920,7 @@ function viewSST() {
   return `<section class="card glass">
     <div class="card-head"><div><h2>Planning de réception sous-traitants</h2>
     <p class="hint">Déposez <kbd>Planning_Reception_SST_Monteux3.xlsb</kbd> : les onglets « PlanningReception AAAA » sont lus (créneaux avec RDV ou palettes). Le pointage « Reçu » est conservé lors des ré-imports.</p></div>
-    ${files.length ? `<div class="meta" style="text-align:right">${files.map(esc).join('<br>')}<br>${n0(S.sst.rows.length)} RDV en mémoire</div>` : ''}</div>
+    </div>
     ${srcBar(files.length ? `${files.map(esc).join(', ')} · ${n0(S.sst.rows.length)} RDV` : '<b>Planning non importé</b>', !files.length)}
     <details class="paste" style="margin-top:14px"><summary>+ Ajouter un RDV manuellement</summary>
     <div class="form" style="margin-top:10px">
@@ -2598,6 +2600,10 @@ function projection() {
 const verdict = (ok, m, n) => ok ? badge(`Passe · marge ${n1(m)} h`, 'b-good') : badge(`Ne passe pas · manque ${n1(-m)} h${n ? ` · ${n} livr.` : ''}`, 'b-crit');
 const tauxReel = v => isFinite(v) ? `<span class="badge b-nodot ${v > 1 ? 'b-crit' : v > .85 ? 'b-warn' : 'b-good'}">${pct(v)}</span>` : badge('hors capacité', 'b-crit');
 // bloc « Réel » du tableau de bord
+function dockTile() {
+  const P = projection(); if (!P || !P.rows.length) return '';
+  return (() => { const dk = dockSim(P); const nx = dk.sat[0]; const pk = Math.max(...P.rows.slice(0, 3).map(r => dk.dayPeak(r.D).peak), dk.now); return `<div class="kpi" data-detail="quai" role="button" tabindex="0"><div class="lab">Quai expédition (blocs)</div><div class="val">${n0(dk.now)}<small>/ ${n0(dk.cap)} blocs</small></div><div class="bar"><span style="width:${Math.min(100, Math.round(dk.now / dk.cap * 100))}%;background:${dk.now > dk.cap ? 'var(--crit)' : dk.now > dk.cap * .85 ? 'var(--warn)' : 'var(--good)'}"></span></div><div class="det">${nx ? `<strong style="color:var(--crit-ink)">saturé ${esc(fdt(nx.from))} (pic ${n0(nx.peak)} blocs)</strong>` : `pic prévu ${n0(pk)} blocs · pas de saturation`}</div></div>`; })();
+}
 function reelTiles() {
   const P = projection(); if (!P || !P.rows.length) return '';
   const rows = P.rows.slice(0, 3);
@@ -2607,7 +2613,6 @@ function reelTiles() {
       <div class="reel-line"><span>Picking</span>${r.okP ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumP)} h à faire / ${n1(r.capP)} h dispo · taux ${isFinite(r.tP) ? pct(r.tP) : '∞'}${r.nLateP ? ` · <strong class="late">${r.nLateP} livr. en retard</strong>` : ''}</small></div>
       <div class="reel-line"><span>SILO</span>${r.okS ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumS)} h à faire / ${n1(r.capS)} h dispo · taux ${isFinite(r.tS) ? pct(r.tS) : '∞'}${r.nLateS ? ` · <strong class="late">${r.nLateS} livr. en retard</strong>` : ''}</small></div>
       <div class="det">${r.withT ? `${r.withT}/${r.nLiv} livr. avec créneau · ` : ''}dernière échéance ${esc(fdt(r.dl))}${r.finP ? ` · fin picking estimée ${esc(fdt(r.finP))}` : ''}</div></div>`).join('')}
-      ${(() => { const dk = dockSim(P); const nx = dk.sat[0]; const pk = Math.max(...P.rows.slice(0, 3).map(r => dk.dayPeak(r.D).peak), dk.now); return `<div class="kpi" data-detail="quai" role="button" tabindex="0"><div class="lab">Quai expédition (blocs)</div><div class="val">${n0(dk.now)}<small>/ ${n0(dk.cap)} blocs</small></div><div class="bar"><span style="width:${Math.min(100, Math.round(dk.now / dk.cap * 100))}%;background:${dk.now > dk.cap ? 'var(--crit)' : dk.now > dk.cap * .85 ? 'var(--warn)' : 'var(--good)'}"></span></div><div class="det">${nx ? `<strong style="color:var(--crit-ink)">saturé ${esc(fdt(nx.from))} (pic ${n0(nx.peak)} blocs)</strong>` : `pic prévu ${n0(pk)} blocs · pas de saturation`}</div></div>`; })()}
       <div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Rendement réel</div><div class="val">${P.R.p ? pct(P.R.p) : '–'}</div><div class="det">${eff}${P.R.colisH ? ` · ${n0(P.R.colisH)} colis/h réels (cadence ${S.settings.cadEntrepot})` : ''}</div></div>
     </div>`;
 }
@@ -2775,8 +2780,8 @@ function prepPlanning(lines) {
       <div class="tbl-wrap" style="max-height:none"><table class="t"><thead><tr><th>Créneau de chargement</th><th class="num">Livr. prêtes</th><th class="num">Pal SILO</th><th class="num">Colis picking</th><th class="num">Reste SILO</th><th class="num">Reste picking</th><th>Échéance prépa</th><th>Fin estimée</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table></div>${dayBtn}${dayTable}</div>`;
   }).join('');
   const missing = L.filter(x => !x.t && x.st !== 'ready');
-  const miss = missing.length ? `<div class="alert warn" style="margin-bottom:14px">${icon('warn')}<div><b>${missing.length} livraison(s) à préparer n’ont pas de créneau de chargement</b> (${uniq(missing.map(x => fdateL(x.D))).join(', ')}) : leur échéance est estimée. Ouvrez « Détail des livraisons du jour » pour saisir l’heure, ou collez la LIKP ci-dessus.</div></div>` : '';
-  const info = P ? `<div class="alert info" style="margin-bottom:14px">${icon('info')}<div><b>Comment lire :</b> chaque jour de chargement est découpé par créneau LIKP (${num(S.settings.likpSlot)} h). « Reste » = postes pas encore au statut C, en heures (cadences). La fin estimée enchaîne le travail restant dans l’ordre des créneaux avec les équipes (${esc(teamsLbl())} ; SILO : ${esc(siloLbl())})${P.R.p ? `, au rendement réel mesuré (${pct(P.R.p)})` : ''}, à partir de la VL06O extraite le <b>${esc(fdt(P.at))}</b>. « En retard » = la fin estimée dépasse l’échéance (début du créneau − ${num(S.settings.likpMarge)} min ; créneaux fixes : ${(S.settings.creneauxClients || []).map(r => `${esc(r.key)} ${hLbl(r.debut)}–${hLbl(r.fin)}`).join(', ')} ; sans heure LIKP, échéance estimée ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}). Cliquez un créneau pour voir ses livraisons.${S.likp ? '' : ' <b>Collez la LIKP ci-dessus pour obtenir les créneaux.</b>'}</div></div>` : '';
+  const miss = missing.length ? `<div class="alert warn" style="margin-bottom:14px">${icon('warn')}<div><b>${missing.length} livraison(s) sans créneau de chargement</b> (${uniq(missing.map(x => fdateL(x.D))).join(', ')}) : échéance estimée.</div></div>` : '';
+  const info = P ? `<h3 class="mh" style="margin-top:0">Planning de chargement</h3><p class="hint">chaque jour de chargement est découpé par créneau LIKP (${num(S.settings.likpSlot)} h). « Reste » = postes pas encore au statut C, en heures (cadences). La fin estimée enchaîne le travail restant dans l’ordre des créneaux avec les équipes (${esc(teamsLbl())} ; SILO : ${esc(siloLbl())})${P.R.p ? `, au rendement réel mesuré (${pct(P.R.p)})` : ''}, à partir de la VL06O extraite le <b>${esc(fdt(P.at))}</b>. « En retard » = la fin estimée dépasse l’échéance (début du créneau − ${num(S.settings.likpMarge)} min ; créneaux fixes : ${(S.settings.creneauxClients || []).map(r => `${esc(r.key)} ${hLbl(r.debut)}–${hLbl(r.fin)}`).join(', ')} ; sans heure LIKP, échéance estimée ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}). Cliquez un créneau pour voir ses livraisons.${S.likp ? '' : ' <b>Collez la LIKP ci-dessus pour obtenir les créneaux.</b>'}</p>` : '';
   return info + miss + `<div class="plan">${dayCards}</div>`;
 }
 document.addEventListener('click', e => { const d = e.target.closest('[data-openday]'); if (d) { S.ui.openDay = S.ui.openDay === d.dataset.openday ? null : d.dataset.openday; render(); } });
@@ -3527,9 +3532,26 @@ function tidyHints(root) {
     b.setAttribute('aria-label', 'Explication'); b.setAttribute('aria-controls', id); b.setAttribute('aria-expanded', 'false'); b.dataset.tip = p.innerHTML;
     head.appendChild(b);
   });
+  // petits textes des tuiles : on garde la première information, le reste passe derrière ⓘ
+  const mk = (tip, id) => { const b = document.createElement('button'); b.className = 'infoi'; b.type = 'button'; b.textContent = 'i'; b.setAttribute('aria-label', 'Détail'); b.setAttribute('aria-controls', id); b.setAttribute('aria-expanded', 'false'); b.dataset.tip = tip; return b; };
+  root.querySelectorAll('.kpi .det:not([data-tidy])').forEach(d => {
+    d.dataset.tidy = '1';
+    const full = d.innerHTML, parts = full.split(' · ');
+    if (d.textContent.trim().length <= 42 || parts.length < 2) return;
+    const id = 'k' + Math.random().toString(36).slice(2, 8); d.id = id;
+    d.dataset.full = full; d.dataset.short = parts[0] + ' …'; d.innerHTML = d.dataset.short;
+    const lab = d.closest('.kpi').querySelector('.lab'); if (lab) lab.appendChild(mk(full, id));
+  });
+  root.querySelectorAll('.reel-line small:not([data-tidy])').forEach(sm => {
+    sm.dataset.tidy = '1'; const id = 'r' + Math.random().toString(36).slice(2, 8); sm.id = id; sm.hidden = true;
+    const b = sm.parentElement.querySelector('b'); if (b) b.appendChild(mk(sm.innerHTML, id));
+  });
 }
 document.addEventListener('click', e => {
-  const b = e.target.closest('.infoi'); if (b) { e.stopPropagation(); const p = document.getElementById(b.getAttribute('aria-controls')); if (p) { p.hidden = !p.hidden; b.setAttribute('aria-expanded', String(!p.hidden)); } return; }
+  const b = e.target.closest('.infoi'); if (b) { e.preventDefault(); e.stopPropagation(); const p = document.getElementById(b.getAttribute('aria-controls')); if (!p) return;
+    if (p.dataset.full != null) { const open = b.getAttribute('aria-expanded') !== 'true'; p.innerHTML = open ? p.dataset.full : p.dataset.short; b.setAttribute('aria-expanded', String(open)); }
+    else { p.hidden = !p.hidden; b.setAttribute('aria-expanded', String(!p.hidden)); }
+    return; }
   const x = e.target.closest('.alert .x'); if (x) x.classList.toggle('open');
 }, true);
 
