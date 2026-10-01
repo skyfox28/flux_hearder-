@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.30.2** · Développé par **Galaad Poivey**
+Version **1.31.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -148,10 +148,11 @@ Le numéro de version (`APP_VERSION` dans `index.html`) augmente à chaque modif
 - **Capacité restante :** les heures d'équipe encore disponibles entre l'heure d'extraction et l'échéance de préparation. Par défaut, l'échéance est la fin de la veille travaillée ; on peut la mettre au jour même dans Paramètres.
 - **Verdict :** « passe » si le reste cumulé tient dans la capacité, sinon « ne passe pas » avec les heures manquantes. L'app donne aussi une heure de fin estimée, et calcule tout séparément pour le SILO et le picking.
 - **Limite réelle :** sur les graphiques, un trait rouge pointillé par jour = heures déjà faites + capacité encore disponible. Si le haut de la barre dépasse le trait, la journée ne passe pas.
-- **Rendement réel :** entre deux imports successifs (par exemple le matin et l'après-midi), l'app mesure les heures théoriques réalisées. Ce sont les postes passés au statut C ou sortis de la VL06O. Elle les divise par les heures d'équipe écoulées. Ce rendement ajuste la capacité restante et s'affine à chaque actualisation ; l'ajustement peut être désactivé dans Paramètres.
-  - Le rendement n'est **appliqué** qu'à partir de **3 mesures** et **15 h d'équipe mesurées** (séparément pour le SILO et le picking). Avant, la capacité reste théorique ; le rendement mesuré est seulement affiché.
-  - Le rendement appliqué est **borné entre 70 % et 130 %**. Une mesure isolée ou faussée ne peut donc pas diviser la capacité par deux.
-  - Les seuils et les bornes se règlent dans Paramètres, section « Réel ».
+- **Rendement réel appris :** à chaque import de la VL06O, l'app compare avec l'import précédent (postes passés au statut C ou sortis de la VL06O, convertis en heures théoriques) et divise par les heures d'équipe écoulées.
+  - Une mesure ne compte que si l'équipe **avait encore du travail à l'import suivant**. Sinon, elle a fini plus tôt (une commande finie à 11h vue à l'import de 14h) : l'heure d'import ne compte pas, l'app retient seulement « au moins ce rythme » et en déduit une heure de fin probable.
+  - **Certitude** = volume observé × régularité des mesures × précision (écart moyen entre deux imports). Elle monte avec les actualisations, et d'autant plus vite qu'elles sont rapprochées. Une seule mesure donne environ 15–20 % ; 4 imports par jour pendant une semaine, environ 70–80 %.
+  - Le rendement est appliqué à la projection **en proportion de la certitude** (et borné entre 70 % et 130 %) : à 20 % de certitude, la projection reste proche des cadences théoriques.
+  - Panneau « Ce que l'app a appris » dans le détail Charge SILO / picking, et tuile sur le tableau de bord. L'ajustement peut être désactivé dans Paramètres.
 - **Postes commencés (statut B) :** leurs palettes SILO restent comptées à faire, car la VL06O ne dit pas si elles sont déjà descendues. Elles sont signalées à part (« dont N pal sur postes commencés »). Le rendement SILO tend à être sous-estimé pour la même raison : un poste n'est compté fait qu'une fois entièrement au statut C, picking compris.
 
 ## Créneaux de chargement (table LIKP)

@@ -719,6 +719,19 @@ table.t{font-size:14px} .t th{font-size:13px} .t td{padding:8px 11px}
 .g-none .g-sub{color:var(--text-3)}
 .pilot-day{margin-bottom:16px}
 .sim{margin-top:6px}
+
+/* apprentissage */
+.learn{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:14px}
+.learn-card{border:1px solid var(--glass-border);border-radius:16px;padding:14px 16px;background:var(--glass-soft);display:flex;flex-direction:column;gap:10px}
+.lc-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.lc-top small{display:block;font-size:12.5px;color:var(--text-2)}
+.lc-big{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.lc-cert{text-align:right}
+.cfs{display:flex;flex-direction:column;gap:5px}
+.cf{display:grid;grid-template-columns:200px minmax(0,1fr) 46px;gap:10px;align-items:center;font-size:12.5px;color:var(--text-2)}
+.cf .bar{margin:0;height:6px} .cf .bar span{background:var(--accent)} .cf b{text-align:right;font-variant-numeric:tabular-nums}
+.cert-line{display:grid;grid-template-columns:56px 52px minmax(0,1fr);gap:4px 8px;align-items:center;margin-top:6px;font-size:13px}
+.cert-line span{color:var(--text-2)} .cert-line .bar{margin:0;height:6px} .cert-line small{grid-column:3;color:var(--text-3);font-size:12px;margin-top:-2px}
 </style>
 </head>
 <body>
@@ -881,9 +894,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.30.2';
+const APP_VERSION = '1.31.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.31.0', '01/10/2026', 'Apprentissage à chaque actualisation de la VL06O : une mesure ne compte que si l’équipe avait encore du travail à l’import suivant (sinon l’heure de fin est déduite et l’app ne retient qu’un minimum) ; pourcentage de certitude (volume observé × régularité × précision) qui monte avec les actualisations ; rendement appliqué à la projection en proportion de cette certitude ; panneau « Ce que l’app a appris ».'],
   ['1.30.2', '01/10/2026', 'Paramètres : cariste entrée SILO et cariste sortie SILO réglés par une case « Poste ouvert (1 cariste) » au lieu d’un nombre (magasin automatique, jamais plus d’un cariste par poste).'],
   ['1.30.1', '01/10/2026', 'Simulateur « Et si ? » : côté SILO, seule la cadence se règle (magasin automatique, 1 cariste par poste en entrée et en sortie).'],
   ['1.30.0', '01/10/2026', 'Pilotage visuel : jauges (quais, picking, sortie SILO, entrées, sorties) et anneaux (avancement des livraisons, picking par circuit, sorties par transporteur) sur le tableau de bord et dans la vue jour ; simulateur « Et si ? » (préparateurs, caristes sortie SILO, cadences) avec détail par créneau dans la vue jour ; verre plus transparent mais plus lisible (textes plus grands, détail des tuiles en entier).'],
@@ -1057,8 +1071,6 @@ const DEFAULT_SETTINGS = {
   settingsV: 3,
   srcPathVl06o: 'MC CORMICK & COMPANY INC\\WeDeliver - Documents\\101_Sandbox GP\\Flux_hebdo\\VL06O',   // dossier SharePoint prévu pour la VL06O
   projAjust: true,     // ajuster la capacité restante au rendement réel mesuré
-  rendMinMes: 3,       // rendement appliqué seulement après ce nombre de mesures…
-  rendMinH: 15,        // … et ce nombre d'heures d'équipe mesurées (par activité)
   rendMin: 70, rendMax: 130,   // rendement appliqué borné (en %)   // capacité du quai en palettes par semaine
   intercoKeys: ['PLATEFORME 38', 'COMPANS', 'MCCORMICK'],
   // livraisons qui ne partent pas de Monteux3 (ex. COLRUYT, code dépôt 540 : départ direct de Compans)
@@ -2293,8 +2305,6 @@ function viewSettings() {
       <label>Échéance de préparation calée sur<select class="inp" data-setsel="likpRef"><option value="0" ${+st.likpRef !== 1 ? 'selected' : ''}>le début du créneau (plus sûr)</option><option value="1" ${+st.likpRef === 1 ? 'selected' : ''}>la fin du créneau</option></select></label>
       <label>Préparation finie avant cette échéance (min)<input class="inp" type="number" min="0" data-setsel="likpMarge" value="${num(st.likpMarge)}"></label>
       <label class="row" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-setchk="projAjust" ${st.projAjust !== false ? 'checked' : ''}> Ajuster la capacité au rendement réel mesuré</label>
-      <label>Rendement appliqué à partir de (mesures)<input class="inp" type="number" min="1" data-set="rendMinMes" value="${num(st.rendMinMes)}"></label>
-      <label>… et d’heures d’équipe mesurées (h)<input class="inp" type="number" min="0" data-set="rendMinH" value="${num(st.rendMinH)}"></label>
       <label>Rendement appliqué minimum (%)<input class="inp" type="number" min="1" data-set="rendMin" value="${num(st.rendMin)}"></label>
       <label>Rendement appliqué maximum (%)<input class="inp" type="number" min="1" data-set="rendMax" value="${num(st.rendMax)}"></label>
     </div>
@@ -2763,25 +2773,46 @@ async function updateHist() {
   const at = snapTs(); if (!at) return;
   const open = openMap(); const Hh = S.prepHist || { recs: [] };
   if (Hh.last && at > Hh.last.at) {
-    let cS = 0, cP = 0, cC = 0, cPal = 0;
+    const from = Hh.last.at; let cS = 0, cP = 0, cC = 0, cPal = 0;
     for (const [k, v] of Object.entries(Hh.last.open)) if (!open[k]) { cS += v[0]; cP += v[1]; cC += v[2]; cPal += v[3]; }
-    const capS = capaBetween('equipesSilo', Hh.last.at, at), capP = capaBetween('equipes', Hh.last.at, at);
-    if (capS + capP > .25) Hh.recs = [...Hh.recs, { from: Hh.last.at, to: at, cS, cP, cC, cPal, capS, capP }].slice(-40);
+    const remS = sum(Object.values(open), v => v[0]), remP = sum(Object.values(open), v => v[1]);
+    const capS = capaBetween('equipesSilo', from, at), capP = capaBetween('equipes', from, at);
+    // équipe occupée tout l'intervalle ? (il reste du travail à l'extraction) — sinon la fin réelle est déduite, pas l'heure d'import
+    const R0 = rendement(), satS = remS > .25, satP = remP > .25;
+    const finS = satS || !cS ? null : Math.min(at, finishTs('equipesSilo', from, cS / (R0.sL || 1)) || at);
+    const finP = satP || !cP ? null : Math.min(at, finishTs('equipes', from, cP / (R0.pL || 1)) || at);
+    if (capS + capP > .25) Hh.recs = [...Hh.recs, { from, to: at, cS, cP, cC, cPal, capS, capP, remS, remP, satS, satP, finS, finP }].slice(-200);
   }
   if (!Hh.last || at >= Hh.last.at) Hh.last = { at, open };
   S.prepHist = Hh; await save('prepHist');
 }
-// rendement réel = heures théoriques réalisées ÷ heures d'équipe écoulées (14 derniers jours)
+// Apprentissage du rendement (heures théoriques faites ÷ heures d'équipe), 21 derniers jours :
+//  - intervalle où l'équipe a eu du travail jusqu'à l'import suivant : mesure directe ;
+//  - sinon l'équipe a fini avant l'import : heure de fin déduite (travail fait au rythme appris), mesure à demi-poids ;
+//  - certitude = volume observé × régularité des mesures × précision (écart entre imports).
+function learnOf(recs, k) {
+  const c = k === 's' ? 'cS' : 'cP', cap = k === 's' ? 'capS' : 'capP', sat = k === 's' ? 'satS' : 'satP';
+  const ok = recs.filter(r => r[c] > 0 && r[cap] > .25);
+  const smp = ok.filter(r => r[sat] !== false).map(r => ({ v: r[c] / r[cap], w: r[cap], gap: (r.to - r.from) / H, ded: false, r }));
+  const mean = xs => { const W = sum(xs, x => x.w); return W > .25 ? sum(xs, x => x.w * x.v) / W : null; };
+  // équipe sans travail avant l'import : on sait seulement qu'elle a tenu AU MOINS ce rythme (borne basse)
+  let v = mean(smp);
+  for (const r of ok.filter(r => r[sat] === false)) { const lb = r[c] / r[cap]; if (v == null || lb > v) smp.push({ v: lb, w: r[cap] * .5, gap: (r.to - r.from) / H, ded: true, r }); }
+  v = mean(smp); const W = sum(smp, x => x.w);
+  if (v == null) return { v: null, cert: 0, n: 0, h: 0, smp, nCens: ok.length };
+  const cv = Math.sqrt(sum(smp, x => x.w * (x.v - v) ** 2) / W) / (v || 1), gap = sum(smp, x => x.w * x.gap) / W;
+  const vol = 1 - Math.exp(-W / 15), reg = smp.length < 3 ? .6 : Math.max(.3, 1 - cv), prec = 1 / (1 + gap / 12);
+  return { v, cert: vol * reg * prec, n: smp.length, h: W, gap, cv, vol, reg, prec, nDed: smp.filter(x => x.ded).length, nCens: ok.filter(r => r[sat] === false).length, smp };
+}
 function rendement() {
-  const recs = (S.prepHist?.recs || []).filter(r => r.to > (snapTs() || Date.now()) - 14 * 24 * H);
-  const capS = sum(recs, r => r.capS), capP = sum(recs, r => r.capP);
-  const s = capS > .5 ? sum(recs, r => r.cS) / capS : null, p = capP > .5 ? sum(recs, r => r.cP) / capP : null;
-  // rendement appliqué : seulement s'il repose sur assez de mesures, et borné (une mesure isolée ne doit pas diviser la capacité par 2)
-  const st = S.settings, minN = num(st.rendMinMes ?? 3), minH = num(st.rendMinH ?? 15);
-  const lo = num(st.rendMin ?? 70) / 100 || .7, hi = Math.max(lo, num(st.rendMax ?? 130) / 100 || 1.3);
-  const app = (v, cap) => v != null && recs.length >= minN && cap >= minH ? Math.min(hi, Math.max(lo, v)) : null;
-  return { n: recs.length, recs, s, p, capS, capP, minN, minH, lo, hi, sA: app(s, capS), pA: app(p, capP),
-    colisH: capP > .5 ? sum(recs, r => r.cC) / capP : null, palH: capS > .5 ? sum(recs, r => r.cPal) / capS : null };
+  const recs = (S.prepHist?.recs || []).filter(r => r.to > (snapTs() || Date.now()) - 21 * 24 * H);
+  const st = S.settings, lo = num(st.rendMin ?? 70) / 100 || .7, hi = Math.max(lo, num(st.rendMax ?? 130) / 100 || 1.3);
+  const LS = learnOf(recs, 's'), LP = learnOf(recs, 'p');
+  // appliqué en proportion de la certitude : plus l'app est sûre, plus elle s'écarte de la cadence théorique
+  const app = L => L.v == null ? null : 1 + (Math.min(hi, Math.max(lo, L.v)) - 1) * L.cert;
+  const hS = sum(LS.smp, x => x.w), hP = sum(LP.smp, x => x.w);
+  return { n: recs.length, recs, lo, hi, LS, LP, s: LS.v, p: LP.v, sL: LS.v, pL: LP.v, sA: app(LS), pA: app(LP), certS: LS.cert, certP: LP.cert,
+    colisH: hP > .25 ? sum(LP.smp, x => x.r.cC * (x.ded ? .5 : 1)) / hP : null, palH: hS > .25 ? sum(LS.smp, x => x.r.cPal * (x.ded ? .5 : 1)) / hS : null };
 }
 // ---------- Heures de chargement (LIKP) ----------
 // Collage SAP sans en-têtes (ex. « 1 · 472618252 · FRDTS · 2530 · 01.10.2026 · · 01.10.2026 · 06:00:00 · 00:00:00 … »)
@@ -2849,7 +2880,7 @@ function projection() {
 function projectionRaw() {
   const at = snapTs(); if (!at) return null;
   const R = rendement(), adj = S.settings.projAjust !== false;
-  const effS = adj && R.sA ? R.sA : 1, effP = adj && R.pA ? R.pA : 1;
+  const effS = adj && R.sA ? R.sA : 1, effP = adj && R.pA ? R.pA : 1;   // rendement appris, pondéré par sa certitude
   const lines = prepLines(), open = lines.filter(l => l.sgp !== 'C');
   const today = isoLocal(new Date(at));
   const dayOf = l => (likpOf(l.liv) || {}).d || l.dc;
@@ -2893,10 +2924,26 @@ function projectionRaw() {
 const verdict = (ok, m, n) => ok ? badge(`Passe · marge ${n1(m)} h`, 'b-good') : badge(`Ne passe pas · manque ${n1(-m)} h${n ? ` · ${n} livr.` : ''}`, 'b-crit');
 // libellé du rendement : mesuré, et appliqué ou non (pas assez de mesures, borné)
 function rendLbl(R, k) {
-  const v = R[k], a = R[k + 'A'], cap = k === 's' ? R.capS : R.capP;
-  if (v == null) return 'pas encore mesuré';
-  if (a == null) return `mesuré ${pct(v)}, non appliqué (${R.n}/${R.minN} mesures · ${n1(cap)}/${n1(R.minH)} h d’équipe)`;
-  return Math.abs(a - v) > 1e-9 ? `mesuré ${pct(v)}, appliqué ${pct(a)} (borné ${pct(R.lo)}–${pct(R.hi)})` : `${pct(a)} appliqué`;
+  const L = k === 's' ? R.LS : R.LP, a = R[k + 'A'];
+  if (L.v == null) return 'pas encore mesuré';
+  return `${pct(L.v)} mesuré · certitude ${pct(L.cert)} · appliqué ${pct(a)}`;
+}
+const certTone = c => c >= .7 ? 'good' : c >= .4 ? 'warn' : 'crit';
+const certLine = (lab, L, a) => `<div class="cert-line"><span>${lab}</span><b>${L.v != null ? pct(L.v) : '–'}</b><div class="bar"><span style="width:${Math.round((L.cert || 0) * 100)}%;background:var(--${certTone(L.cert || 0)})"></span></div><small>certitude ${pct(L.cert || 0)}</small></div>`;
+function learnPanel(R) {
+  const card = (lab, L, a, unitH, theo) => {
+    const tip = L.v == null ? 'Importez la VL06O au moins deux fois pendant que l’équipe travaille.' : [
+      L.vol < .7 ? `observer davantage (${n1(L.h)} h d’équipe mesurées)` : '', L.reg < .7 ? 'mesures encore irrégulières' : '', L.prec < .75 ? `actualiser plus souvent (${n1(L.gap)} h en moyenne entre deux imports)` : ''].filter(Boolean).join(' · ') || 'apprentissage solide';
+    const f = (n, v) => `<div class="cf"><span>${n}</span><div class="bar"><span style="width:${Math.round((v || 0) * 100)}%"></span></div><b>${pct(v || 0)}</b></div>`;
+    return `<div class="learn-card"><div class="g-lab">${lab}</div>
+      <div class="lc-top"><div><span class="lc-big">${L.v != null ? pct(L.v) : '–'}</span><small>rendement mesuré${unitH ? ` · ${unitH}` : ''}</small></div>
+        <div class="lc-cert t-${certTone(L.cert)}"><span class="lc-big">${pct(L.cert)}</span><small>certitude</small></div></div>
+      <div class="bar" style="height:10px"><span style="width:${Math.round(L.cert * 100)}%;background:var(--${certTone(L.cert)})"></span></div>
+      <div class="cfs">${f('Volume observé', L.vol)}${f('Régularité', L.reg)}${f('Précision (écart entre imports)', L.prec)}</div>
+      <div class="meta">Appliqué à la projection : <b>${a != null ? pct(a) : '100 %'}</b> (cadence théorique ${theo}, corrigée en proportion de la certitude) · ${L.n || 0} mesure(s)${L.nDed ? `, dont ${L.nDed} minimum(s) déduit(s)` : ''} · pour progresser : ${tip}</div></div>`;
+  };
+  return h3('Ce que l’app a appris', 'À chaque import de la VL06O, l’app compare avec l’import précédent. Elle ne retient comme mesure directe que les intervalles où l’équipe avait encore du travail à l’import suivant ; sinon elle sait seulement que l’équipe a tenu au moins ce rythme. Certitude = volume observé × régularité × précision : elle monte avec le nombre d’actualisations, et d’autant plus vite qu’elles sont rapprochées.') +
+    `<div class="learn">${card('Picking (préparateurs)', R.LP, R.pA, R.colisH ? `${n0(R.colisH)} colis/h` : '', `${S.settings.cadEntrepot} colis/h`)}${card('Sortie SILO (cariste)', R.LS, R.sA, R.palH ? `${n1(R.palH)} pal/h` : '', `${S.settings.cadSilo} pal/h`)}</div>`;
 }
 const palBLbl = n => n > 0 ? `dont ${n0(n)} pal sur postes commencés (B), peut-être déjà descendues` : '';
 const tauxReel = v => isFinite(v) ? `<span class="badge b-nodot ${v > 1 ? 'b-crit' : v > .85 ? 'b-warn' : 'b-good'}">${pct(v)}</span>` : badge('hors capacité', 'b-crit');
@@ -2908,13 +2955,12 @@ function dockTile() {
 function reelTiles() {
   const P = projection(); if (!P || !P.rows.length) return '';
   const rows = P.rows.slice(0, 3);
-  const eff = P.R.p != null || P.R.s != null ? `picking ${rendLbl(P.R, 'p')} · SILO ${rendLbl(P.R, 's')}` : 'rendement réel : disponible après 2 actualisations de la VL06O';
   return `<div class="group-title" style="margin-top:18px">Réel — VL06O du ${esc(fdt(P.at))}</div>
     <div class="kpis">${rows.map(r => `<div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Chargement ${fdateL(r.D)}</div>
       <div class="reel-line"><span>Picking</span>${r.okP ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumP)} h à faire / ${n1(r.capP)} h dispo · taux ${isFinite(r.tP) ? pct(r.tP) : '∞'}${r.nLateP ? ` · <strong class="late">${r.nLateP} livr. en retard</strong>` : ''}</small></div>
       <div class="reel-line"><span>SILO</span>${r.okS ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumS)} h à faire / ${n1(r.capS)} h dispo · taux ${isFinite(r.tS) ? pct(r.tS) : '∞'}${r.nLateS ? ` · <strong class="late">${r.nLateS} livr. en retard</strong>` : ''}${r.rPalB ? ` · ${n0(r.rPal)} pal, ${palBLbl(r.rPalB)}` : ''}</small></div>
       <div class="det">${r.withT ? `${r.withT}/${r.nLiv} livr. avec créneau · ` : ''}dernière échéance ${esc(fdt(r.dl))}${r.finP ? ` · fin picking estimée ${esc(fdt(r.finP))}` : ''}</div></div>`).join('')}
-      <div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Rendement réel</div><div class="val">${P.R.p != null ? pct(P.R.p) : '–'}</div><div class="det">${eff}${P.R.colisH ? ` · ${n0(P.R.colisH)} colis/h réels (cadence ${S.settings.cadEntrepot})` : ''}</div></div>
+      <div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Ce que l’app a appris</div>${certLine('Picking', P.R.LP, P.R.pA)}${certLine('SILO', P.R.LS, P.R.sA)}<div class="det">${P.R.n} actualisation${P.R.n > 1 ? 's' : ''} analysée${P.R.n > 1 ? 's' : ''} (21 j) · plus vous actualisez, plus c’est sûr</div></div>
     </div>`;
 }
 // marqueurs « limite réelle » pour un graphique par jour de chargement
@@ -2946,14 +2992,17 @@ function reelSection() {
     { k: 'prep', label: 'Prépa', html: r => prepBadge(r.prep) },
   ], risk) : none('Aucune livraison en retard prévue : tout passe dans les heures de chargement.');
   const recs = R.recs.slice().reverse();
+  const occ = (sat, fin, to) => sat === false ? `<span class="muted">non : fini vers ${esc(hhmm(fin || to))} (déduit)</span>` : sat ? 'oui' : '<span class="muted">—</span>';
   const hist = recs.length ? table('reelH', [
-    { k: 'from', label: 'De', fmt: fdt }, { k: 'to', label: 'À', fmt: fdt },
-    { k: 'cP', label: 'Picking fait (h théo.)', num: true, fmt: hr }, { k: 'capP', label: 'Heures préparateurs', num: true, fmt: hr }, { k: 'rp', label: 'Rendement picking', num: true, sv: r => r.capP ? r.cP / r.capP : 0, html: r => r.capP ? pct(r.cP / r.capP) : '–' },
-    { k: 'cC', label: 'Colis', num: true, fmt: n0 }, { k: 'cS', label: 'SILO fait (h théo.)', num: true, fmt: hr }, { k: 'capS', label: 'Heures caristes', num: true, fmt: hr }, { k: 'rs', label: 'Rendement SILO', num: true, html: r => r.capS ? pct(r.cS / r.capS) : '–' },
-  ], recs) : none('Pas encore de mesure : le rendement réel se calcule entre deux imports successifs de la VL06O (par exemple le matin et l’après-midi).');
+    { k: 'from', label: 'De', fmt: fdt }, { k: 'to', label: 'À', fmt: fdt }, { k: 'gap', label: 'Écart', num: true, sv: r => r.to - r.from, html: r => hr((r.to - r.from) / H) },
+    { k: 'cP', label: 'Picking fait (h théo.)', num: true, fmt: hr }, { k: 'capP', label: 'Heures préparateurs', num: true, fmt: hr }, { k: 'rp', label: 'Rendement picking', num: true, sv: r => r.capP ? r.cP / r.capP : 0, html: r => r.capP ? `${pct(r.cP / r.capP)}${r.satP === false ? '<br><small class="muted">au moins</small>' : ''}` : '–' },
+    { k: 'satP', label: 'Préparateurs occupés jusqu’à l’import', html: r => occ(r.satP, r.finP, r.to) },
+    { k: 'cS', label: 'SILO fait (h théo.)', num: true, fmt: hr }, { k: 'capS', label: 'Heures caristes', num: true, fmt: hr }, { k: 'rs', label: 'Rendement SILO', num: true, sv: r => r.capS ? r.cS / r.capS : 0, html: r => r.capS ? `${pct(r.cS / r.capS)}${r.satS === false ? '<br><small class="muted">au moins</small>' : ''}` : '–' },
+    { k: 'satS', label: 'Cariste occupé jusqu’à l’import', html: r => occ(r.satS, r.finS, r.to) },
+  ], recs) : none('Pas encore de mesure : l’app apprend entre deux imports successifs de la VL06O (par exemple le matin et l’après-midi).');
   return h3(`Réel : les journées passent-elles ? — VL06O extraite le ${esc(fdt(P.at))}`,
       `Reste à faire = postes pas encore au statut C, convertis en heures avec les cadences. Il est cumulé dans l’ordre des chargements (retard compris : SILO ${n1(P.lateS)} h, picking ${n1(P.lateP)} h), puis comparé à la capacité restante des équipes entre l’heure d’extraction et l’échéance de chaque livraison : ${+S.settings.likpRef === 1 ? 'fin' : 'début'} de son créneau de chargement LIKP − ${num(S.settings.likpMarge)} min si elle est connue, sinon ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')} (estimé)`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}. ${!P.adj ? 'Capacité théorique (ajustement au rendement désactivé dans Paramètres).' : R.pA || R.sA ? `Capacité ajustée au rendement réel : picking ${rendLbl(R, 'p')}, SILO ${rendLbl(R, 's')}.` : `Capacité théorique : rendement appliqué seulement après ${R.minN} mesures et ${n1(R.minH)} h d’équipe mesurées (picking ${rendLbl(R, 'p')} ; SILO ${rendLbl(R, 's')}).`} Les palettes SILO des postes commencés (statut B) restent comptées à faire : la VL06O ne dit pas si elles sont déjà descendues ; elles sont signalées à part. Tout se recalcule à chaque actualisation de la VL06O.`)
-    + t + h3(`Livraisons en retard prévu (${risk.length})`, `Ordonnancement par échéance : chaque livraison est préparée dans l’ordre de son heure de chargement${S.likp ? ` (LIKP, ${n0(Object.keys(S.likp.map).length)} livraisons connues, créneaux de ${num(S.settings.likpSlot)} h, préparation finie ${num(S.settings.likpMarge)} min avant le ${+S.settings.likpRef === 1 ? 'fin' : 'début'} du créneau)` : ''} ; sans heure LIKP, échéance estimée : ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')} (estimé)`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}.`) + riskT + h3('Rendement réel mesuré entre deux actualisations', 'Heures théoriques réalisées (postes passés au statut C ou sortis de la VL06O) ÷ heures d’équipe écoulées entre les deux extractions. 100 % = les équipes tiennent exactement les cadences.') + hist;
+    + t + h3(`Livraisons en retard prévu (${risk.length})`, `Ordonnancement par échéance : chaque livraison est préparée dans l’ordre de son heure de chargement${S.likp ? ` (LIKP, ${n0(Object.keys(S.likp.map).length)} livraisons connues, créneaux de ${num(S.settings.likpSlot)} h, préparation finie ${num(S.settings.likpMarge)} min avant le ${+S.settings.likpRef === 1 ? 'fin' : 'début'} du créneau)` : ''} ; sans heure LIKP, échéance estimée : ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')} (estimé)`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}.`) + riskT + learnPanel(R) + h3('Mesures entre deux actualisations', 'Heures théoriques réalisées (postes passés au statut C ou sortis de la VL06O) ÷ heures d’équipe écoulées. Si l’équipe n’avait plus de travail à l’import suivant, elle a fini plus tôt : l’heure d’import ne compte pas, l’app en déduit seulement un minimum (« au moins ») et une heure de fin probable.') + hist;
 }
 
 // Frise horaire d'une journée : équipes, créneaux de chargement (vert = passe, rouge = retard), fins estimées
