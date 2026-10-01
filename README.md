@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.28.2** · Développé par **Galaad Poivey**
+Version **1.28.3** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -17,6 +17,8 @@ Dans le zip livré, le fichier de l'app porte le nom de l'app et sa version, par
 | Rapatriements | Classeurs `AAAA_Sxx_<Entrepôt>.xlsx` (FM, Mutual, Tempo One…) | glisser-déposer, plusieurs fichiers à la fois |
 | Réceptions SST | `Planning_Reception_SST_Monteux3.xlsb` (onglets « PlanningReception AAAA ») | glisser-déposer, ou saisie manuelle d'un RDV |
 | Paramètres | Fichier Article, MLGT, magasins, cadences | `FichierArticle.XLSX`, `MLGT.XLSX` ou directement `Analyse_Activité_Préparation.xlsb` |
+
+**Dossier SharePoint de la VL06O :** chemin prévu `MC CORMICK & COMPANY INC\WeDeliver - Documents\101_Sandbox GP\Flux_hebdo\VL06O`, réglable dans Paramètres (« Dossiers SharePoint des sources »). Il est rappelé dans l'onglet Sources ; en reliant le dossier, l'app vérifie qu'il s'appelle bien `VL06O`. Le navigateur ne peut pas ouvrir un chemin tout seul : il faut le sélectionner une fois par poste.
 
 ## Méthode de calcul de la préparation
 
