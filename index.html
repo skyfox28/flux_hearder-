@@ -698,9 +698,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.28.0';
+const APP_VERSION = '1.28.1';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.28.1', '01/10/2026', 'Réel : le rendement mesuré n’est appliqué qu’après 3 mesures et 15 h d’équipe mesurées, et il est borné entre 70 % et 130 % (réglable dans Paramètres) ; les palettes SILO des postes commencés (statut B) sont signalées à part.'],
   ['1.28.0', '01/10/2026', 'Bandeau « Aujourd’hui » et feu tricolore de la semaine ; overlay journée imprimable (PDF) ; écran atelier plein écran ; recherche globale Ctrl+K (livraison, client, transporteur…) ; menu en 3 groupes ; planning replié sauf aujourd’hui et demain ; alertes avec bouton d’action ; comparaison avec la semaine précédente ; densité d’affichage réglable.'],
   ['1.27.2', '01/10/2026', 'Frise du planning : étiquettes des repères (extraction, fin picking, fin SILO) sur des lignes séparées et libellés de créneaux tronqués à la largeur du bloc.'],
   ['1.27.1', '01/10/2026', 'Navettes : sans nombre de colis, la navette n’est pas encore chargée → 0 palette (plus d’estimation au poids).'],
@@ -865,7 +866,10 @@ const DEFAULT_SETTINGS = {
   // créneaux fixes par client (prioritaires sur la LIKP) ; ref : 0 = prêt au début du créneau, 1 = à la fin
   creneauxClients: [{ key: 'PLATEFORME 38', debut: '06:00', fin: '08:00', ref: 0 }, { key: 'COMPANS', debut: '06:00', fin: '15:00', ref: 1 }],
   settingsV: 3,
-  projAjust: true,     // ajuster la capacité restante au rendement réel mesuré   // capacité du quai en palettes par semaine
+  projAjust: true,     // ajuster la capacité restante au rendement réel mesuré
+  rendMinMes: 3,       // rendement appliqué seulement après ce nombre de mesures…
+  rendMinH: 15,        // … et ce nombre d'heures d'équipe mesurées (par activité)
+  rendMin: 70, rendMax: 130,   // rendement appliqué borné (en %)   // capacité du quai en palettes par semaine
   intercoKeys: ['PLATEFORME 38', 'COMPANS', 'MCCORMICK'],
   // livraisons qui ne partent pas de Monteux3 (ex. COLRUYT, code dépôt 540 : départ direct de Compans)
   siteExt: 'Compans', depotsExt: ['540'], clientsExt: ['COLRUYT'],
@@ -2092,6 +2096,10 @@ function viewSettings() {
       <label>Échéance de préparation calée sur<select class="inp" data-setsel="likpRef"><option value="0" ${+st.likpRef !== 1 ? 'selected' : ''}>le début du créneau (plus sûr)</option><option value="1" ${+st.likpRef === 1 ? 'selected' : ''}>la fin du créneau</option></select></label>
       <label>Préparation finie avant cette échéance (min)<input class="inp" type="number" min="0" data-setsel="likpMarge" value="${num(st.likpMarge)}"></label>
       <label class="row" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-setchk="projAjust" ${st.projAjust !== false ? 'checked' : ''}> Ajuster la capacité au rendement réel mesuré</label>
+      <label>Rendement appliqué à partir de (mesures)<input class="inp" type="number" min="1" data-set="rendMinMes" value="${num(st.rendMinMes)}"></label>
+      <label>… et d’heures d’équipe mesurées (h)<input class="inp" type="number" min="0" data-set="rendMinH" value="${num(st.rendMinH)}"></label>
+      <label>Rendement appliqué minimum (%)<input class="inp" type="number" min="1" data-set="rendMin" value="${num(st.rendMin)}"></label>
+      <label>Rendement appliqué maximum (%)<input class="inp" type="number" min="1" data-set="rendMax" value="${num(st.rendMax)}"></label>
     </div>
     <div class="row" style="margin-top:10px"><span class="meta">${(S.prepHist?.recs || []).length} mesure(s) de rendement enregistrée(s)</span><button class="btn sm danger" data-act="hist-reset">Réinitialiser les mesures</button></div>
   </section>
@@ -2567,7 +2575,12 @@ async function updateHist() {
 function rendement() {
   const recs = (S.prepHist?.recs || []).filter(r => r.to > (snapTs() || Date.now()) - 14 * 24 * H);
   const capS = sum(recs, r => r.capS), capP = sum(recs, r => r.capP);
-  return { n: recs.length, recs, s: capS > .5 ? sum(recs, r => r.cS) / capS : null, p: capP > .5 ? sum(recs, r => r.cP) / capP : null,
+  const s = capS > .5 ? sum(recs, r => r.cS) / capS : null, p = capP > .5 ? sum(recs, r => r.cP) / capP : null;
+  // rendement appliqué : seulement s'il repose sur assez de mesures, et borné (une mesure isolée ne doit pas diviser la capacité par 2)
+  const st = S.settings, minN = num(st.rendMinMes ?? 3), minH = num(st.rendMinH ?? 15);
+  const lo = num(st.rendMin ?? 70) / 100 || .7, hi = Math.max(lo, num(st.rendMax ?? 130) / 100 || 1.3);
+  const app = (v, cap) => v != null && recs.length >= minN && cap >= minH ? Math.min(hi, Math.max(lo, v)) : null;
+  return { n: recs.length, recs, s, p, capS, capP, minN, minH, lo, hi, sA: app(s, capS), pA: app(p, capP),
     colisH: capP > .5 ? sum(recs, r => r.cC) / capP : null, palH: capS > .5 ? sum(recs, r => r.cPal) / capS : null };
 }
 // ---------- Heures de chargement (LIKP) ----------
@@ -2636,7 +2649,7 @@ function projection() {
 function projectionRaw() {
   const at = snapTs(); if (!at) return null;
   const R = rendement(), adj = S.settings.projAjust !== false;
-  const effS = adj && R.s ? R.s : 1, effP = adj && R.p ? R.p : 1;
+  const effS = adj && R.sA ? R.sA : 1, effP = adj && R.pA ? R.pA : 1;
   const lines = prepLines(), open = lines.filter(l => l.sgp !== 'C');
   const today = isoLocal(new Date(at));
   const dayOf = l => (likpOf(l.liv) || {}).d || l.dc;
@@ -2644,7 +2657,7 @@ function projectionRaw() {
   const items = [...byLiv.values()].map(ls => {
     const l0 = ls[0], D = dayOf(l0);
     return { liv: l0.liv, nom: l0.nom, circuit: l0.circuit, D, dc: l0.dc, hasT: !!slotInfo(l0.liv, l0.nom), dl: livDeadline(l0.liv, l0.dc, l0.nom),
-      rS: sum(ls, l => l.hrSilo), rP: sum(ls, l => l.hrPick), rPal: sum(ls, l => l.palSilo), rColis: sum(ls, l => l.colisPick), prep: livIndex().get(l0.liv)?.prep };
+      rS: sum(ls, l => l.hrSilo), rP: sum(ls, l => l.hrPick), rPal: sum(ls, l => l.palSilo), rPalB: sum(ls.filter(l => l.sgp === 'B'), l => l.palSilo), rColis: sum(ls, l => l.colisPick), prep: livIndex().get(l0.liv)?.prep };
   }).filter(i => i.D).sort((a, b) => a.dl - b.dl || a.liv.localeCompare(b.liv));
   let cS = 0, cP = 0;
   for (const it of items) {
@@ -2665,7 +2678,7 @@ function projectionRaw() {
     const cumS = last ? last.cumS : 0, cumP = last ? last.cumP : 0;
     const mS = its.length ? Math.min(...its.filter(i => i.rS > 0).map(i => i.capS - i.cumS).concat([capS - cumS])) : capS;
     const mP = its.length ? Math.min(...its.filter(i => i.rP > 0).map(i => i.capP - i.cumP).concat([capP - cumP])) : capP;
-    return { D, dl: last ? last.dl : deadlineTs(D), rS, rP, rPal: sum(its, i => i.rPal), rColis: sum(its, i => i.rColis),
+    return { D, dl: last ? last.dl : deadlineTs(D), rS, rP, rPal: sum(its, i => i.rPal), rPalB: sum(its, i => i.rPalB), rColis: sum(its, i => i.rColis),
       fS: sum(all, l => l.hrSilo) - rS, fP: sum(all, l => l.hrPick) - rP, fPal: sum(all, l => l.palSilo) - sum(its, i => i.rPal),
       cumS, cumP, capS, capP, availS: Math.max(0, capS - (cumS - rS)), availP: Math.max(0, capP - (cumP - rP)),
       okS: its.every(i => i.okS), okP: its.every(i => i.okP), mS, mP, nLateS: its.filter(i => !i.okS).length, nLateP: its.filter(i => !i.okP).length, nLiv: its.length,
@@ -2678,6 +2691,14 @@ function projectionRaw() {
   return { at, today, rows, items, lateS, lateP, R, effS, effP, adj };
 }
 const verdict = (ok, m, n) => ok ? badge(`Passe · marge ${n1(m)} h`, 'b-good') : badge(`Ne passe pas · manque ${n1(-m)} h${n ? ` · ${n} livr.` : ''}`, 'b-crit');
+// libellé du rendement : mesuré, et appliqué ou non (pas assez de mesures, borné)
+function rendLbl(R, k) {
+  const v = R[k], a = R[k + 'A'], cap = k === 's' ? R.capS : R.capP;
+  if (v == null) return 'pas encore mesuré';
+  if (a == null) return `mesuré ${pct(v)}, non appliqué (${R.n}/${R.minN} mesures · ${n1(cap)}/${n1(R.minH)} h d’équipe)`;
+  return Math.abs(a - v) > 1e-9 ? `mesuré ${pct(v)}, appliqué ${pct(a)} (borné ${pct(R.lo)}–${pct(R.hi)})` : `${pct(a)} appliqué`;
+}
+const palBLbl = n => n > 0 ? `dont ${n0(n)} pal sur postes commencés (B), peut-être déjà descendues` : '';
 const tauxReel = v => isFinite(v) ? `<span class="badge b-nodot ${v > 1 ? 'b-crit' : v > .85 ? 'b-warn' : 'b-good'}">${pct(v)}</span>` : badge('hors capacité', 'b-crit');
 // bloc « Réel » du tableau de bord
 function dockTile() {
@@ -2687,13 +2708,13 @@ function dockTile() {
 function reelTiles() {
   const P = projection(); if (!P || !P.rows.length) return '';
   const rows = P.rows.slice(0, 3);
-  const eff = P.R.p ? `rendement réel picking ${pct(P.R.p)}${P.R.s ? ` · SILO ${pct(P.R.s)}` : ''} (${P.R.n} mesure${P.R.n > 1 ? 's' : ''})` : 'rendement réel : disponible après 2 actualisations de la VL06O';
+  const eff = P.R.p != null || P.R.s != null ? `picking ${rendLbl(P.R, 'p')} · SILO ${rendLbl(P.R, 's')}` : 'rendement réel : disponible après 2 actualisations de la VL06O';
   return `<div class="group-title" style="margin-top:18px">Réel — VL06O du ${esc(fdt(P.at))}</div>
     <div class="kpis">${rows.map(r => `<div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Chargement ${fdateL(r.D)}</div>
       <div class="reel-line"><span>Picking</span>${r.okP ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumP)} h à faire / ${n1(r.capP)} h dispo · taux ${isFinite(r.tP) ? pct(r.tP) : '∞'}${r.nLateP ? ` · <strong class="late">${r.nLateP} livr. en retard</strong>` : ''}</small></div>
-      <div class="reel-line"><span>SILO</span>${r.okS ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumS)} h à faire / ${n1(r.capS)} h dispo · taux ${isFinite(r.tS) ? pct(r.tS) : '∞'}${r.nLateS ? ` · <strong class="late">${r.nLateS} livr. en retard</strong>` : ''}</small></div>
+      <div class="reel-line"><span>SILO</span>${r.okS ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumS)} h à faire / ${n1(r.capS)} h dispo · taux ${isFinite(r.tS) ? pct(r.tS) : '∞'}${r.nLateS ? ` · <strong class="late">${r.nLateS} livr. en retard</strong>` : ''}${r.rPalB ? ` · ${n0(r.rPal)} pal, ${palBLbl(r.rPalB)}` : ''}</small></div>
       <div class="det">${r.withT ? `${r.withT}/${r.nLiv} livr. avec créneau · ` : ''}dernière échéance ${esc(fdt(r.dl))}${r.finP ? ` · fin picking estimée ${esc(fdt(r.finP))}` : ''}</div></div>`).join('')}
-      <div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Rendement réel</div><div class="val">${P.R.p ? pct(P.R.p) : '–'}</div><div class="det">${eff}${P.R.colisH ? ` · ${n0(P.R.colisH)} colis/h réels (cadence ${S.settings.cadEntrepot})` : ''}</div></div>
+      <div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Rendement réel</div><div class="val">${P.R.p != null ? pct(P.R.p) : '–'}</div><div class="det">${eff}${P.R.colisH ? ` · ${n0(P.R.colisH)} colis/h réels (cadence ${S.settings.cadEntrepot})` : ''}</div></div>
     </div>`;
 }
 // marqueurs « limite réelle » pour un graphique par jour de chargement
@@ -2710,7 +2731,7 @@ function reelSection() {
   const R = P.R;
   const t = table('reelT', [
     { k: 'D', label: 'Chargement', fmt: fdateL }, { k: 'withT', label: 'Créneaux connus', num: true, html: r => r.nLiv ? `${r.withT}/${r.nLiv}` : '–' }, { k: 'dl', label: 'Dernière échéance', fmt: v => fdt(v) },
-    { k: 'rS', label: 'SILO reste', num: true, html: r => `${hr(r.rS)}<br><span class="muted">${n0(r.rPal)} pal</span>` }, { k: 'capS', label: 'SILO dispo', num: true, fmt: hr },
+    { k: 'rS', label: 'SILO reste', num: true, html: r => `${hr(r.rS)}<br><span class="muted">${n0(r.rPal)} pal${r.rPalB ? `<br>dont ${n0(r.rPalB)} sur postes commencés` : ''}</span>` }, { k: 'capS', label: 'SILO dispo', num: true, fmt: hr },
     { k: 'tS', label: 'Taux réel SILO', num: true, html: r => tauxReel(r.tS) }, { k: 'okS', label: 'SILO', html: r => verdict(r.okS, r.mS, r.nLateS) }, { k: 'finS', label: 'Fin SILO estimée', fmt: v => fdt(v) },
     { k: 'rP', label: 'Picking reste', num: true, html: r => `${hr(r.rP)}<br><span class="muted">${n0(r.rColis)} colis</span>` }, { k: 'capP', label: 'Picking dispo', num: true, fmt: hr },
     { k: 'tP', label: 'Taux réel picking', num: true, html: r => tauxReel(r.tP) }, { k: 'okP', label: 'Picking', html: r => verdict(r.okP, r.mP, r.nLateP) }, { k: 'finP', label: 'Fin picking estimée', fmt: v => fdt(v) },
@@ -2731,7 +2752,7 @@ function reelSection() {
     { k: 'cC', label: 'Colis', num: true, fmt: n0 }, { k: 'cS', label: 'SILO fait (h théo.)', num: true, fmt: hr }, { k: 'capS', label: 'Heures caristes', num: true, fmt: hr }, { k: 'rs', label: 'Rendement SILO', num: true, html: r => r.capS ? pct(r.cS / r.capS) : '–' },
   ], recs) : none('Pas encore de mesure : le rendement réel se calcule entre deux imports successifs de la VL06O (par exemple le matin et l’après-midi).');
   return h3(`Réel : les journées passent-elles ? — VL06O extraite le ${esc(fdt(P.at))}`,
-      `Reste à faire = postes pas encore au statut C, convertis en heures avec les cadences. Il est cumulé dans l’ordre des chargements (retard compris : SILO ${n1(P.lateS)} h, picking ${n1(P.lateP)} h), puis comparé à la capacité restante des équipes entre l’heure d’extraction et l’échéance de chaque livraison : ${+S.settings.likpRef === 1 ? 'fin' : 'début'} de son créneau de chargement LIKP − ${num(S.settings.likpMarge)} min si elle est connue, sinon ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')} (estimé)`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}. ${P.adj && (R.p || R.s) ? `Capacité ajustée au rendement réel mesuré (picking ${R.p ? pct(R.p) : '100 %'}, SILO ${R.s ? pct(R.s) : '100 %'}).` : 'Capacité théorique (rendement réel pas encore mesuré).'} Tout se recalcule à chaque actualisation de la VL06O.`)
+      `Reste à faire = postes pas encore au statut C, convertis en heures avec les cadences. Il est cumulé dans l’ordre des chargements (retard compris : SILO ${n1(P.lateS)} h, picking ${n1(P.lateP)} h), puis comparé à la capacité restante des équipes entre l’heure d’extraction et l’échéance de chaque livraison : ${+S.settings.likpRef === 1 ? 'fin' : 'début'} de son créneau de chargement LIKP − ${num(S.settings.likpMarge)} min si elle est connue, sinon ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')} (estimé)`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}. ${!P.adj ? 'Capacité théorique (ajustement au rendement désactivé dans Paramètres).' : R.pA || R.sA ? `Capacité ajustée au rendement réel : picking ${rendLbl(R, 'p')}, SILO ${rendLbl(R, 's')}.` : `Capacité théorique : rendement appliqué seulement après ${R.minN} mesures et ${n1(R.minH)} h d’équipe mesurées (picking ${rendLbl(R, 'p')} ; SILO ${rendLbl(R, 's')}).`} Les palettes SILO des postes commencés (statut B) restent comptées à faire : la VL06O ne dit pas si elles sont déjà descendues ; elles sont signalées à part. Tout se recalcule à chaque actualisation de la VL06O.`)
     + t + h3(`Livraisons en retard prévu (${risk.length})`, `Ordonnancement par échéance : chaque livraison est préparée dans l’ordre de son heure de chargement${S.likp ? ` (LIKP, ${n0(Object.keys(S.likp.map).length)} livraisons connues, créneaux de ${num(S.settings.likpSlot)} h, préparation finie ${num(S.settings.likpMarge)} min avant le ${+S.settings.likpRef === 1 ? 'fin' : 'début'} du créneau)` : ''} ; sans heure LIKP, échéance estimée : ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')} (estimé)`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}.`) + riskT + h3('Rendement réel mesuré entre deux actualisations', 'Heures théoriques réalisées (postes passés au statut C ou sortis de la VL06O) ÷ heures d’équipe écoulées entre les deux extractions. 100 % = les équipes tiennent exactement les cadences.') + hist;
 }
 
@@ -2820,7 +2841,7 @@ function prepPlanning(lines) {
     const isOpenDay = planOpen(D);
     const head = `<div class="plan-head">
       <div><h3><button class="plan-tg" data-planfold="${D}" aria-expanded="${isOpenDay}">${isOpenDay ? '▾' : '▸'}</button> ${DAYS[dayIdx(D)]} ${fdate(D)}</h3><div class="meta">${xs.length} livraisons · ${n0(sum(xs, x => x.palSilo))} pal SILO · ${n0(sum(xs, x => x.colisPick))} colis picking · ${n1(hrsT)} h de prépa</div>
-        <div class="plan-prog"><span>Avancement ${pct(hrsT ? 1 - hrsR / hrsT : NaN)}</span>${pr(hrsT - hrsR, hrsT)}<span class="meta">reste ${n1(hrsR)} h (SILO ${n1(sum(xs, x => x.rS))} h · picking ${n1(sum(xs, x => x.rP))} h)</span></div></div>
+        <div class="plan-prog"><span>Avancement ${pct(hrsT ? 1 - hrsR / hrsT : NaN)}</span>${pr(hrsT - hrsR, hrsT)}<span class="meta">reste ${n1(hrsR)} h (SILO ${n1(sum(xs, x => x.rS))} h · picking ${n1(sum(xs, x => x.rP))} h)${row?.rPalB ? ` · SILO : ${n0(row.rPalB)} pal sur postes commencés, à confirmer` : ''}</span></div></div>
       <div class="pvs">${vd(row?.okP, row?.mP, 'Picking')}${vd(row?.okS, row?.mS, 'SILO')}${dockV ? `<div class="pv ${dockV.ok ? 'ok' : 'ko'}"><span>Quai exp.</span><b>${dockV.ok ? '✓ fluide' : '✗ saturé'}</b><small>${esc(dockV.lbl)}</small></div>` : ''}${lateN ? `<div class="pv ko"><span>Livraisons</span><b>${lateN} en retard</b><small>sur ${xs.length}</small></div>` : `<div class="pv ok"><span>Livraisons</span><b>${xs.filter(x => x.st === 'ready').length} prêtes</b><small>sur ${xs.length}</small></div>`}</div>
     </div>`;
     const rows = slots.map(t => {
@@ -2868,7 +2889,7 @@ function prepPlanning(lines) {
   }).join('');
   const missing = L.filter(x => !x.t && x.st !== 'ready');
   const miss = missing.length ? `<div class="alert warn" style="margin-bottom:14px">${icon('warn')}<div style="flex:1"><b>${missing.length} livraison(s) sans créneau de chargement</b> (${uniq(missing.map(x => fdateL(x.D))).join(', ')}) : échéance estimée.</div>${actBtn({ lbl: 'Compléter les heures', detail: 'noslot' })}</div>` : '';
-  const info = P ? `<h3 class="mh" style="margin-top:0">Planning de chargement</h3><p class="hint">chaque jour de chargement est découpé par créneau LIKP (${num(S.settings.likpSlot)} h). « Reste » = postes pas encore au statut C, en heures (cadences). La fin estimée enchaîne le travail restant dans l’ordre des créneaux avec les équipes (${esc(teamsLbl())} ; SILO : ${esc(siloLbl())})${P.R.p ? `, au rendement réel mesuré (${pct(P.R.p)})` : ''}, à partir de la VL06O extraite le <b>${esc(fdt(P.at))}</b>. « En retard » = la fin estimée dépasse l’échéance (début du créneau − ${num(S.settings.likpMarge)} min ; créneaux fixes : ${(S.settings.creneauxClients || []).map(r => `${esc(r.key)} ${hLbl(r.debut)}–${hLbl(r.fin)}`).join(', ')} ; sans heure LIKP, échéance estimée ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}). Cliquez un créneau pour voir ses livraisons.${S.likp ? '' : ' <b>Collez la LIKP ci-dessus pour obtenir les créneaux.</b>'}</p>` : '';
+  const info = P ? `<h3 class="mh" style="margin-top:0">Planning de chargement</h3><p class="hint">chaque jour de chargement est découpé par créneau LIKP (${num(S.settings.likpSlot)} h). « Reste » = postes pas encore au statut C, en heures (cadences). La fin estimée enchaîne le travail restant dans l’ordre des créneaux avec les équipes (${esc(teamsLbl())} ; SILO : ${esc(siloLbl())})${P.effP !== 1 || P.effS !== 1 ? `, au rendement réel appliqué (picking ${pct(P.effP)}, SILO ${pct(P.effS)})` : ''}, à partir de la VL06O extraite le <b>${esc(fdt(P.at))}</b>. « En retard » = la fin estimée dépasse l’échéance (début du créneau − ${num(S.settings.likpMarge)} min ; créneaux fixes : ${(S.settings.creneauxClients || []).map(r => `${esc(r.key)} ${hLbl(r.debut)}–${hLbl(r.fin)}`).join(', ')} ; sans heure LIKP, échéance estimée ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}). Cliquez un créneau pour voir ses livraisons.${S.likp ? '' : ' <b>Collez la LIKP ci-dessus pour obtenir les créneaux.</b>'}</p>` : '';
   return info + miss + `<div class="plan">${dayCards}</div>`;
 }
 document.addEventListener('click', e => { const f = e.target.closest('[data-planfold]'); if (f) { S.ui.planFold = S.ui.planFold || {}; S.ui.planFold[f.dataset.planfold] = !planOpen(f.dataset.planfold); render(); } });

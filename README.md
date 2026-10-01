@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.28.0** · Développé par **Galaad Poivey**
+Version **1.28.1** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -147,6 +147,10 @@ Le numéro de version (`APP_VERSION` dans `index.html`) augmente à chaque modif
 - **Verdict :** « passe » si le reste cumulé tient dans la capacité, sinon « ne passe pas » avec les heures manquantes. L'app donne aussi une heure de fin estimée, et calcule tout séparément pour le SILO et le picking.
 - **Limite réelle :** sur les graphiques, un trait rouge pointillé par jour = heures déjà faites + capacité encore disponible. Si le haut de la barre dépasse le trait, la journée ne passe pas.
 - **Rendement réel :** entre deux imports successifs (par exemple le matin et l'après-midi), l'app mesure les heures théoriques réalisées. Ce sont les postes passés au statut C ou sortis de la VL06O. Elle les divise par les heures d'équipe écoulées. Ce rendement ajuste la capacité restante et s'affine à chaque actualisation ; l'ajustement peut être désactivé dans Paramètres.
+  - Le rendement n'est **appliqué** qu'à partir de **3 mesures** et **15 h d'équipe mesurées** (séparément pour le SILO et le picking). Avant, la capacité reste théorique ; le rendement mesuré est seulement affiché.
+  - Le rendement appliqué est **borné entre 70 % et 130 %**. Une mesure isolée ou faussée ne peut donc pas diviser la capacité par deux.
+  - Les seuils et les bornes se règlent dans Paramètres, section « Réel ».
+- **Postes commencés (statut B) :** leurs palettes SILO restent comptées à faire, car la VL06O ne dit pas si elles sont déjà descendues. Elles sont signalées à part (« dont N pal sur postes commencés »). Le rendement SILO tend à être sous-estimé pour la même raison : un poste n'est compté fait qu'une fois entièrement au statut C, picking compris.
 
 ## Créneaux de chargement (table LIKP)
 
