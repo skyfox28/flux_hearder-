@@ -698,9 +698,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.28.1';
+const APP_VERSION = '1.28.2';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.28.2', '01/10/2026', 'Paramètres : « Caristes SILO » avec le cariste entrée SILO (rangement des réceptions) et le cariste sortie SILO (palettes complètes des commandes), à la place des équipes de rangement ; les sorties se comptent en livraisons, pas en camions (une livraison n’est pas un camion).'],
   ['1.28.1', '01/10/2026', 'Réel : le rendement mesuré n’est appliqué qu’après 3 mesures et 15 h d’équipe mesurées, et il est borné entre 70 % et 130 % (réglable dans Paramètres) ; les palettes SILO des postes commencés (statut B) sont signalées à part.'],
   ['1.28.0', '01/10/2026', 'Bandeau « Aujourd’hui » et feu tricolore de la semaine ; overlay journée imprimable (PDF) ; écran atelier plein écran ; recherche globale Ctrl+K (livraison, client, transporteur…) ; menu en 3 groupes ; planning replié sauf aujourd’hui et demain ; alertes avec bouton d’action ; comparaison avec la semaine précédente ; densité d’affichage réglable.'],
   ['1.27.2', '01/10/2026', 'Frise du planning : étiquettes des repères (extraction, fin picking, fin SILO) sur des lignes séparées et libellés de créneaux tronqués à la largeur du bloc.'],
@@ -849,7 +850,7 @@ const DEFAULT_SETTINGS = {
   capaQuaiRec: 150,    // blocs (places au sol) en attente de rangement
   portesRec: 3,        // portes de déchargement
   dechDuree: 45,       // minutes de déchargement par camion
-  cadRecep: 25,        // palettes rangées par heure et par cariste réception
+  cadRecep: 25,        // palettes rangées dans le SILO par heure et par cariste entrée SILO
   blocParPalRec: 1,    // blocs par palette reçue (palettes entières non gerbées)
   rapatDebut: '06:00', rapatFin: '14:00',
   navSites: '2560, 2510',   // sites usines retenus dans la VL06I
@@ -2047,27 +2048,27 @@ function viewSettings() {
   const transps = uniq([...Object.keys(st.transporteurs), ...Object.values(S.affret.rows).map(r => r.transp)]).filter(Boolean).sort((a, b) => num(a) - num(b));
   return `<section class="card glass"><h2>Cadences de préparation</h2><p class="hint">Reprises de la feuille « Synthèse Activité Préparat° ».</p>
     <div class="set-grid">
-      <label>Cadence SILO (pal/h)<input class="inp" type="number" data-set="cadSilo" value="${st.cadSilo}"></label>
+      <label>Cadence cariste sortie SILO (pal/h)<input class="inp" type="number" data-set="cadSilo" value="${st.cadSilo}"></label>
       <label>Picking Entrepôt / Interco / GMS (colis/h)<input class="inp" type="number" data-set="cadEntrepot" value="${st.cadEntrepot}"></label>
       <label>Picking Export (colis/h)<input class="inp" type="number" data-set="cadExport" value="${st.cadExport}"></label>
       <label>Picking MDD (colis/h)<input class="inp" type="number" data-set="cadMdd" value="${st.cadMdd}"></label>
       <label>Nom du site<input class="inp" data-set="site" value="${esc(st.site)}"></label>
     </div>
   </section>
-  <section class="card glass"><h2>Quai d’expédition (saturation)</h2><p class="hint">Le quai se compte en <b>blocs</b> (1 bloc = 1 place au sol). Les livraisons préparées occupent le quai jusqu’au départ du camion ; au-delà de la capacité, la préparation est bloquée. Ratio actuel : ${nf2.format(blocRatio().v)} bloc/palette (${esc(blocRatio().src)}).</p>
+  <section class="card glass"><h2>Quai d’expédition (saturation)</h2><p class="hint">Le quai se compte en <b>blocs</b> (1 bloc = 1 place au sol). Les livraisons préparées occupent le quai jusqu’à leur départ (dans leur créneau de chargement ; plusieurs livraisons peuvent partir dans le même camion) ; au-delà de la capacité, la préparation est bloquée. Ratio actuel : ${nf2.format(blocRatio().v)} bloc/palette (${esc(blocRatio().src)}).</p>
     <div class="set-grid">
       <label>Capacité du quai d’expédition (blocs = places au sol)<input class="inp" type="number" min="0" data-set="capaQuaiExp" value="${num(st.capaQuaiExp)}"></label>
-      <label>Le camion part au<select class="inp" data-setsel="quaiDepart"><option value="0" ${+st.quaiDepart === 0 ? 'selected' : ''}>début du créneau (optimiste)</option><option value="1" ${+st.quaiDepart === 1 ? 'selected' : ''}>milieu du créneau</option><option value="2" ${+st.quaiDepart === 2 ? 'selected' : ''}>fin du créneau (prudent)</option></select></label>
+      <label>La livraison quitte le quai au<select class="inp" data-setsel="quaiDepart"><option value="0" ${+st.quaiDepart === 0 ? 'selected' : ''}>début du créneau (optimiste)</option><option value="1" ${+st.quaiDepart === 1 ? 'selected' : ''}>milieu du créneau</option><option value="2" ${+st.quaiDepart === 2 ? 'selected' : ''}>fin du créneau (prudent)</option></select></label>
       <label>Blocs par palette (si pas assez d’affrètement pour le mesurer)<input class="inp" type="number" min="0.1" step="0.05" data-set="blocParPal" value="${num(st.blocParPal)}"></label>
       <label>Colis par palette de picking (estimation hors affrètement)<input class="inp" type="number" min="1" data-set="colisParPalPick" value="${num(st.colisParPalPick)}"></label>
     </div>
   </section>
-  <section class="card glass"><h2>Quai de réception (saturation)</h2><p class="hint">Les camions déchargent sur les portes de réception ; leurs palettes attendent au sol (en <b>blocs</b>) jusqu’à leur rangement par l’équipe réception. Valeurs par défaut à ajuster à la réalité du dépôt.</p>
+  <section class="card glass"><h2>Quai de réception (saturation)</h2><p class="hint">Les camions déchargent sur les portes de réception ; leurs palettes attendent au sol (en <b>blocs</b>) jusqu’à leur rangement dans le SILO par le cariste entrée SILO. Valeurs par défaut à ajuster à la réalité du dépôt.</p>
     <div class="set-grid">
       <label>Capacité du sol de réception (blocs)<input class="inp" type="number" min="0" data-set="capaQuaiRec" value="${num(st.capaQuaiRec)}"></label>
       <label>Portes de déchargement<input class="inp" type="number" min="1" data-set="portesRec" value="${num(st.portesRec)}"></label>
       <label>Durée de déchargement (min / camion)<input class="inp" type="number" min="5" data-set="dechDuree" value="${num(st.dechDuree)}"></label>
-      <label>Cadence de rangement (pal/h par cariste)<input class="inp" type="number" min="1" data-set="cadRecep" value="${num(st.cadRecep)}"></label>
+      <label>Cadence cariste entrée SILO (pal/h)<input class="inp" type="number" min="1" data-set="cadRecep" value="${num(st.cadRecep)}"></label>
       <label>Blocs par palette reçue<input class="inp" type="number" min="0.1" step="0.05" data-set="blocParPalRec" value="${num(st.blocParPalRec)}"></label>
       <label>Camions sans heure (rapatriements) : de<input class="inp" type="time" data-setstr="rapatDebut" value="${esc(st.rapatDebut || '06:00')}"></label>
       <label>à<input class="inp" type="time" data-setstr="rapatFin" value="${esc(st.rapatFin || '14:00')}"></label>
@@ -2076,7 +2077,6 @@ function viewSettings() {
       <label>à<input class="inp" type="time" data-setstr="navFin" value="${esc(st.navFin || '20:00')}"></label>
     </div>
   </section>
-  ${teamEditor('equipesRecep', 'Équipes de rangement (réception)', 'caristes', sum(teams('equipesRecep'), e => num(e.prep) * teamDur(e)), `h de rangement par jour, soit ${n0(sum(teams('equipesRecep'), e => num(e.prep) * teamDur(e)) * num(st.cadRecep))} pal à ${num(st.cadRecep)} pal/h`)}
   <section class="card glass"><h2>Capacité quai (palettes)</h2><p class="hint">Capacité hebdomadaire, répartie sur les jours travaillés (${nbWorkDays()} j) : ${n0(num(st.capaInWeek) / nbWorkDays())} pal/jour en entrée, ${n0(num(st.capaOutWeek) / nbWorkDays())} pal/jour en sortie.</p>
     <div class="set-grid">
       <label>Entrées (pal / semaine)<input class="inp" type="number" min="0" data-set="capaInWeek" value="${st.capaInWeek}"></label>
@@ -2084,7 +2084,8 @@ function viewSettings() {
     </div>
   </section>
   ${teamEditor('equipes', 'Équipes de préparation (capacité picking)', 'préparateurs', capaDay(), 'h de picking par jour')}
-  ${teamEditor('equipesSilo', 'Équipes SILO (capacité palettes complètes)', 'caristes', capaSiloDay(), `h de SILO par jour, soit ${n0(capaSiloDay() * st.cadSilo)} pal à ${st.cadSilo} pal/h`)}
+  ${teamEditor('equipesRecep', 'Cariste entrée SILO (rangement des réceptions)', 'caristes', sum(teams('equipesRecep'), e => num(e.prep) * teamDur(e)), `h par jour, soit ${n0(sum(teams('equipesRecep'), e => num(e.prep) * teamDur(e)) * num(st.cadRecep))} pal rangées à ${num(st.cadRecep)} pal/h`)}
+  ${teamEditor('equipesSilo', 'Cariste sortie SILO (palettes complètes des commandes)', 'caristes', capaSiloDay(), `h par jour, soit ${n0(capaSiloDay() * st.cadSilo)} pal sorties à ${st.cadSilo} pal/h`)}
   <section class="card glass"><h2>Réel (projection à partir de la VL06O)</h2><p class="hint">À chaque import de la VL06O, l’app compare le reste à faire à la capacité restante des équipes entre l’heure d’extraction du fichier et l’échéance de préparation, et mesure le rendement réel entre deux imports.</p>
     <div class="set-grid">
       <label>Sans heure LIKP, échéance de préparation<select class="inp" data-setsel="prepDelai"><option value="0" ${+st.prepDelai === 0 ? 'selected' : ''}>le jour même, avant l’heure par défaut</option><option value="1" ${+st.prepDelai === 1 ? 'selected' : ''}>la veille au soir (prudent)</option><option value="2" ${+st.prepDelai === 2 ? 'selected' : ''}>le jour même, en fin de journée</option></select></label>
@@ -2412,7 +2413,7 @@ function flowDetail() {
   const ext = Object.values(S.affret.rows).filter(r => inWeek(r.date) && isExtShip(r));
   const per = days.map(d => {
     const ri = rin.filter(l => l.date === d), s = w.sst.filter(r => r.date === d), a = w.aff.filter(r => r.date === d), ro = rout.filter(l => l.date === d), nv = w.nav.filter(r => r.dateEff === d);
-    return { d, rap: sum(ri, l => l.pal), sst: sum(s, r => r.pal), nav: sum(nv, r => r.pal), aff: sum(a, r => r.pal), ext: sum(ro, l => l.pal), camIn: ri.length + sum(s, r => r.cam || 1) + nv.length, camOut: uniq(a.map(r => r.transp + '|' + (r.camion || r.liv))).length + ro.length };
+    return { d, rap: sum(ri, l => l.pal), sst: sum(s, r => r.pal), nav: sum(nv, r => r.pal), aff: sum(a, r => r.pal), ext: sum(ro, l => l.pal), camIn: ri.length + sum(s, r => r.cam || 1) + nv.length };
   });
   const T = k => sum(per, p => p[k]);
   const tin = T('rap') + T('sst') + T('nav'), tout = T('aff') + T('ext');
@@ -3025,11 +3026,11 @@ function dockDetail() {
     dockSection(P) };
 }
 // ============================================================
-//   QUAI DE RÉCEPTION : camion → porte (déchargement) → sol (blocs) → rangement (caristes réception)
+//   QUAI DE RÉCEPTION : camion → porte (déchargement) → sol (blocs) → rangement dans le SILO (cariste entrée SILO)
 //   - heure d'arrivée : pointage réel, sinon heure du RDV (planning SST), sinon répartie sur la plage des rapatriements
 //   - portes : un camion attend si toutes les portes sont occupées
 //   - sol : les palettes d'un camion sont posées à la fin du déchargement, rangées dans l'ordre d'arrivée
-//     au rythme cadence × caristes présents (équipes de rangement)
+//     au rythme cadence × caristes entrée SILO présents
 // ============================================================
 const recDays = () => { const w = weekData(); return w.days.filter(d => workDay(d) || w.sst.some(r => r.date === d) || w.nav.some(r => r.dateEff === d) || w.rap.some(l => l.sens === 'in' && l.date === d)); };
 function recTrucks(days) {
@@ -3113,14 +3114,14 @@ function recDetail() {
     { k: 'start', label: 'Déchargement', html: r => `${hh(r.start)}–${hh(r.end)}` }, { k: 'wait', label: 'Attente', num: true, html: r => r.wait >= 60e3 ? `<b style="color:var(--crit-ink)">${mins(r.wait)}</b>` : '–' },
     { k: 'done', label: 'Rangé à', html: r => r.done ? esc(fdt(r.done)) : badge('non rangé', 'b-crit') },
   ], R.trucks, { limit: 400 });
-  return { xl: true, title: 'Quai de réception', sub: `${scopeLbl()} · ${R.doors} portes · déchargement ${R.dur / 60e3} min/camion · sol ${n0(R.cap)} blocs · rangement ${R.cad} pal/h par cariste (${esc(teams('equipesRecep').map(e => `${e.prep} ${e.debut}–${e.fin}`).join(' + ') || 'aucune équipe')})`, body:
+  return { xl: true, title: 'Quai de réception', sub: `${scopeLbl()} · ${R.doors} portes · déchargement ${R.dur / 60e3} min/camion · sol ${n0(R.cap)} blocs · cariste entrée SILO ${R.cad} pal/h (${esc(teams('equipesRecep').map(e => `${e.prep} ${e.debut}–${e.fin}`).join(' + ') || 'aucune équipe')})`, body:
     mini([['Camions', n0(R.trucks.length), '', `${n0(sum(R.trucks, x => x.pal))} palettes`], ['Pic au sol', n0(pk[1]), 'blocs', pk[1] ? esc(fdt(pk[0])) : ''], ['Capacité sol', n0(R.cap), 'blocs', 'réglable dans Paramètres'],
       ['Saturation', R.sat.length ? `${R.sat.length} plage${R.sat.length > 1 ? 's' : ''}` : 'aucune', '', R.sat[0] ? `dès ${esc(fdt(R.sat[0].from))}` : 'le rangement suit'],
       ['Attente max', maxW.wait >= 60e3 ? n0(maxW.wait / 60e3) : '0', 'min', maxW.wait >= 60e3 ? `${esc(maxW.lbl)} · ${esc(fdt(maxW.t))}` : 'toujours une porte libre'],
-      ['Capacité de rangement', n0(capaBetween('equipesRecep', dayStartTs(days[0]), dayStartTs(days[0]) + 24 * H) * R.cad), 'pal/jour', `${R.cad} pal/h × heures caristes`]]) +
+      ['Capacité de rangement', n0(capaBetween('equipesRecep', dayStartTs(days[0]), dayStartTs(days[0]) + 24 * H) * R.cad), 'pal/jour', `${R.cad} pal/h × heures cariste entrée SILO`]]) +
     h3('Palettes au sol en attente de rangement', 'Surface = blocs posés au sol de la réception. Zones rouges = au-dessus de la capacité : plus de place pour décharger.') + occChart(R, days.filter(D => rows.some(r => r.D === D)), now, `maintenant ${hh(now)}`, 'Occupation du quai de réception') +
     h3('Par jour', `Verdict rouge si le sol dépasse ${n0(R.cap)} blocs ou si un camion attend 30 min ou plus une porte libre.`) + dayT +
-    h3('Calcul par camion', `Arrivée = heure pointée, sinon RDV du planning SST, sinon répartie sur ${esc(st.rapatDebut)}–${esc(st.rapatFin)} (rapatriements sans heure). Le camion prend la première porte libre parmi ${R.doors}, décharge ${R.dur / 60e3} min, puis ses palettes (× ${nf2.format(R.ratio)} bloc/palette) attendent au sol ; elles sont rangées dans l’ordre d’arrivée à ${R.cad} pal/h par cariste réception présent.`) + trT };
+    h3('Calcul par camion', `Arrivée = heure pointée, sinon RDV du planning SST, sinon répartie sur ${esc(st.rapatDebut)}–${esc(st.rapatFin)} (rapatriements sans heure). Le camion prend la première porte libre parmi ${R.doors}, décharge ${R.dur / 60e3} min, puis ses palettes (× ${nf2.format(R.ratio)} bloc/palette) attendent au sol ; elles sont rangées dans l’ordre d’arrivée à ${R.cad} pal/h par cariste entrée SILO présent.`) + trT };
 }
 function recTile() {
   const R = recSim(); if (!R.trucks.length) return '';
@@ -3137,7 +3138,7 @@ function dockSection(P) {
     { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' }, { k: 'D', label: 'Chargement', fmt: fdateL },
     { k: 'pal', label: 'Blocs', num: true, fmt: n0 }, { k: 'src', label: 'Origine du nombre', cls: 'muted' },
     { k: 'palNow', label: 'Déjà au quai', num: true, fmt: n0 }, { k: 'palLater', label: 'À poser', num: true, fmt: n0 },
-    { k: 'arr', label: 'Posées au quai', fmt: v => fdt(v) }, { k: 'dep', label: 'Départ du camion', html: r => `${esc(fdt(r.dep))}${r.late ? ' <span class="badge b-crit b-nodot">après créneau</span>' : ''}` },
+    { k: 'arr', label: 'Posées au quai', fmt: v => fdt(v) }, { k: 'dep', label: 'Départ du quai', html: r => `${esc(fdt(r.dep))}${r.late ? ' <span class="badge b-crit b-nodot">après créneau</span>' : ''}` },
   ], dock.rows.sort((a, b) => a.dep - b.dep), { limit: 400 });
   return h3(`Saturation du quai d’expédition — capacité ${n0(dock.cap)} blocs (places au sol)`, `Occupation simulée en blocs à partir de la VL06O du ${esc(fdt(P.at))} : au départ, blocs des livraisons déjà préparées et pas encore parties (${n0(dock.now)} blocs) ; chaque livraison pose ses blocs restants à sa fin de préparation estimée et libère le quai au ${['début', 'milieu', 'fin'][+S.settings.quaiDepart] ?? 'milieu'} de son créneau de chargement (réglable). Blocs = colonne « blocs » de la base affrètement ; sinon palettes (affrètement, ou Pal SILO + colis picking ÷ ${n0(num(S.settings.colisParPalPick))}) × ${nf2.format(blocRatio().v)} bloc/palette (${esc(blocRatio().src)}).`)
     + t + (dock.sat.length ? `<div class="alert crit" style="margin:8px 0">${icon('warn')}<div><b>Quai saturé</b> : ${dock.sat.map(s => `${esc(fdt(s.from))} → ${esc(fdt(s.to))} (pic ${n0(s.peak)} blocs)`).join(' · ')}. Tant que des camions ne partent pas, la préparation risque d’être bloquée.</div></div>` : '')
@@ -3716,7 +3717,7 @@ function todayStrip() {
   const dots = days.map(d => { const x = d === t ? ds : dayStatus(d); return `<button class="tl-dot st-${x.overall}${d === t ? ' today' : ''}" data-detail="day" data-day="${d}" title="${esc(`${DAYS[dayIdx(d)]} ${fdate(d)} : ${stLbl[x.overall]}`)}"><i></i><b>${DAYS[dayIdx(d)].slice(0, 3)}.</b><small>${fdate(d)}</small></button>`; }).join('');
   return `<section class="card glass today-strip">
     <div class="ts-today" data-detail="day" data-day="${t}" role="button" tabindex="0"><div class="ts-h"><b>Aujourd’hui</b><span>${esc(fdateL(t))}</span></div>
-      <div class="ts-items">${it('Préparation', ds.prep)}${it('Quai exp.', ds.dock)}${it('Quai réc.', ds.rec)}<div class="ts-it st-none"><span>Camions</span><b>↘ ${n0(ds.inCam)} · ↗ ${n0(ds.outN)}</b></div></div></div>
+      <div class="ts-items">${it('Préparation', ds.prep)}${it('Quai exp.', ds.dock)}${it('Quai réc.', ds.rec)}<div class="ts-it st-none"><span>Entrées · sorties</span><b>↘ ${n0(ds.inCam)} cam. · ↗ ${n0(ds.outN)} livr.</b></div></div></div>
     <div class="ts-week"><span class="ts-lab">Semaine ${S.ui.week.w}</span><div class="tl-dots">${dots}</div></div>
   </section>`;
 }
@@ -3824,7 +3825,7 @@ function tvHtml() {
   const reste = sum(w.prep.filter(l => l.sgp !== 'C'), l => l.hrSilo + l.hrPick);
   const wIn = sum(w.rap.filter(l => l.sens === 'in'), l => l.pal) + sum(w.sst, r => r.pal) + sum(w.nav, r => r.pal), wOut = sum(w.aff, r => r.pal) + sum(w.rap.filter(l => l.sens === 'out'), l => l.pal);
   return `<div class="tv-top"><div><b>Flux Hebdo · ${esc(S.settings.site)}</b><span>${esc(fdateL(t))} · semaine ${S.ui.week.w}</span></div><div class="tv-clock">${new Date().toTimeString().slice(0, 5)}</div><button class="btn" data-tvclose>Quitter (Échap)</button></div>
-    <div class="tv-grid">${card('Préparation', x.prep)}${card('Quai expédition', x.dock)}${card('Quai réception', x.rec)}<div class="tv-card st-none"><span>Camions aujourd’hui</span><b>↘ ${n0(x.inCam)} · ↗ ${n0(x.outN)}</b><small>${n0(x.inPal)} pal entrantes · ${n0(x.outPal)} pal sortantes</small></div></div>
+    <div class="tv-grid">${card('Préparation', x.prep)}${card('Quai expédition', x.dock)}${card('Quai réception', x.rec)}<div class="tv-card st-none"><span>Aujourd’hui</span><b>↘ ${n0(x.inCam)} camions · ↗ ${n0(x.outN)} livraisons</b><small>${n0(x.inPal)} pal entrantes · ${n0(x.outPal)} pal sortantes</small></div></div>
     <div class="tv-week">${days.map(d => { const y = d === t ? x : dayStatus(d); return `<div class="tv-day st-${y.overall}${d === t ? ' today' : ''}"><i></i><b>${DAYS[dayIdx(d)]}</b><small>${fdate(d)} · ${stLbl[y.overall]}</small></div>`; }).join('')}</div>
     <div class="tv-kpis"><div><span>Entrées semaine</span><b>${n0(wIn)}</b><small>pal</small></div><div><span>Sorties semaine</span><b>${n0(wOut)}</b><small>pal</small></div><div><span>Reste à préparer</span><b>${n1(reste)}</b><small>h</small></div><div><span>Quai expédition</span><b>${sim ? n0(sim.occAt(Date.now())) : '—'}</b><small>/ ${n0(num(S.settings.capaQuaiExp))} blocs</small></div></div>
     <div class="tv-foot">Données : VL06O ${S.prep ? esc(fdt(snapTs())) : 'non importée'} · actualisé à ${new Date().toTimeString().slice(0, 5)} · Flux Hebdo v${APP_VERSION}</div>`;

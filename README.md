@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.28.1** · Développé par **Galaad Poivey**
+Version **1.28.2** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -196,7 +196,8 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
 ## Équipes par défaut
 
 - **Picking :** 2 préparateurs de 5h00 à 12h30 et 2 de 12h30 à 20h00, soit 30 h par jour.
-- **SILO :** 1 cariste de 5h00 à 12h30, 1 de 12h30 à 20h00 et **1 de nuit de 20h00 à 3h30**, soit 22,5 h par jour. La nuit est prise en compte dans le calcul « réel ».
+- **Cariste entrée SILO** (rangement des réceptions) : 1 de 5h00 à 12h30 et 1 de 12h30 à 20h00.
+- **Cariste sortie SILO** (palettes complètes des commandes) : 1 cariste de 5h00 à 12h30, 1 de 12h30 à 20h00 et **1 de nuit de 20h00 à 3h30**, soit 22,5 h par jour. La nuit est prise en compte dans le calcul « réel ».
 
 ## Interface
 
@@ -222,7 +223,7 @@ Paramètres → À propos → « Animer l'écran d'ouverture » : décoché, la 
 
 ## Pilotage au quotidien
 
-- **Bandeau « Aujourd'hui »** en haut du tableau de bord : préparation (passe ou non), quai d'expédition, quai de réception, camions du jour (↘ entrées · ↗ sorties). Un clic ouvre la journée.
+- **Bandeau « Aujourd'hui »** en haut du tableau de bord : préparation (passe ou non), quai d'expédition, quai de réception, camions entrants et livraisons sortantes du jour (↘ · ↗ ; une livraison n'est pas un camion, la VL06O et la LIKP ne disent pas lesquelles partent ensemble). Un clic ouvre la journée.
 - **Feu tricolore de la semaine** : une pastille par jour, vert / orange / rouge. La couleur combine préparation, quai d'expédition et quai de réception ; orange au-delà de 85 % de la capacité. Un clic ouvre la journée.
 - **Overlay « Journée »** : état des trois contraintes, entrées et sorties du jour, détail de la préparation, et bouton **Imprimer / PDF** (seul le contenu de la journée est imprimé).
 - **Écran atelier** (icône écran en haut) : plein écran, gros chiffres, statut du jour, semaine, horloge. Les chiffres sont rafraîchis chaque minute ; les dossiers SharePoint et la sauvegarde partagée sont relus toutes les 10 minutes. Échap pour quitter.
@@ -268,7 +269,7 @@ Simulation, jour par jour, de la réception de la semaine affichée :
 1. **Arrivée des camions :** heure d'arrivée pointée, sinon heure du RDV du planning SST, sinon (rapatriements sans heure) répartie régulièrement sur une plage réglable (06:00–14:00 par défaut).
 2. **Portes :** chaque camion prend la première porte libre (3 portes par défaut) et décharge pendant 45 min (réglable). Si toutes les portes sont prises, il attend : l'attente est calculée.
 3. **Sol :** à la fin du déchargement, les palettes sont posées au sol (1 bloc par palette par défaut). Capacité du sol : 150 blocs par défaut.
-4. **Rangement :** dans l'ordre d'arrivée, à 25 palettes/h par cariste réception présent. Les équipes de rangement se règlent comme les autres équipes (par défaut, 1 cariste 05:00–12:30 et 1 cariste 12:30–20:00).
+4. **Rangement :** dans l'ordre d'arrivée, à 25 palettes/h par **cariste entrée SILO** présent. Ses horaires se règlent dans Paramètres, section « Cariste entrée SILO » (par défaut, 1 cariste 05:00–12:30 et 1 cariste 12:30–20:00).
 
 Verdict rouge pour un jour si le sol dépasse sa capacité ou si un camion attend 30 min ou plus. Une tuile « Quai réception (blocs) » est ajoutée au tableau de bord, dans le groupe Entrées. Son overlay contient :
 - la courbe des palettes au sol ;
@@ -303,7 +304,7 @@ Dossier prévu : `MC CORMICK & COMPANY INC\WeDeliver - Documents\101_Sandbox GP\
 
 ## Saturation du quai d'expédition
 
-Le quai se compte en **blocs** : 1 bloc = 1 place au sol. Les livraisons préparées occupent le quai jusqu'au départ du camion ; si le quai est plein, on ne peut plus préparer. L'app simule l'occupation du quai heure par heure, à partir de la dernière VL06O :
+Le quai se compte en **blocs** : 1 bloc = 1 place au sol. Les livraisons préparées occupent le quai jusqu'à leur départ, dans leur créneau de chargement ; si le quai est plein, on ne peut plus préparer. L'app simule l'occupation du quai heure par heure, à partir de la dernière VL06O :
 
 1. **Au départ :** les blocs des livraisons déjà préparées et pas encore parties. Une livraison terminée compte en entier, une livraison en cours au prorata des heures faites.
 2. **Arrivées :** chaque livraison pose ses blocs restants à sa **fin de préparation estimée** (projection « réel »).
@@ -313,7 +314,7 @@ Le quai se compte en **blocs** : 1 bloc = 1 place au sol. Les livraisons prépar
    - à défaut, palettes (affrètement, ou Pal SILO + ⌈colis picking ÷ 80⌉) × **ratio blocs/palettes observé** dans la base affrètement (0,65 par défaut s'il y a moins de 5 livraisons affrétées).
 
 **Où le voir :**
-- **Réglages :** la capacité (**450 blocs** par défaut), le ratio blocs/palettes par défaut, les colis par palette de picking et le moment de départ du camion se règlent dans Paramètres, section « Quai d'expédition ».
+- **Réglages :** la capacité (**450 blocs** par défaut), le ratio blocs/palettes par défaut, les colis par palette de picking et le moment de départ de la livraison dans son créneau se règlent dans Paramètres, section « Quai d'expédition ».
 - **Overlay « Quai d'expédition » :** s'ouvre depuis la tuile « Quai expédition (blocs) » du tableau de bord, ou depuis l'encart du détail SILO / picking. Il regroupe les chiffres clés (blocs au quai à l'extraction, pic prévu, plages saturées, ratio), la courbe d'occupation heure par heure sur tous les jours projetés (week-ends masqués, survol pour le détail de chaque heure), le verdict par jour et le calcul par livraison.
 - **Planning :** chaque jour a un verdict « Quai exp. », fluide ou saturé avec les plages horaires. La frise montre la courbe d'occupation, la ligne de capacité et les plages saturées en rouge.
 - **Tableau de bord :** une tuile « Quai expédition (blocs) » donne l'occupation actuelle et la prochaine saturation ; un clic ouvre l'overlay du quai.
