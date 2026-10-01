@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.29.0** · Développé par **Galaad Poivey**
+Version **1.30.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -202,6 +202,13 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
 - **Cariste sortie SILO** (palettes complètes des commandes) : 1 cariste de 5h00 à 12h30, 1 de 12h30 à 20h00 et **1 de nuit de 20h00 à 3h30**, soit 22,5 h par jour. La nuit est prise en compte dans le calcul « réel ».
 
 ## Interface
+
+- **Pilotage visuel (tableau de bord et vue jour) :**
+  - **jauges en demi-cercle**, de 0 à 120 % : vert sous 85 %, orange de 85 à 100 %, rouge au-delà. Sur le tableau de bord : quai d'expédition (pic prévu sur 3 jours), quai de réception (pic de la semaine), picking et sortie SILO du prochain jour de chargement (taux réel, heure de fin), entrées et sorties de la semaine. Dans la vue jour : les mêmes, calculées pour ce jour-là ;
+  - **anneaux** : avancement des livraisons (terminées / en cours / à faire), heures de picking par circuit, palettes sorties par transporteur (4 premiers + autres) ;
+  - un clic sur une jauge ou un anneau ouvre le détail correspondant.
+- **Simulateur « Et si ? »** : curseurs pour les préparateurs (matin, après-midi), la cadence de picking entrepôt, les caristes sortie SILO (nuit, matin, après-midi) et la cadence SILO. Le verdict, la marge et l'heure de fin se recalculent tout de suite, avec l'écart par rapport aux réglages. Dans la vue jour, le résultat est détaillé par créneau de chargement. Les paramètres ne sont jamais modifiés ; « Revenir aux réglages » annule la simulation.
+- **Verre plus lisible :** cartes plus transparentes, mais textes plus grands et plus foncés ; le détail des tuiles est affiché en entier.
 
 - **Style sobre (industriel)**, au choix dans Paramètres › À propos (« Style : sobre / verre », mémorisé par poste) : fond uni, cartes opaques sans flou, textes à 15 px et gris plus foncés, détail des tuiles affiché en entier, badges avec symbole (✓ normal, ! tendu, ✗ dépassé). La barre du haut tient sur une ligne : titre, semaine, pastille d'état des données (survol = détail des sources, clic = onglet Sources), « Mettre à jour », sauvegarde, recherche, écran atelier, thème. « Purger » reste dans Paramètres.
 

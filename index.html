@@ -663,6 +663,62 @@ html.style-sobre .ts-h span{font-size:13px;color:var(--text-2)}
 html.style-sobre .meta{font-size:13px;color:var(--text-2)}
 html.style-sobre .mpanel{background:var(--bg-1);border-radius:8px}
 html.style-sobre .appfoot{font-size:13px}
+
+/* ===== verre plus transparent, mais lisible (v1.30) ===== */
+:root:not(.style-sobre){
+  --glass: rgba(255,255,255,.42); --glass-strong: rgba(255,255,255,.72); --glass-soft: rgba(255,255,255,.34);
+  --glass-border: rgba(255,255,255,.75);
+  --text-1:#111827; --text-2:#2f3747; --text-3:#4a5262;
+}
+:root:not(.style-sobre) .blobs i{opacity:.5 !important}
+body{font-size:15px}
+.glass{-webkit-backdrop-filter:blur(26px) saturate(150%);backdrop-filter:blur(26px) saturate(150%)}
+.kpi .lab{font-size:13px;color:var(--text-2);font-weight:600}
+.kpi .val{font-size:28px}
+.kpi .det{font-size:13px;color:var(--text-2)}
+.card .hint,.meta{font-size:13px;color:var(--text-2)}
+.group-title{font-size:13px;color:var(--text-2);font-weight:700}
+.badge{font-size:13px}
+table.t{font-size:14px} .t th{font-size:13px} .t td{padding:8px 11px}
+.chart .axis-t{font-size:12.5px;fill:var(--text-2)} .chart .val-t{font-size:12.5px}
+/* plaques de données plus opaques : les chiffres ne flottent pas */
+:root:not(.style-sobre) .gauge,:root:not(.style-sobre) .donut,:root:not(.style-sobre) .kpi,:root:not(.style-sobre) .tbl-wrap{background:rgba(255,255,255,.62)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gauge,:root:not([data-theme="light"]) .donut,:root:not([data-theme="light"]) .kpi{background:rgba(30,34,46,.7)}}
+:root[data-theme="dark"] .gauge,:root[data-theme="dark"] .donut,:root[data-theme="dark"] .kpi{background:rgba(30,34,46,.7)}
+/* ===== bandeau de pilotage ===== */
+.pilot .gauges{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.pilot .donuts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-top:12px}
+.gauge,.donut{border:1px solid var(--glass-border);border-radius:16px;padding:12px 14px;box-shadow:inset 0 1px 0 var(--glass-shine)}
+.gauge[data-detail],.donut[data-detail]{cursor:pointer}
+.gauge[data-detail]:hover,.donut[data-detail]:hover{border-color:color-mix(in srgb,var(--accent) 50%,var(--glass-border))}
+.g-lab{font-size:13px;font-weight:700;color:var(--text-2)}
+.gauge svg{display:block;width:100%;max-width:200px;height:auto;margin:4px auto 0}
+.g-big{font-size:26px;font-weight:700;fill:var(--text-1);font-variant-numeric:tabular-nums}
+.g-unit{font-size:11.5px;fill:var(--text-2)}
+.g-sub{font-size:12.5px;color:var(--text-2);text-align:center;margin-top:2px}
+.t-good{color:var(--good-ink)} .t-warn{color:var(--warn-ink)} .t-crit{color:var(--crit-ink)}
+.d-body{display:flex;align-items:center;gap:14px;margin-top:6px}
+.d-body svg{width:120px;height:120px;flex:none}
+.d-body ul{list-style:none;margin:0;padding:0;flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.d-body li{display:grid;grid-template-columns:10px minmax(0,1fr) auto 44px;gap:8px;align-items:center;font-size:13px}
+.d-body li i{width:10px;height:10px;border-radius:3px}
+.d-body li span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-2)}
+.d-body li b{font-variant-numeric:tabular-nums} .d-body li small{color:var(--text-3);text-align:right}
+/* ===== simulateur ===== */
+.sim-grid{display:grid;grid-template-columns:minmax(260px,340px) minmax(0,1fr);gap:20px;align-items:start}
+.sim-ctls{display:flex;flex-direction:column;gap:8px}
+.sim-grp{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-top:6px}
+.sim-ctl{display:flex;flex-direction:column;gap:2px;font-size:13.5px;color:var(--text-2)}
+.sim-ctl span{display:flex;gap:8px;align-items:baseline}
+.sim-ctl b{margin-left:auto;color:var(--text-1);font-variant-numeric:tabular-nums}
+.sim-ctl small{color:var(--accent);font-size:12px}
+.sim-ctl input{width:100%;accent-color:var(--accent)}
+#simRes small{font-size:12px}
+@media (max-width:900px){.sim-grid{grid-template-columns:1fr}}
+.d-body svg{height:120px}
+.g-none .g-sub{color:var(--text-3)}
+.pilot-day{margin-bottom:16px}
+.sim{margin-top:6px}
 </style>
 </head>
 <body>
@@ -825,9 +881,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.29.0';
+const APP_VERSION = '1.30.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.30.0', '01/10/2026', 'Pilotage visuel : jauges (quais, picking, sortie SILO, entrées, sorties) et anneaux (avancement des livraisons, picking par circuit, sorties par transporteur) sur le tableau de bord et dans la vue jour ; simulateur « Et si ? » (préparateurs, caristes sortie SILO, cadences) avec détail par créneau dans la vue jour ; verre plus transparent mais plus lisible (textes plus grands, détail des tuiles en entier).'],
   ['1.29.0', '01/10/2026', 'Style « sobre » (industriel), au choix dans Paramètres › À propos : surfaces opaques sans flou, textes plus grands et plus contrastés, détail des tuiles visible en entier, badges avec symbole (✓ ! ✗), barre du haut sur une ligne (pastille d’état des données, bouton Mettre à jour ; Purger reste dans Paramètres).'],
   ['1.28.3', '01/10/2026', 'VL06O : chemin SharePoint prévu (Flux_hebdo\\VL06O), réglable dans Paramètres, rappelé dans l’onglet Sources et vérifié quand on relie le dossier.'],
   ['1.28.2', '01/10/2026', 'Paramètres : « Caristes SILO » avec le cariste entrée SILO (rangement des réceptions) et le cariste sortie SILO (palettes complètes des commandes), à la place des équipes de rangement ; les sorties se comptent en livraisons, pas en camions (une livraison n’est pas un camion).'],
@@ -1557,6 +1614,7 @@ function viewDash() {
   const alerts = buildAlerts(aff, prep), PW = prevWeekTotals();
   return `
   ${empty ? '' : todayStrip()}
+  ${empty ? '' : pilotBand() + simCard()}
   ${empty ? `<section class="card glass"><div class="empty"><b>Aucune donnée pour cette semaine</b>Importez la VL06O (Préparation), collez la base affrètement (Expéditions) et déposez les fichiers de rapatriement pour alimenter le tableau de bord.</div></section>` : ''}
   <section class="card glass">
     <div class="group-title">Entrées</div>
@@ -3798,7 +3856,7 @@ function tidyHints(root) {
   });
   // petits textes des tuiles : on garde la première information, le reste passe derrière ⓘ
   const mk = (tip, id) => { const b = document.createElement('button'); b.className = 'infoi'; b.type = 'button'; b.textContent = 'i'; b.setAttribute('aria-label', 'Détail'); b.setAttribute('aria-controls', id); b.setAttribute('aria-expanded', 'false'); b.dataset.tip = tip; return b; };
-  const sobre = document.documentElement.classList.contains('style-sobre');
+  const sobre = true;   // détail des tuiles affiché en entier (plus de « … »)
   root.querySelectorAll('.badge:not(.b-nodot)').forEach(b => { if (/^[✓✗!]/.test(b.textContent.trim())) b.classList.add('b-nodot'); });   // le texte porte déjà son symbole
   root.querySelectorAll('.kpi .det:not([data-tidy])').forEach(d => {
     d.dataset.tidy = '1'; if (sobre) return;
@@ -3865,19 +3923,153 @@ function todayStrip() {
 }
 DETAILS.day = (d) => {
   const D = d || today(), x = dayStatus(D), dd = x.dd;
-  const box = (lab, y, key) => `<div class="kpi st-box st-${y ? y.st : 'none'}"${key ? ` data-detail="${key}" role="button" tabindex="0"` : ''}><div class="lab">${lab}</div><div class="val" style="font-size:20px">${y ? y.lbl : '—'}</div><div class="det">${esc(y ? y.det : 'pas de données')}</div></div>`;
   const byT = uniq(dd.aff.map(r => r.transp)).map(t => { const a = dd.aff.filter(r => r.transp === t); return { t: transpName(t), liv: a.length, pal: sum(a, r => r.pal), bl: sum(a, r => r.blocs) }; }).sort((a, b) => b.pal - a.pal);
   const ins = [...dd.rin.map(l => ({ h: '', src: 'Rapatriement', nom: l.entrepot + ' · ' + l.ref, pal: l.pal })), ...dd.sst.map(r => ({ h: r.heure, src: isInterco(r.sst) ? 'Retour interco' : 'Sous-traitant', nom: r.sst, pal: r.pal })), ...dd.nav.filter(r => r.pal > 0).map(r => ({ h: '', src: 'Navette usine', nom: r.nom + ' · ' + r.liv, pal: r.pal }))].sort((a, b) => (a.h || '99').localeCompare(b.h || '99'));
   const row = x.row;
   return { xl: true, title: `Journée du ${DAYS[dayIdx(D)].toLowerCase()} ${fdate(D)}`, sub: `État : ${stLbl[x.overall]}`, body:
     `<div class="row noprint" style="justify-content:flex-end;margin:-6px 0 10px"><button class="btn sm" data-print>${icon('dl')} Imprimer / PDF</button></div>` +
-    `<div class="kpis" style="margin-bottom:18px">${box('Préparation', x.prep, 'prepxl')}${box('Quai expédition', x.dock, 'quai')}${box('Quai réception', x.rec, 'recq')}
-      <div class="kpi"><div class="lab">Entrées</div><div class="val">${n0(x.inPal)}<small>pal</small></div><div class="det">${n0(x.inCam)} camion(s)</div></div>
-      <div class="kpi"><div class="lab">Sorties</div><div class="val">${n0(x.outPal)}<small>pal</small></div><div class="det">${n0(x.outN)} livraison(s) / transfert(s)</div></div></div>` +
-    (row ? h3('Préparation') + `<div class="kpis" style="margin-bottom:14px"><div class="kpi"><div class="lab">Picking</div><div class="val" style="font-size:18px">${row.okP ? '✓ passe' : '✗ ne passe pas'}</div><div class="det">${n1(row.cumP)} h à faire / ${n1(row.capP)} h dispo</div></div><div class="kpi"><div class="lab">SILO</div><div class="val" style="font-size:18px">${row.okS ? '✓ passe' : '✗ ne passe pas'}</div><div class="det">${n1(row.cumS)} h à faire / ${n1(row.capS)} h dispo</div></div><div class="kpi"><div class="lab">Fin estimée</div><div class="val" style="font-size:18px">${row.finP ? esc(new Date(row.finP).toTimeString().slice(0, 5)) : '—'}</div><div class="det">dernière échéance ${esc(fdt(row.dl))}</div></div></div>` : '') +
+    pilotDay(x) + (row ? simCard(D).replace('class="sim"', 'class="sim xlchart" style="margin-bottom:16px"') : '') +
     h3('Entrées') + (ins.length ? table('dayIn', [{ k: 'h', label: 'Heure' }, { k: 'src', label: 'Type' }, { k: 'nom', label: 'Origine', cls: 'wrap' }, { k: 'pal', label: 'Palettes', num: true, fmt: n0 }], ins, { total: { pal: sum(ins, i => i.pal) } }) : none('Aucune entrée prévue.')) +
     h3('Sorties par transporteur') + (byT.length ? table('dayOut', [{ k: 't', label: 'Transporteur' }, { k: 'liv', label: 'Livraisons', num: true, fmt: n0 }, { k: 'pal', label: 'Palettes', num: true, fmt: n0 }, { k: 'bl', label: 'Blocs', num: true, fmt: n0 }], byT, { total: { liv: sum(byT, r => r.liv), pal: sum(byT, r => r.pal), bl: sum(byT, r => r.bl) } }) : none('Aucune expédition affrétée.')) };
 };
+// ============================================================
+//   PILOTAGE VISUEL : jauges (demi-cercle), anneaux, simulateur « et si ? »
+//   - semaine : bandeau en haut du tableau de bord
+//   - jour : même chose dans l'overlay « Journée », calculé pour ce jour-là
+// ============================================================
+const toneOf = f => !isFinite(f) ? 'crit' : f > 1 ? 'crit' : f >= .85 ? 'warn' : 'good';
+// jauge : échelle 0–120 %, zones vert < 85 % ≤ orange ≤ 100 % < rouge
+function gauge(f, big, unit, lab, sub, key) {
+  const cx = 90, cy = 92, r = 70, max = 1.2;
+  const pt = (x, rr = r) => { const a = Math.PI * (1 - Math.min(max, Math.max(0, x)) / max); return [cx + rr * Math.cos(a), cy - rr * Math.sin(a)]; };
+  const arc = (a, b, col, w, rr = r) => { const [x1, y1] = pt(a, rr), [x2, y2] = pt(b, rr); return `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${rr} ${rr} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="${col}" stroke-width="${w}"/>`; };
+  if (f == null) return `<div class="gauge g-none"><div class="g-lab">${lab}</div><svg viewBox="0 0 180 104">${arc(0, max, 'var(--grid)', 14)}<text x="${cx}" y="${cy - 8}" text-anchor="middle" class="g-big">—</text></svg><div class="g-sub">${sub || 'pas de données'}</div></div>`;
+  const t = toneOf(f), col = `var(--${t})`, [nx, ny] = pt(isFinite(f) ? f : max);
+  return `<div class="gauge"${key ? ` data-detail="${key}" role="button" tabindex="0"` : ''}>
+    <div class="g-lab">${lab}</div>
+    <svg viewBox="0 0 180 104">
+      ${arc(0, max, 'var(--grid)', 14)}${f > 0 ? arc(0, isFinite(f) ? Math.min(f, max) : max, col, 14) : ''}
+      ${arc(0, .85, 'color-mix(in srgb,var(--good) 55%,transparent)', 4, r + 12)}${arc(.85, 1, 'var(--warn)', 4, r + 12)}${arc(1, max, 'var(--crit)', 4, r + 12)}
+      <circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="6" fill="var(--glass-strong)" stroke="${col}" stroke-width="3"/>
+      <text x="${cx}" y="${cy - 8}" text-anchor="middle" class="g-big">${big}</text>
+      <text x="${cx}" y="${cy + 10}" text-anchor="middle" class="g-unit">${unit}</text>
+    </svg>
+    <div class="g-sub"><b class="t-${t}">${t === 'good' ? '✓' : t === 'warn' ? '!' : '✗'} ${isFinite(f) ? Math.round(f * 100) + ' %' : 'hors capacité'}</b> ${sub}</div>
+  </div>`;
+}
+// anneau : parts [{ lab, v, col, fmt? }]
+function donut(title, parts, center, unit, key) {
+  const tot = sum(parts, p => p.v), R = 46, C = 2 * Math.PI * R; let off = 0;
+  const segs = tot ? parts.filter(p => p.v > 0).map(p => { const len = p.v / tot * C; const s = `<circle cx="60" cy="60" r="${R}" fill="none" stroke="${p.col}" stroke-width="16" stroke-dasharray="${Math.max(0, len - 1.5).toFixed(2)} ${(C - len + 1.5).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 60 60)"/>`; off += len; return s; }).join('') : '';
+  return `<div class="donut"${key ? ` data-detail="${key}" role="button" tabindex="0"` : ''}><div class="g-lab">${title}</div>
+    <div class="d-body"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--grid)" stroke-width="16"/>${segs}
+      <text x="60" y="60" text-anchor="middle" class="g-big" style="font-size:21px">${center}</text><text x="60" y="78" text-anchor="middle" class="g-unit">${unit}</text></svg>
+    ${tot ? `<ul>${parts.map(p => `<li><i style="background:${p.col}"></i><span title="${esc(p.lab)}">${esc(p.lab)}</span><b>${p.fmt ? p.fmt(p.v) : n0(p.v)}</b><small>${pct(p.v / tot)}</small></li>`).join('')}</ul>` : '<p class="meta" style="margin:0">aucune donnée</p>'}</div></div>`;
+}
+const hhmm = ts => ts ? new Date(ts).toTimeString().slice(0, 5) : '';
+const finLbl = (ts, D) => !ts ? '' : isoLocal(new Date(ts)) === D ? `fin ${hhmm(ts)}` : `fin ${esc(fdt(ts))}`;
+// anneaux communs (semaine ou jour)
+function donutsOf(prep, aff) {
+  const livs = livsOf(prep), st = k => livs.filter(l => l.prep === k).length;
+  const d1 = donut('Livraisons', [{ lab: 'Terminées', v: st('C'), col: 'var(--good)' }, { lab: 'En cours', v: st('B'), col: 'var(--warn)' }, { lab: 'À faire', v: st('A'), col: 'var(--text-3)' }], n0(livs.length), 'livraisons', 'prepxl');
+  const circs = CIRC_ORDER.filter(c => prep.some(l => l.circuit === c));
+  const d2 = donut('Picking par circuit', circs.map(c => ({ lab: c, v: sum(prep.filter(l => l.circuit === c), l => l.hrPick), col: circColor(c), fmt: v => n1(v) + ' h' })), n1(sum(prep, l => l.hrPick)), 'h picking', 'prepxl');
+  const byT = uniq(aff.map(r => r.transp)).map(t => ({ lab: transpName(t), v: sum(aff.filter(r => r.transp === t), r => r.pal) })).sort((a, b) => b.v - a.v);
+  const cols = ['var(--in)', 'var(--out)', 'var(--pick)', 'var(--c4)', 'var(--text-3)'];
+  const top = byT.slice(0, 4).concat(byT.length > 4 ? [{ lab: `${byT.length - 4} autres`, v: sum(byT.slice(4), x => x.v) }] : []).map((x, i) => Object.assign(x, { col: cols[i] }));
+  const d3 = donut('Sorties par transporteur', top, n0(sum(byT, x => x.v)), 'pal', 'out');
+  return `<div class="donuts">${d1}${d2}${d3}</div>`;
+}
+// bandeau de la semaine (tableau de bord)
+function pilotBand() {
+  const { prep, aff, rap, sst, nav } = weekData(), P = projection();
+  const rin = rap.filter(l => l.sens === 'in'), rout = rap.filter(l => l.sens === 'out');
+  const palIn = sum(rin, l => l.pal) + sum(sst, r => r.pal) + sum(nav, r => r.pal), palOut = sum(aff, r => r.pal) + sum(rout, l => l.pal);
+  const ci = num(S.settings.capaInWeek), co = num(S.settings.capaOutWeek), g = [];
+  if (P && P.rows.length) { const dk = dockSim(P), pk = Math.max(...P.rows.slice(0, 3).map(r => dk.dayPeak(r.D).peak), dk.now); g.push(gauge(pk / dk.cap, n0(pk), `/ ${n0(dk.cap)} blocs`, 'Quai expédition', 'pic prévu (3 jours)', 'quai')); }
+  const R = recSim(); if (R.trucks.length) { const pk = Math.max(0, ...R.days.map(D => recDayRow(R, D)).filter(r => r.cam).map(r => r.peak)); g.push(gauge(pk / R.cap, n0(pk), `/ ${n0(R.cap)} blocs`, 'Quai réception', 'pic de la semaine', 'recq')); }
+  const nx = P ? P.rows.find(r => r.rS + r.rP > 0) : null;
+  if (nx) {
+    g.push(gauge(nx.tP, n1(nx.cumP), `h / ${n1(nx.capP)} h`, `Picking · ${fdateL(nx.D)}`, finLbl(nx.finP, nx.D), 'prepxl'));
+    g.push(gauge(nx.tS, n0(nx.rPal), `pal · ${n1(nx.cumS)} h`, `Sortie SILO · ${fdateL(nx.D)}`, finLbl(nx.finS, nx.D), 'prepxl'));
+  }
+  g.push(gauge(ci ? palIn / ci : null, n0(palIn), `/ ${n0(ci)} pal`, 'Entrées semaine', 'capacité quai', 'in'));
+  g.push(gauge(co ? palOut / co : null, n0(palOut), `/ ${n0(co)} pal`, 'Sorties semaine', 'capacité quai', 'out'));
+  return `<section class="card glass pilot"><div class="group-title">Pilotage</div><div class="gauges">${g.join('')}</div>${donutsOf(prep, aff)}</section>`;
+}
+// bandeau d'une journée (overlay « Journée »)
+function pilotDay(x) {
+  const D = x.D, dd = x.dd, row = x.row, P = projection(), g = [];
+  if (row) {
+    g.push(gauge(row.tP, n1(row.cumP), `h / ${n1(row.capP)} h`, 'Picking', row.rP > 0 ? finLbl(row.finP, D) : 'tout est fait', 'prepxl'));
+    g.push(gauge(row.tS, n0(row.rPal), `pal · ${n1(row.cumS)} h`, 'Sortie SILO', row.rS > 0 ? finLbl(row.finS, D) : 'tout est fait', 'prepxl'));
+  } else {
+    const hp = sum(dd.prep, l => l.hrPick), hs = sum(dd.prep, l => l.hrSilo);
+    g.push(gauge(capaOf(D) ? hp / capaOf(D) : null, n1(hp), `h / ${n1(capaOf(D))} h`, 'Picking', 'charge du jour', 'prepxl'));
+    g.push(gauge(capaSiloOf(D) ? hs / capaSiloOf(D) : null, n0(sum(dd.prep, l => l.palSilo)), `pal · ${n1(hs)} h`, 'Sortie SILO', 'charge du jour', 'prepxl'));
+  }
+  if (P && P.rows.some(r => r.D === D)) { const dk = dockSim(P), v = dockVerdict(dk, D); g.push(gauge(v.peak / dk.cap, n0(v.peak), `/ ${n0(dk.cap)} blocs`, 'Quai expédition', `pic à ${hhmm(v.at)}`, 'quai')); }
+  else g.push(gauge(null, '', '', 'Quai expédition', 'pas de simulation'));
+  g.push(x.rr.cam ? gauge(x.rr.peak / x.R.cap, n0(x.rr.peak), `/ ${n0(x.R.cap)} blocs`, 'Quai réception', `${n0(x.rr.cam)} camion(s)`, 'recq') : gauge(null, '', '', 'Quai réception', 'aucun camion'));
+  g.push(gauge(capaInDay(D) ? x.inPal / capaInDay(D) : null, n0(x.inPal), `/ ${n0(capaInDay(D))} pal`, 'Entrées', `${n0(x.inCam)} camion(s)`, 'in'));
+  g.push(gauge(capaOutDay(D) ? x.outPal / capaOutDay(D) : null, n0(x.outPal), `/ ${n0(capaOutDay(D))} pal`, 'Sorties', `${n0(x.outN)} livraison(s)`, 'out'));
+  return `<div class="pilot pilot-day"><div class="gauges">${g.join('')}</div>${donutsOf(dd.prep, dd.aff)}</div>`;
+}
+// ---------- simulateur « et si ? » (ne modifie jamais les paramètres) ----------
+const SIM_T = [['pm', 'equipes', 'Matin'], ['pa', 'equipes', 'Après-midi'], ['rm', 'equipesRecep', 'Matin'], ['ra', 'equipesRecep', 'Après-midi'], ['sn', 'equipesSilo', 'Nuit'], ['sm', 'equipesSilo', 'Matin'], ['sa', 'equipesSilo', 'Après-midi']];
+function simDefaults() {
+  const st = S.settings, o = { cs: num(st.cadSilo), cp: num(st.cadEntrepot) };
+  for (const [k, key, nom] of SIM_T) o[k] = num(((st[key] || []).find(e => e.nom === nom) || {}).prep);
+  return o;
+}
+function simRun(o) {
+  const save = S.settings, s2 = structuredClone(save);
+  for (const [k, key, nom] of SIM_T) { const e = (s2[key] || []).find(x => x.nom === nom); if (e && o[k] != null) e.prep = o[k]; }
+  s2.cadSilo = o.cs; s2.cadEntrepot = o.cp;
+  S.settings = s2; prepCache = null; let P;
+  try { P = projectionRaw(); } finally { S.settings = save; prepCache = null; }
+  return P;
+}
+const simOn = () => S.ui.sim && Object.entries(S.ui.sim).some(([k, v]) => simDefaults()[k] !== v);
+function simResult(D) {
+  const o = Object.assign(simDefaults(), S.ui.sim || {}), base = simRun(simDefaults()), P = simOn() ? simRun(o) : base;
+  const hh = ts => ts ? new Date(ts).toLocaleString('fr-FR', { weekday: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+  const delta = (a, b) => a && b && Math.abs(a - b) > 60e3 ? `<br><small class="${a < b ? 't-good' : 't-crit'}">${a < b ? '−' : '+'}${n1(Math.abs(a - b) / H)} h</small>` : '';
+  const verd = (ok, m) => ok ? badge(`passe · marge ${n1(m)} h`, 'b-good') : badge(`ne passe pas · manque ${n1(-m)} h`, 'b-crit');
+  const rows = P.rows.filter(r => D ? r.D === D : r.rS + r.rP > 0).slice(0, 3);
+  if (!rows.length) return none(D ? 'Rien à préparer ce jour-là : tout est fait ou la VL06O ne le couvre pas.' : 'Rien à préparer.');
+  let html = `<table class="t"><thead><tr><th>Chargement</th><th>Picking</th><th class="num">Fin picking</th><th>Sortie SILO</th><th class="num">Fin SILO</th></tr></thead><tbody>${rows.map(r => { const b = base.rows.find(x => x.D === r.D) || r;
+    return `<tr><td><b>${fdateL(r.D)}</b><br><small class="muted">${r.nLiv} livr. à préparer</small></td><td>${verd(r.okP, r.mP)}</td><td class="num">${hh(r.finP)}${delta(r.finP, b.finP)}</td><td>${verd(r.okS, r.mS)}</td><td class="num">${hh(r.finS)}${delta(r.finS, b.finS)}</td></tr>`; }).join('')}</tbody></table>`;
+  if (D) {   // vue jour : détail par créneau de chargement
+    const its = P.items.filter(i => i.D === D), bIt = new Map(base.items.map(i => [i.liv, i]));
+    const grp = new Map(); for (const i of its) { const si = slotInfo(i.liv, i.nom), k = si ? siLbl(si).replace(/<[^>]+>/g, '') : 'Sans créneau'; if (!grp.has(k)) grp.set(k, []); grp.get(k).push(i); }
+    const sl = [...grp.entries()].map(([k, xs]) => { const fin = Math.max(...xs.map(i => Math.max(i.finP || 0, i.finS || 0))), fin0 = Math.max(...xs.map(i => { const b = bIt.get(i.liv) || i; return Math.max(b.finP || 0, b.finS || 0); })), dl = Math.min(...xs.map(i => i.dl)), late = xs.filter(i => !i.okP || !i.okS).length;
+      return { k, n: xs.length, pal: sum(xs, i => i.rPal), colis: sum(xs, i => i.rColis), dl, fin, fin0, late, m: (dl - fin) / H }; }).sort((a, b) => a.dl - b.dl);
+    html += h3('Par créneau de chargement') + `<table class="t"><thead><tr><th>Créneau</th><th class="num">Livr. à faire</th><th class="num">Reste SILO</th><th class="num">Reste picking</th><th class="num">Échéance prépa</th><th class="num">Fin estimée</th><th>Verdict</th></tr></thead><tbody>${sl.map(s =>
+      `<tr><td><b>${esc(s.k)}</b></td><td class="num">${s.n}</td><td class="num">${s.pal ? n0(s.pal) + ' pal' : '—'}</td><td class="num">${s.colis ? n0(s.colis) + ' colis' : '—'}</td><td class="num">${hh(s.dl)}</td><td class="num">${hh(s.fin)}${delta(s.fin, s.fin0)}</td><td>${s.late ? badge(`${s.late} livr. en retard`, 'b-crit') : badge(`passe · marge ${n1(s.m)} h`, s.m < 2 ? 'b-warn' : 'b-good')}</td></tr>`).join('')}</tbody></table>`;
+  }
+  return html;
+}
+function simCard(D) {
+  if (!projection()) return '';
+  const d = simDefaults(), o = Object.assign({}, d, S.ui.sim || {});
+  const u = { cp: ' colis/h', cs: ' pal/h' };
+  const ctl = (k, lab, min, max, step) => `<label class="sim-ctl"><span>${lab}<b data-simv="${k}">${o[k]}${u[k] || ''}</b><small data-simd="${k}"${o[k] === d[k] ? ' hidden' : ''}>actuel ${d[k]}${u[k] || ''}</small></span><input type="range" min="${min}" max="${max}" step="${step}" value="${o[k]}" data-sim="${k}"></label>`;
+  return `<section class="${D ? '' : 'card glass '}sim" data-simday="${D || ''}"><div class="card-head"><div><h2 style="margin:0">Et si ? <small class="muted" style="font-weight:500">simulation sur la VL06O du ${esc(fdt(snapTs()))} · les paramètres ne sont pas modifiés</small></h2></div><button class="btn sm" data-sim-reset>Revenir aux réglages</button></div>
+    <div class="sim-grid"><div class="sim-ctls">
+      <div class="sim-grp">Préparateurs (picking)</div>${ctl('pm', 'Matin 5h–12h30', 0, 8, 1)}${ctl('pa', 'Après-midi 12h30–20h', 0, 8, 1)}${ctl('cp', 'Cadence entrepôt', 250, 600, 25)}
+      <div class="sim-grp">Cariste sortie SILO</div>${ctl('sn', 'Nuit 20h–3h30', 0, 2, 1)}${ctl('sm', 'Matin', 0, 3, 1)}${ctl('sa', 'Après-midi', 0, 3, 1)}${ctl('cs', 'Cadence', 10, 30, 1)}
+    </div><div class="sim-res">${simResult(D)}</div></div></section>`;
+}
+document.addEventListener('input', e => {
+  const k = e.target.dataset && e.target.dataset.sim; if (!k) return;
+  S.ui.sim = Object.assign({}, S.ui.sim, { [k]: +e.target.value });
+  const box = e.target.closest('.sim'), d = simDefaults(), u = { cp: ' colis/h', cs: ' pal/h' };
+  const v = box.querySelector(`[data-simv="${k}"]`); if (v) v.textContent = e.target.value + (u[k] || '');
+  const h = box.querySelector(`[data-simd="${k}"]`); if (h) h.hidden = +e.target.value === d[k];
+  box.querySelector('.sim-res').innerHTML = simResult(box.dataset.simday || null);
+});
+document.addEventListener('click', e => { if (e.target.closest('[data-sim-reset]')) { S.ui.sim = null; render(); } });
 DETAILS.noslot = () => {
   const P = projection(), items = new Map((P ? P.items : []).map(i => [i.liv, i]));
   const xs = [...livIndex().values()].filter(l => l.prep !== 'C' && !slotInfo(l.liv, l.nom) && !isExtShip(l)).map(l => Object.assign({}, l, { D: (likpOf(l.liv) || {}).d || l.dc, it: items.get(l.liv) })).sort((a, b) => (a.D || '').localeCompare(b.D || '') || a.liv.localeCompare(b.liv));
