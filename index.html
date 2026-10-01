@@ -881,9 +881,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.30.0';
+const APP_VERSION = '1.30.1';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.30.1', '01/10/2026', 'Simulateur « Et si ? » : côté SILO, seule la cadence se règle (magasin automatique, 1 cariste par poste en entrée et en sortie).'],
   ['1.30.0', '01/10/2026', 'Pilotage visuel : jauges (quais, picking, sortie SILO, entrées, sorties) et anneaux (avancement des livraisons, picking par circuit, sorties par transporteur) sur le tableau de bord et dans la vue jour ; simulateur « Et si ? » (préparateurs, caristes sortie SILO, cadences) avec détail par créneau dans la vue jour ; verre plus transparent mais plus lisible (textes plus grands, détail des tuiles en entier).'],
   ['1.29.0', '01/10/2026', 'Style « sobre » (industriel), au choix dans Paramètres › À propos : surfaces opaques sans flou, textes plus grands et plus contrastés, détail des tuiles visible en entier, badges avec symbole (✓ ! ✗), barre du haut sur une ligne (pastille d’état des données, bouton Mettre à jour ; Purger reste dans Paramètres).'],
   ['1.28.3', '01/10/2026', 'VL06O : chemin SharePoint prévu (Flux_hebdo\\VL06O), réglable dans Paramètres, rappelé dans l’onglet Sources et vérifié quand on relie le dossier.'],
@@ -4016,7 +4017,7 @@ function pilotDay(x) {
   return `<div class="pilot pilot-day"><div class="gauges">${g.join('')}</div>${donutsOf(dd.prep, dd.aff)}</div>`;
 }
 // ---------- simulateur « et si ? » (ne modifie jamais les paramètres) ----------
-const SIM_T = [['pm', 'equipes', 'Matin'], ['pa', 'equipes', 'Après-midi'], ['rm', 'equipesRecep', 'Matin'], ['ra', 'equipesRecep', 'Après-midi'], ['sn', 'equipesSilo', 'Nuit'], ['sm', 'equipesSilo', 'Matin'], ['sa', 'equipesSilo', 'Après-midi']];
+const SIM_T = [['pm', 'equipes', 'Matin'], ['pa', 'equipes', 'Après-midi']];   // SILO : magasin automatique, 1 cariste par poste → seule la cadence se simule
 function simDefaults() {
   const st = S.settings, o = { cs: num(st.cadSilo), cp: num(st.cadEntrepot) };
   for (const [k, key, nom] of SIM_T) o[k] = num(((st[key] || []).find(e => e.nom === nom) || {}).prep);
@@ -4058,7 +4059,7 @@ function simCard(D) {
   return `<section class="${D ? '' : 'card glass '}sim" data-simday="${D || ''}"><div class="card-head"><div><h2 style="margin:0">Et si ? <small class="muted" style="font-weight:500">simulation sur la VL06O du ${esc(fdt(snapTs()))} · les paramètres ne sont pas modifiés</small></h2></div><button class="btn sm" data-sim-reset>Revenir aux réglages</button></div>
     <div class="sim-grid"><div class="sim-ctls">
       <div class="sim-grp">Préparateurs (picking)</div>${ctl('pm', 'Matin 5h–12h30', 0, 8, 1)}${ctl('pa', 'Après-midi 12h30–20h', 0, 8, 1)}${ctl('cp', 'Cadence entrepôt', 250, 600, 25)}
-      <div class="sim-grp">Cariste sortie SILO</div>${ctl('sn', 'Nuit 20h–3h30', 0, 2, 1)}${ctl('sm', 'Matin', 0, 3, 1)}${ctl('sa', 'Après-midi', 0, 3, 1)}${ctl('cs', 'Cadence', 10, 30, 1)}
+      <div class="sim-grp">Sortie SILO (magasin automatique, 1 cariste par poste)</div>${ctl('cs', 'Cadence', 10, 30, 1)}
     </div><div class="sim-res">${simResult(D)}</div></div></section>`;
 }
 document.addEventListener('input', e => {
