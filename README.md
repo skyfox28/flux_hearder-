@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.36.1** · Développé par **Galaad Poivey**
+Version **1.36.2** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -30,7 +30,7 @@ Elle reprend la requête Power Query et les formules du classeur *Analyse_Activi
 - **Circuit** selon la priorité de livraison : 1 Entrepôt, 2 GMS, 3 Export, 4 Allotie, 6 MDD, 9 Interco ;
 - **Hr SILO** = Pal SILO ÷ 18 ; **Hr Pick** = colis picking ÷ cadence (Export 750, MDD 1300, autres circuits 400). Les cadences se modifient dans Paramètres ;
 - **Nb Pick** = 1 si le poste a du picking ; l'emplacement picking vient de MLGT ;
-- **Fait / à faire, poste par poste.** Le « Statut global prélèv » de la VL06O est celui de la **livraison entière** (identique sur tous ses postes) : B veut dire « livraison commencée ». Un poste est donc compté **fait** si la livraison est en C, **ou** s'il est validé (« Validat. prélèvement » = C), **ou** si son « Statut activité WM » est C. Un poste « commencé » est un poste dont l'activité WM est en B (partielle). Sur la VL06O du 07/10, 213 postes de livraisons en B étaient ainsi déjà faits.
+- **Fait / à faire, poste par poste.** Le « Statut global prélèv » de la VL06O est celui de la **livraison entière** (identique sur tous ses postes) : B veut dire « livraison commencée ». Un poste est donc compté **fait** si la livraison est en C **ou** si son « Statut activité WM » est C. « Validat. prélèvement » = C ne suffit pas : on trouve des postes validés dont l'activité WM est encore en B, voire en A. Un poste « commencé » est un poste dont l'activité WM est en B (partielle).
 
 Sur l'extraction VL06O fournie, les totaux ont été vérifiés contre un recalcul indépendant : 1 994 postes, 145 livraisons, 1 060 pal SILO, 58,89 h SILO, 64 419 colis picking et 140,51 h picking.
 

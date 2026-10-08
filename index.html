@@ -904,9 +904,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.36.1';
+const APP_VERSION = '1.36.2';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.36.2', '08/10/2026', 'Correction du statut par poste : un poste n’est fait que si son activité WM est terminée (C) ou si la livraison est en C. « Validat. prélèvement » = C ne suffit pas (des postes validés ont encore une activité WM en B ou en A) : des livraisons en cours étaient affichées « prêtes ».'],
   ['1.36.1', '08/10/2026', 'Reliquat trié par échéance comme les autres livraisons (il ne retarde plus un chargement plus urgent, ex. Plateforme 38 à 6h) ; à échéance égale, il passe en premier. Frise : plus de barre « 0h–0h » pour le reliquat, et correction d’une erreur qui empêchait l’affichage du planning de chargement en v1.36.0.'],
   ['1.36.0', '08/10/2026', 'Reliquat : les postes pas terminés des jours précédents sont reportés sur le jour de l’extraction (charge du jour, jauges, planning, détails, simulateur), préparés en priorité pour l’échéance du jour, avec leur date d’origine affichée (« Reliquat des jours précédents »).'],
   ['1.35.0', '08/10/2026', 'Statut par poste : un poste est fait dès qu’il est validé (Validat. prélèvement = C) ou que son activité WM est terminée, même si la livraison est encore en B (le statut global de prélèvement est celui de la livraison entière) ; « commencé » = activité WM partielle. Apprentissage : intervalles de plus de 14 h entre deux imports ignorés, postes apparus et terminés entre deux imports comptés.'],
@@ -1144,9 +1145,9 @@ function prepLines() {
     } else noRef = true;                           // PQ : valeur nulle -> non comptée
     return Object.assign({}, r, {
       circuit, uqpal, palSilo, colisSilo, colisPick, noRef,
-      // statut du POSTE : « Statut global prélèv » est celui de la livraison entière ; le poste est fait s'il est validé
-      // (Validat. prélèvement = C) ou si son activité WM est terminée (C). En cours = activité WM partielle (B).
-      done: r.sgp === 'C' || r.vp === 'C' || r.swm === 'C', st: r.sgp === 'C' || r.vp === 'C' || r.swm === 'C' ? 'C' : r.swm === 'B' ? 'B' : 'A',
+      // statut du POSTE : « Statut global prélèv » est celui de la livraison entière ; le poste est fait si son activité WM est
+      // terminée (C). « Validat. prélèvement » ne suffit pas : on trouve des postes validés avec une activité WM en B, voire en A.
+      done: r.sgp === 'C' || r.swm === 'C', st: r.sgp === 'C' || r.swm === 'C' ? 'C' : r.swm === 'B' ? 'B' : 'A',
       marque: a ? a[4] : '', format: (a && a[5]) || 'Standard', tyar: a ? a[0] : '',
       lieu: R.magasins[r.mag] || (r.mag ? 'Mag. ' + r.mag : ''),
       nbPick: colisPick > 0 ? 1 : 0,
@@ -1836,7 +1837,7 @@ function prepSynth(lines) {
     <div>${circuitSplit(lines)}</div>
   </div>
   <div class="grid" style="gap:22px">
-    ${block('Fait', 'Postes terminés : livraison au statut global C, ou poste validé (Validat. prélèvement = C) ou activité WM terminée (C).', lines.filter(l => l.done), T)}
+    ${block('Fait', 'Postes terminés : livraison au statut global C, ou activité WM du poste terminée (C).', lines.filter(l => l.done), T)}
     ${block('A faire', 'Postes pas encore terminés (activité WM A ou B, non validés).', lines.filter(l => !l.done), T)}
     ${block('Total', 'Ensemble des postes filtrés.', lines, null)}
   </div>`;
