@@ -904,9 +904,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.36.3';
+const APP_VERSION = '1.37.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.37.0', '08/10/2026', 'Onglet Préparation : avec un filtre Circuit ou Lieu, le calcul (file, fins estimées, verdicts, temps restants) porte sur les seules livraisons filtrées, comme si l’équipe ne préparait qu’elles ; bandeau explicatif avec les heures des autres circuits ignorées, et bouton pour revenir au calcul sur toute la file.'],
   ['1.36.3', '08/10/2026', 'Temps restant par livraison : palettes SILO et colis de picking restants affichés avec leur temps.'],
   ['1.36.2', '08/10/2026', 'Correction du statut par poste : un poste n’est fait que si son activité WM est terminée (C) ou si la livraison est en C. « Validat. prélèvement » = C ne suffit pas (des postes validés ont encore une activité WM en B ou en A) : des livraisons en cours étaient affichées « prêtes ».'],
   ['1.36.1', '08/10/2026', 'Reliquat trié par échéance comme les autres livraisons (il ne retarde plus un chargement plus urgent, ex. Plateforme 38 à 6h) ; à échéance égale, il passe en premier. Frise : plus de barre « 0h–0h » pour le reliquat, et correction d’une erreur qui empêchait l’affichage du planning de chargement en v1.36.0.'],
@@ -1797,11 +1798,25 @@ function viewPrep() {
   const noRefAll = all.filter(l => l.noRef).length;
   if (all.length && noRefAll / all.length > .5) body0 = `<div class="alert crit" style="margin-bottom:12px">${icon('warn')}<div><b>${Math.round(noRefAll / all.length * 100)} % des postes ne trouvent pas leur fiche article</b> : Pal SILO et Colis picking ne peuvent pas être calculés (ils ne sont pas comptés, comme dans le fichier Excel). Référentiel chargé : ${n0(Object.keys(ref().articles).length)} articles. Exemples d’articles VL06O non trouvés : ${uniq(all.filter(l => l.noRef).map(l => l.art)).slice(0, 8).map(esc).join(', ')}. Mettez à jour le Fichier Article dans Paramètres (vous pouvez y déposer Analyse_Activité_Préparation.xlsb).</div></div>`;
   let body = '';
-  if (S.ui.prepView === 'plan') body = prepPlanning(lines);
-  else if (S.ui.prepView === 'synth') body = prepSynth(lines);
-  else if (S.ui.prepView === 'liv') body = prepByLiv(lines);
-  else body = prepCodes(lines);
-  return imp + `<section class="card glass">${body0}${filters}${tabs}${noRef ? `<div class="alert warn" style="margin-bottom:12px">${icon('warn')}<div><b>${noRef} ligne(s) sans fiche article</b> — non comptées en SILO / picking (identique au fichier Excel). Mettez à jour le Fichier Article dans Paramètres.</div></div>` : ''}${body}</section>`;
+  // filtre Circuit / Lieu : le calcul (file, fins estimées, verdicts) peut ne porter que sur le filtre
+  const scope = (f.circ && f.circ.length) || (f.lieu && f.lieu.length) ? { circ: f.circ || [], lieu: f.lieu || [] } : null;
+  const useScope = scope && S.ui.projAll !== true;
+  let scopeBar = '';
+  if (scope && snapTs()) {
+    const Pall = projection(), out = Pall ? Pall.items.filter(i => !inScope(scope, { circuit: i.circuit, lieu: (livIndex().get(i.liv) || {}).lines?.[0]?.lieu })) : [];
+    const hOut = sum(out, i => i.rP + i.rS), what = [...(scope.circ || []), ...(scope.lieu || [])].join(', ');
+    scopeBar = useScope
+      ? `<div class="alert info" style="margin-bottom:12px">${icon('info')}<div style="flex:1"><b>Calcul limité au filtre (${esc(what)})</b> : fins estimées, verdicts et temps restants comme si l’équipe ne préparait que ces livraisons.${hOut > .05 ? ` Les autres circuits représentent ${n1(hOut)} h restantes, ignorées ici.` : ''}</div><button class="btn sm" data-act="proj-all" style="align-self:center;flex:none">Tenir compte de toute la file</button></div>`
+      : `<div class="alert warn" style="margin-bottom:12px">${icon('warn')}<div style="flex:1"><b>Calcul sur toute la file</b> : ${n1(hOut)} h restantes d’autres circuits (non affichées) passent aussi dans la file commune de l’équipe et repoussent les fins estimées.</div><button class="btn sm" data-act="proj-scope" style="align-self:center;flex:none">Limiter le calcul au filtre</button></div>`;
+  }
+  PROJ_SCOPE = useScope ? scope : null;
+  try {
+    if (S.ui.prepView === 'plan') body = prepPlanning(lines);
+    else if (S.ui.prepView === 'synth') body = prepSynth(lines);
+    else if (S.ui.prepView === 'liv') body = prepByLiv(lines);
+    else body = prepCodes(lines);
+  } finally { PROJ_SCOPE = null; }
+  return imp + `<section class="card glass">${body0}${filters}${scopeBar}${tabs}${noRef ? `<div class="alert warn" style="margin-bottom:12px">${icon('warn')}<div><b>${noRef} ligne(s) sans fiche article</b> — non comptées en SILO / picking (identique au fichier Excel). Mettez à jour le Fichier Article dans Paramètres.</div></div>` : ''}${body}</section>`;
 }
 const PREP_COLS = [
   { k: 'liv', label: 'Livraisons', num: true, fmt: n0 }, { k: 'codes', label: 'Codes', num: true, fmt: n0 },
@@ -1874,6 +1889,7 @@ function prepByLiv(lines) {
     after: r => open === r.livNo ? `<tr class="detail"><td colspan="${cols.length}"><div style="padding:10px">${codesTable(r.livNo + 'd', lines.filter(l => l.liv === r.livNo), 400)}</div></td></tr>` : '',
   });
 }
+document.addEventListener('click', e => { const b = e.target.closest('[data-act="proj-all"],[data-act="proj-scope"]'); if (b) { S.ui.projAll = b.dataset.act === 'proj-all'; render(); } });
 document.addEventListener('click', e => { const r = e.target.closest('[data-openliv]'); if (!r) return; S.ui.openLiv = S.ui.openLiv === r.dataset.openliv ? null : r.dataset.openliv; render(); });
 function codesTable(id, lines, limit) {
   const cols = [
@@ -2920,17 +2936,22 @@ const likpLbl = liv => { const k = likpOf(liv), si = slotInfo(liv); const D = k 
 
 // Projection livraison par livraison : reste à faire trié par échéance (heure de chargement LIKP − marge,
 // sinon règle du jour), cumulé et comparé à la capacité restante des équipes depuis l'extraction VL06O
-let _projM = { v: -1, at: 0, P: null };
+// Périmètre du calcul : toute la file (par défaut) ou seulement les circuits / lieux filtrés dans l'onglet Préparation
+let PROJ_SCOPE = null;
+const scopeKey = sc => sc ? `${(sc.circ || []).join(',')}|${(sc.lieu || []).join(',')}` : '';
+const inScope = (sc, l) => !sc || ((!sc.circ || !sc.circ.length || sc.circ.includes(l.circuit)) && (!sc.lieu || !sc.lieu.length || sc.lieu.includes(l.lieu)));
+let _projM = { v: -1, at: 0, m: new Map() };
 function projection() {
   const at = snapTs(); if (!at) return null;
-  if (_projM.v === DATA_V && _projM.at === at) return _projM.P;
-  const P = projectionRaw(); _projM = { v: DATA_V, at, P }; return P;
+  if (_projM.v !== DATA_V || _projM.at !== at) _projM = { v: DATA_V, at, m: new Map() };
+  const k = scopeKey(PROJ_SCOPE); if (!_projM.m.has(k)) _projM.m.set(k, projectionRaw(PROJ_SCOPE));
+  return _projM.m.get(k);
 }
-function projectionRaw() {
+function projectionRaw(scope) {
   const at = snapTs(); if (!at) return null;
   const R = rendement(), adj = S.settings.projAjust !== false;
   const effS = adj && R.sA ? R.sA : 1, effP = adj && R.pA ? R.pA : 1;   // rendement appris, pondéré par sa certitude
-  const lines = prepLines(), open = lines.filter(l => !l.done);
+  const lines = scope ? prepLines().filter(l => inScope(scope, l)) : prepLines(), open = lines.filter(l => !l.done);
   const today = isoLocal(new Date(at));
   const dayOf = l => l.report ? l.dc : (likpOf(l.liv) || {}).d || l.dc;
   const byLiv = new Map(); for (const l of open) { if (!byLiv.has(l.liv)) byLiv.set(l.liv, []); byLiv.get(l.liv).push(l); }
@@ -2971,7 +2992,7 @@ function projectionRaw() {
       tP: Math.max(capP ? cumP / capP : (cumP ? Infinity : 0), ...its.filter(i => i.rP > 0).map(i => i.capP ? i.cumP / i.capP : Infinity)),
       finS: Math.max(0, ...its.map(i => i.finS || 0)) || null, finP: Math.max(0, ...its.map(i => i.finP || 0)) || null };
   });
-  return { at, today, rows, items, lateS, lateP, R, effS, effP, adj };
+  return { at, today, rows, items, lateS, lateP, R, effS, effP, adj, scope: scope || null };
 }
 const verdict = (ok, m, n) => ok ? badge(`Passe · marge ${n1(m)} h`, 'b-good') : badge(`Ne passe pas · manque ${n1(-m)} h${n ? ` · ${n} livr.` : ''}`, 'b-crit');
 // libellé du rendement : mesuré, et appliqué ou non (pas assez de mesures, borné)
