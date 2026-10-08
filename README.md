@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.36.2** · Développé par **Galaad Poivey**
+Version **1.36.3** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -167,7 +167,7 @@ Un poste pas terminé dont la date de chargement est passée reste à préparer 
 ## Temps restant par livraison
 
 Dans le planning de chargement (créneau déplié et « Détail des livraisons du jour »), la vue « Par N° livraison » et le détail d'une livraison :
-- **Temps restant** = travail encore à faire sur la livraison, en heures et minutes : heures théoriques des postes pas encore au statut C (palettes SILO ÷ cadence SILO, colis ÷ cadence du circuit), divisées par le rendement appliqué. Détail SILO / picking sous le total.
+- **Temps restant** = travail encore à faire sur la livraison, en heures et minutes : heures théoriques des postes pas encore au statut C (palettes SILO ÷ cadence SILO, colis ÷ cadence du circuit), divisées par le rendement appliqué. Sous le total : palettes SILO et colis de picking restants, avec leur temps (ex. « 2 pal SILO (7 min) · 1 646 colis (2 h 12) »).
 - **Marge** = échéance de préparation − fin estimée (orange sous 2 h, rouge = retard).
 - Un poste au statut B compte encore en entier : la VL06O ne dit pas quelle part est déjà prélevée (voir « quantité prélevée » si elle est ajoutée à l'extraction).
 

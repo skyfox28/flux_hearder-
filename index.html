@@ -904,9 +904,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.36.2';
+const APP_VERSION = '1.36.3';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.36.3', '08/10/2026', 'Temps restant par livraison : palettes SILO et colis de picking restants affichés avec leur temps.'],
   ['1.36.2', '08/10/2026', 'Correction du statut par poste : un poste n’est fait que si son activité WM est terminée (C) ou si la livraison est en C. « Validat. prélèvement » = C ne suffit pas (des postes validés ont encore une activité WM en B ou en A) : des livraisons en cours étaient affichées « prêtes ».'],
   ['1.36.1', '08/10/2026', 'Reliquat trié par échéance comme les autres livraisons (il ne retarde plus un chargement plus urgent, ex. Plateforme 38 à 6h) ; à échéance égale, il passe en premier. Frise : plus de barre « 0h–0h » pour le reliquat, et correction d’une erreur qui empêchait l’affichage du planning de chargement en v1.36.0.'],
   ['1.36.0', '08/10/2026', 'Reliquat : les postes pas terminés des jours précédents sont reportés sur le jour de l’extraction (charge du jour, jauges, planning, détails, simulateur), préparés en priorité pour l’échéance du jour, avec leur date d’origine affichée (« Reliquat des jours précédents »).'],
@@ -2903,9 +2904,10 @@ function livRest(liv) {
   if (_restM.P !== P) _restM = { P, m: new Map(P.items.map(i => [i.liv, i])) };
   const it = _restM.m.get(liv); if (!it) return null;
   const hs = it.rS / (P.effS || 1), hp = it.rP / (P.effP || 1), fin = Math.max(it.finP || 0, it.finS || 0) || null;
-  return { h: hs + hp, hs, hp, fin, dl: it.dl, marge: fin ? (it.dl - fin) / H : null, ok: it.okP && it.okS };
+  return { h: hs + hp, hs, hp, pal: it.rPal, colis: it.rColis, fin, dl: it.dl, marge: fin ? (it.dl - fin) / H : null, ok: it.okP && it.okS };
 }
-const restCell = liv => { const t = livRest(liv); return !t || !(t.h > 1 / 120) ? '<span class="muted">—</span>' : `<b>${dur(t.h)}</b><br><small class="muted">${[t.hs > 1 / 120 ? `SILO ${dur(t.hs)}` : '', t.hp > 1 / 120 ? `picking ${dur(t.hp)}` : ''].filter(Boolean).join(' · ')}</small>`; };
+const restDet = t => [t.pal > 0 ? `${n0(t.pal)} pal SILO (${dur(t.hs)})` : '', t.colis > 0 ? `${n0(t.colis)} colis (${dur(t.hp)})` : ''].filter(Boolean).join(' · ');
+const restCell = liv => { const t = livRest(liv); return !t || !(t.h > 1 / 120) ? '<span class="muted">—</span>' : `<b>${dur(t.h)}</b><br><small class="muted" style="white-space:nowrap">${restDet(t)}</small>`; };
 const margeCell = liv => { const t = livRest(liv); if (!t || t.marge == null) return '<span class="muted">—</span>'; return t.marge < 0 ? badge(`retard ${dur(-t.marge)}`, 'b-crit') : badge(`marge ${dur(t.marge)}`, t.marge < 2 ? 'b-warn' : 'b-good'); };
 const restCols = (getLiv) => [
   { k: 'rest', label: 'Temps restant', num: true, sv: x => (livRest(getLiv(x)) || {}).h || 0, html: x => restCell(getLiv(x)) },
@@ -4337,7 +4339,7 @@ DETAILS.liv = (d, liv) => {
   const dk = P ? dockSim(P).rows.find(r => r.liv === liv) : null;
   return { title: `Livraison ${esc(liv)}`, sub: esc((l || a).nom || ''), body:
     mini([['Chargement', esc(fdateL((likpOf(liv) || {}).d || l?.dc || a?.date)), '', si ? siLbl(si) : 'sans créneau'], ['Préparation', l ? PREP_LABEL[l.prep][0] : 'expédiée', '', l ? `${n0(l.palSilo)} pal SILO · ${n0(l.colisPick)} colis picking` : 'absente de la VL06O'],
-      ['Transporteur', a ? esc(transpName(a.transp)) : '—', '', a ? `${n0(a.pal)} pal · ${n0(a.blocs)} blocs` : 'pas encore affrétée'], (() => { const t = livRest(liv); return ['Temps restant', t && t.h > 1 / 120 ? dur(t.h) : (l && l.prep === 'C' ? 'terminée' : '—'), '', t && t.h > 1 / 120 ? [t.hs > 1 / 120 ? `SILO ${dur(t.hs)}` : '', t.hp > 1 / 120 ? `picking ${dur(t.hp)}` : ''].filter(Boolean).join(' · ') : '']; })(),
+      ['Transporteur', a ? esc(transpName(a.transp)) : '—', '', a ? `${n0(a.pal)} pal · ${n0(a.blocs)} blocs` : 'pas encore affrétée'], (() => { const t = livRest(liv); return ['Temps restant', t && t.h > 1 / 120 ? dur(t.h) : (l && l.prep === 'C' ? 'terminée' : '—'), '', t && t.h > 1 / 120 ? restDet(t) : '']; })(),
       ['Fin estimée', it && (it.finP || it.finS) ? esc(new Date(Math.max(it.finP || 0, it.finS || 0)).toTimeString().slice(0, 5)) : '—', '', it ? `échéance ${esc(fdt(it.dl))}${livRest(liv)?.marge != null ? ` · ${livRest(liv).marge < 0 ? 'retard' : 'marge'} ${dur(Math.abs(livRest(liv).marge))}` : ''}` : ''],
       ['Quai expédition', dk ? n0(dk.pal) : '—', dk ? 'blocs' : '', dk ? `départ ${esc(fdt(dk.dep))}` : '']]) +
     (l ? h3('Postes') + table('livL', [{ k: 'art', label: 'Article' }, { k: 'des', label: 'Désignation', cls: 'wrap' }, { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis picking', num: true, fmt: n0 }, { k: 'st', label: 'Statut du poste', html: x => prepBadge(x.st || 'A') }], l.lines, { total: { palSilo: l.palSilo, colisPick: l.colisPick } }) : '') };
