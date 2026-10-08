@@ -904,9 +904,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.33.0';
+const APP_VERSION = '1.34.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.34.0', '08/10/2026', 'Temps restant par livraison (travail réel restant en h/min, détaillé SILO / picking, au rendement appliqué) et marge avant l’échéance : planning de chargement (créneau déplié et détail du jour), vue « Par N° livraison » et détail d’une livraison.'],
   ['1.33.0', '01/10/2026', 'Détails dédiés « Entrées » et « Sorties » (semaine ou jour) : capacité quai, graphique par jour face à la capacité ou heure par heure, répartition par origine / transporteur, jour le plus chargé, listes détaillées ; ouverts depuis les jauges et les tuiles.'],
   ['1.32.0', '01/10/2026', 'Détails dédiés « Picking » et « Sortie SILO » (jour par jour) : courbe du reste à faire heure par heure avec les échéances, créneaux, livraisons dans l’ordre de préparation / file du cariste, cadence apprise et certitude, besoin en préparateurs ; jauges, tuiles et anneaux ouvrent leur propre détail (transporteur, circuit, livraisons). Tableau de bord épuré : « À traiter » en haut, simulateur, indicateurs détaillés et semaine jour par jour repliables.'],
   ['1.31.0', '01/10/2026', 'Apprentissage à chaque actualisation de la VL06O : une mesure ne compte que si l’équipe avait encore du travail à l’import suivant (sinon l’heure de fin est déduite et l’app ne retient qu’un minimum) ; pourcentage de certitude (volume observé × régularité × précision) qui monte avec les actualisations ; rendement appliqué à la projection en proportion de cette certitude ; panneau « Ce que l’app a appris ».'],
@@ -1850,6 +1851,7 @@ function prepByLiv(lines) {
     { k: 'dc', label: 'Date chrgt', fmt: fdateL }, { k: 'livNo', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' },
     { k: 'circuit', label: 'Circuit' }, { k: 'codes', label: 'Codes', num: true, fmt: n0 },
     ...PREP_COLS.slice(2),
+    ...restCols(r => r.livNo),
     { k: 'prep', label: 'Prépa', html: r => prepBadge(r.prep) }, { k: 'ot', label: 'OT', html: r => badge(...OT_LABEL[r.ot]) },
     { k: 'lk', label: 'Créneau chargement', sv: r => likpOf(r.livNo) ? likpOf(r.livNo).d + (likpOf(r.livNo).t || '') : '', html: r => likpLbl(r.livNo) || '<span class="muted">—</span>' },
     { k: 'enl', label: 'Enlèvement', sv: r => r.af ? r.af.date : '', html: r => r.af ? `${fdateL(r.af.date)} · T${esc(r.af.transp)}${r.af.rdv ? ' · ' + esc(r.af.rdv) : ''}` : '<span class="muted">—</span>' },
@@ -2878,6 +2880,22 @@ function livDeadline(liv, dc, nom) {
   if (si) return dayStartTs(D) + hm(si.ref === 1 ? si.end : si.start) * H - num(S.settings.likpMarge) * 60e3;
   return deadlineTs(D);
 }
+// temps restant par livraison : travail réel restant (heures théoriques ÷ rendement appliqué), fin estimée, marge
+const dur = h => { if (!(h > 1 / 120)) return '—'; const m = Math.round(h * 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${pad(m % 60)}`; };
+let _restM = { P: null, m: null };
+function livRest(liv) {
+  const P = projection(); if (!P) return null;
+  if (_restM.P !== P) _restM = { P, m: new Map(P.items.map(i => [i.liv, i])) };
+  const it = _restM.m.get(liv); if (!it) return null;
+  const hs = it.rS / (P.effS || 1), hp = it.rP / (P.effP || 1), fin = Math.max(it.finP || 0, it.finS || 0) || null;
+  return { h: hs + hp, hs, hp, fin, dl: it.dl, marge: fin ? (it.dl - fin) / H : null, ok: it.okP && it.okS };
+}
+const restCell = liv => { const t = livRest(liv); return !t || !(t.h > 1 / 120) ? '<span class="muted">—</span>' : `<b>${dur(t.h)}</b><br><small class="muted">${[t.hs > 1 / 120 ? `SILO ${dur(t.hs)}` : '', t.hp > 1 / 120 ? `picking ${dur(t.hp)}` : ''].filter(Boolean).join(' · ')}</small>`; };
+const margeCell = liv => { const t = livRest(liv); if (!t || t.marge == null) return '<span class="muted">—</span>'; return t.marge < 0 ? badge(`retard ${dur(-t.marge)}`, 'b-crit') : badge(`marge ${dur(t.marge)}`, t.marge < 2 ? 'b-warn' : 'b-good'); };
+const restCols = (getLiv) => [
+  { k: 'rest', label: 'Temps restant', num: true, sv: x => (livRest(getLiv(x)) || {}).h || 0, html: x => restCell(getLiv(x)) },
+  { k: 'marge', label: 'Marge', sv: x => { const t = livRest(getLiv(x)); return t && t.marge != null ? t.marge : 999; }, html: x => margeCell(getLiv(x)) },
+];
 const hLbl = t => { const x = hm(t); return `${Math.floor(x % 24)}h${Math.round((x % 1) * 60) ? pad(Math.round((x % 1) * 60)) : ''}`; };
 const siLbl = si => si ? `${hLbl(si.start)}–${hLbl(si.end)}${si.src === 'client' ? ` · ${esc(si.name.charAt(0) + si.name.slice(1).toLowerCase())}` : ''}` : '';
 const slotLbl = t => { if (!t) return ''; const e = hm(t) + num(S.settings.likpSlot); return num(S.settings.likpSlot) ? `${hLbl(t)}–${hLbl(`${Math.floor(e)}:${pad(Math.round((e % 1) * 60))}`)}` : t; };
@@ -3116,7 +3134,7 @@ function prepPlanning(lines) {
         { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' }, { k: 'itin', label: 'Itinéraire' }, { k: 'circuit', label: 'Circuit' },
         { k: 'heure', label: 'Heure chargement', html: x => { const si = slotInfo(x.liv, x.nom); return si && si.src === 'client' ? `<span class="muted">${siLbl(si)}</span>` : `<input class="inp" type="time" style="padding:4px 8px" data-likpset="${esc(x.liv)}|${esc(x.D)}" value="${esc(likpOf(x.liv)?.t || '')}">`; } },
         { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis picking', num: true, fmt: n0 },
-        { k: 'rS', label: 'Reste SILO', num: true, html: x => x.rS > 0 ? hr(x.rS) : '<span class="muted">—</span>' }, { k: 'rP', label: 'Reste picking', num: true, html: x => x.rP > 0 ? hr(x.rP) : '<span class="muted">—</span>' },
+        ...restCols(x => x.liv),
         { k: 'fin', label: 'Fin estimée', sv: x => Math.max(x.it?.finP || 0, x.it?.finS || 0), html: x => x.it && (x.it.finP || x.it.finS) ? esc(fdt(Math.max(x.it.finP || 0, x.it.finS || 0))) : '<span class="muted">—</span>' },
         { k: 'prep', label: 'Prépa', html: x => prepBadge(x.prep) }, { k: 'ot', label: 'OT', html: x => badge(...OT_LABEL[x.ot]) },
         { k: 'st', label: 'Statut', html: stBadge },
@@ -3139,7 +3157,7 @@ function prepPlanning(lines) {
       { k: 'heure', label: 'Heure de chargement', html: x => { const si = slotInfo(x.liv, x.nom); return si && si.src === 'client' ? '<span class="muted">créneau fixe client</span>' : `<input class="inp" type="time" style="padding:4px 8px" data-likpset="${esc(x.liv)}|${esc(D)}" value="${esc(likpOf(x.liv)?.t || '')}" title="Début du créneau de chargement">`; } },
       { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' }, { k: 'itin', label: 'Itinéraire' }, { k: 'circuit', label: 'Circuit' },
       { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis picking', num: true, fmt: n0 },
-      { k: 'rS', label: 'Reste SILO', num: true, html: x => x.rS > 0 ? hr(x.rS) : '<span class="muted">—</span>' }, { k: 'rP', label: 'Reste picking', num: true, html: x => x.rP > 0 ? hr(x.rP) : '<span class="muted">—</span>' },
+      ...restCols(x => x.liv),
       { k: 'dl', label: 'Échéance', sv: x => x.it?.dl || 0, html: x => x.it ? esc(fdt(x.it.dl)) : '<span class="muted">—</span>' },
       { k: 'fin', label: 'Fin estimée', sv: x => Math.max(x.it?.finP || 0, x.it?.finS || 0), html: x => x.it && (x.it.finP || x.it.finS) ? esc(fdt(Math.max(x.it.finP || 0, x.it.finS || 0))) : '<span class="muted">—</span>' },
       { k: 'prep', label: 'Prépa', html: x => prepBadge(x.prep) }, { k: 'st', label: 'Statut', html: stBadge },
@@ -4300,7 +4318,8 @@ DETAILS.liv = (d, liv) => {
   const dk = P ? dockSim(P).rows.find(r => r.liv === liv) : null;
   return { title: `Livraison ${esc(liv)}`, sub: esc((l || a).nom || ''), body:
     mini([['Chargement', esc(fdateL((likpOf(liv) || {}).d || l?.dc || a?.date)), '', si ? siLbl(si) : 'sans créneau'], ['Préparation', l ? PREP_LABEL[l.prep][0] : 'expédiée', '', l ? `${n0(l.palSilo)} pal SILO · ${n0(l.colisPick)} colis picking` : 'absente de la VL06O'],
-      ['Transporteur', a ? esc(transpName(a.transp)) : '—', '', a ? `${n0(a.pal)} pal · ${n0(a.blocs)} blocs` : 'pas encore affrétée'], ['Fin estimée', it && (it.finP || it.finS) ? esc(new Date(Math.max(it.finP || 0, it.finS || 0)).toTimeString().slice(0, 5)) : '—', '', it ? `échéance ${esc(fdt(it.dl))}` : ''],
+      ['Transporteur', a ? esc(transpName(a.transp)) : '—', '', a ? `${n0(a.pal)} pal · ${n0(a.blocs)} blocs` : 'pas encore affrétée'], (() => { const t = livRest(liv); return ['Temps restant', t && t.h > 1 / 120 ? dur(t.h) : (l && l.prep === 'C' ? 'terminée' : '—'), '', t && t.h > 1 / 120 ? [t.hs > 1 / 120 ? `SILO ${dur(t.hs)}` : '', t.hp > 1 / 120 ? `picking ${dur(t.hp)}` : ''].filter(Boolean).join(' · ') : '']; })(),
+      ['Fin estimée', it && (it.finP || it.finS) ? esc(new Date(Math.max(it.finP || 0, it.finS || 0)).toTimeString().slice(0, 5)) : '—', '', it ? `échéance ${esc(fdt(it.dl))}${livRest(liv)?.marge != null ? ` · ${livRest(liv).marge < 0 ? 'retard' : 'marge'} ${dur(Math.abs(livRest(liv).marge))}` : ''}` : ''],
       ['Quai expédition', dk ? n0(dk.pal) : '—', dk ? 'blocs' : '', dk ? `départ ${esc(fdt(dk.dep))}` : '']]) +
     (l ? h3('Postes') + table('livL', [{ k: 'art', label: 'Article' }, { k: 'des', label: 'Désignation', cls: 'wrap' }, { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis picking', num: true, fmt: n0 }, { k: 'sgp', label: 'Statut', html: x => prepBadge(x.sgp || 'A') }], l.lines, { total: { palSilo: l.palSilo, colisPick: l.colisPick } }) : '') };
 };

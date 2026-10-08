@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.33.0** · Développé par **Galaad Poivey**
+Version **1.34.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -154,6 +154,13 @@ Le numéro de version (`APP_VERSION` dans `index.html`) augmente à chaque modif
   - Le rendement est appliqué à la projection **en proportion de la certitude** (et borné entre 70 % et 130 %) : à 20 % de certitude, la projection reste proche des cadences théoriques.
   - Panneau « Ce que l'app a appris » dans le détail Charge SILO / picking, et tuile sur le tableau de bord. L'ajustement peut être désactivé dans Paramètres.
 - **Postes commencés (statut B) :** leurs palettes SILO restent comptées à faire, car la VL06O ne dit pas si elles sont déjà descendues. Elles sont signalées à part (« dont N pal sur postes commencés »). Le rendement SILO tend à être sous-estimé pour la même raison : un poste n'est compté fait qu'une fois entièrement au statut C, picking compris.
+
+## Temps restant par livraison
+
+Dans le planning de chargement (créneau déplié et « Détail des livraisons du jour »), la vue « Par N° livraison » et le détail d'une livraison :
+- **Temps restant** = travail encore à faire sur la livraison, en heures et minutes : heures théoriques des postes pas encore au statut C (palettes SILO ÷ cadence SILO, colis ÷ cadence du circuit), divisées par le rendement appliqué. Détail SILO / picking sous le total.
+- **Marge** = échéance de préparation − fin estimée (orange sous 2 h, rouge = retard).
+- Un poste au statut B compte encore en entier : la VL06O ne dit pas quelle part est déjà prélevée (voir « quantité prélevée » si elle est ajoutée à l'extraction).
 
 ## Créneaux de chargement (table LIKP)
 
