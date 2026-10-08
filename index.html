@@ -904,9 +904,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.35.0';
+const APP_VERSION = '1.36.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.36.0', '08/10/2026', 'Reliquat : les postes pas terminés des jours précédents sont reportés sur le jour de l’extraction (charge du jour, jauges, planning, détails, simulateur), préparés en priorité pour l’échéance du jour, avec leur date d’origine affichée (« Reliquat des jours précédents »).'],
   ['1.35.0', '08/10/2026', 'Statut par poste : un poste est fait dès qu’il est validé (Validat. prélèvement = C) ou que son activité WM est terminée, même si la livraison est encore en B (le statut global de prélèvement est celui de la livraison entière) ; « commencé » = activité WM partielle. Apprentissage : intervalles de plus de 14 h entre deux imports ignorés, postes apparus et terminés entre deux imports comptés.'],
   ['1.34.0', '08/10/2026', 'Temps restant par livraison (travail réel restant en h/min, détaillé SILO / picking, au rendement appliqué) et marge avant l’échéance : planning de chargement (créneau déplié et détail du jour), vue « Par N° livraison » et détail d’une livraison.'],
   ['1.33.0', '01/10/2026', 'Détails dédiés « Entrées » et « Sorties » (semaine ou jour) : capacité quai, graphique par jour face à la capacité ou heure par heure, répartition par origine / transporteur, jour le plus chargé, listes détaillées ; ouverts depuis les jauges et les tuiles.'],
@@ -1153,6 +1154,9 @@ function prepLines() {
       picking: colisPick > 0 ? (MM.get(artNorm(r.art)) || '') : '',
     });
   });
+  // reliquat : un poste pas terminé dont la date de chargement est passée reste à faire → reporté au jour de l'extraction
+  const refDay = isoLocal(new Date(S.prep.extractedAt || S.prep.importedAt));
+  for (const l of out) if (!l.done && l.dc && l.dc < refDay) { l.dcOrig = l.dc; l.dc = refDay; l.report = true; }
   out.sort((a, b) => (a.dc || '').localeCompare(b.dc || '') || a.liv.localeCompare(b.liv) || a.poste - b.poste);
   prepCache = out; prepCacheKey = key;
   return out;
@@ -2872,6 +2876,7 @@ function parseLIKP(rows) {
   }
   return out;
 }
+const livDay = ls => { const r = ls.find(l => l.report); return r ? r.dc : (likpOf(ls[0].liv) || {}).d || ls[0].dc; };
 const likpOf = liv => (S.likp && S.likp.map[liv]) || null;
 // Créneau de chargement d'une livraison : règle client (ex. Plateforme 38 6h–8h), sinon heure LIKP (créneau de 2 h)
 const clientRule = nom => (S.settings.creneauxClients || []).find(r => r.key && compact(nom).includes(compact(r.key)));
@@ -2923,13 +2928,16 @@ function projectionRaw() {
   const effS = adj && R.sA ? R.sA : 1, effP = adj && R.pA ? R.pA : 1;   // rendement appris, pondéré par sa certitude
   const lines = prepLines(), open = lines.filter(l => !l.done);
   const today = isoLocal(new Date(at));
-  const dayOf = l => (likpOf(l.liv) || {}).d || l.dc;
+  const dayOf = l => l.report ? l.dc : (likpOf(l.liv) || {}).d || l.dc;
   const byLiv = new Map(); for (const l of open) { if (!byLiv.has(l.liv)) byLiv.set(l.liv, []); byLiv.get(l.liv).push(l); }
   const items = [...byLiv.values()].map(ls => {
     const l0 = ls[0], D = dayOf(l0);
-    return { liv: l0.liv, nom: l0.nom, circuit: l0.circuit, D, dc: l0.dc, hasT: !!slotInfo(l0.liv, l0.nom), dl: livDeadline(l0.liv, l0.dc, l0.nom),
+    // reliquat : à faire en priorité, pour l'échéance par défaut du jour (ou la fin du jour si elle est passée)
+    const rep = ls.find(l => l.report); let dl = livDeadline(l0.liv, l0.dc, l0.nom);
+    if (rep) { dl = deadlineTs(D); if (dl <= at) dl = dayStartTs(addDays(D, 1)); }
+    return { liv: l0.liv, nom: l0.nom, circuit: l0.circuit, D, dc: l0.dc, report: !!rep, dcOrig: rep ? rep.dcOrig : null, hasT: !rep && !!slotInfo(l0.liv, l0.nom), dl,
       rS: sum(ls, l => l.hrSilo), rP: sum(ls, l => l.hrPick), rPal: sum(ls, l => l.palSilo), rPalB: sum(ls.filter(l => l.st === 'B'), l => l.palSilo), rColis: sum(ls, l => l.colisPick), prep: livIndex().get(l0.liv)?.prep };
-  }).filter(i => i.D).sort((a, b) => a.dl - b.dl || a.liv.localeCompare(b.liv));
+  }).filter(i => i.D).sort((a, b) => (b.report - a.report) || a.dl - b.dl || a.liv.localeCompare(b.liv));
   let cS = 0, cP = 0;
   for (const it of items) {
     cS += it.rS; cP += it.rP; it.cumS = cS; it.cumP = cP;
@@ -3062,7 +3070,7 @@ function dayTimeline(D, xs, P) {
   };
   g += lane(22, 'equipes', cssVar('--pick'), 'Picking') + lane(40, 'equipesSilo', cssVar('--silo'), 'SILO');
   // créneaux : répartis en lignes pour éviter les chevauchements
-  const groups = uniq(xs.map(x => x.t)).filter(Boolean).map(t => { const [a, b, n] = t.split('|'); const ss = xs.filter(x => x.t === t); const st = d0 + hm(a) * H; let en = d0 + hm(b) * H; if (en <= st) en += 24 * H;
+  const groups = uniq(xs.map(x => x.t)).filter(t => t && t !== 'R').map(t => {   // le reliquat n'a pas de créneau horaire const [a, b, n] = t.split('|'); const ss = xs.filter(x => x.t === t); const st = d0 + hm(a) * H; let en = d0 + hm(b) * H; if (en <= st) en += 24 * H;
     const late = ss.filter(x => x.st === 'late').length, ready = ss.every(x => x.st === 'ready');
     return { st, en, ss, late, ready, lbl: `${hLbl(a)}–${hLbl(b)}${n ? ' ' + n.charAt(0) + n.slice(1).toLowerCase() : ''}` }; }).sort((a, b) => a.st - b.st || b.en - a.en);
   const lanesEnd = []; for (const gr of groups) { let k = lanesEnd.findIndex(e => e <= gr.st); if (k < 0) { k = lanesEnd.length; lanesEnd.push(0); } lanesEnd[k] = gr.en; gr.k = k; }
@@ -3101,7 +3109,8 @@ function prepPlanning(lines) {
   const L = [...livs.values()].map(ls => {
     const l0 = ls[0], a = agg(ls), it = itemBy.get(l0.liv), open = ls.filter(l => !l.done);
     const st = !open.length ? 'ready' : !it ? 'nc' : (it.okP && it.okS ? 'ok' : 'late');
-    return Object.assign({}, a, { liv: l0.liv, nom: l0.nom, ville: l0.ville, circuit: l0.circuit, itin: l0.itin, D: dayOf(l0), t: slotOf(l0), it, st,
+    const rep = ls.find(l => l.report);
+    return Object.assign({}, a, { liv: l0.liv, nom: l0.nom, ville: l0.ville, circuit: l0.circuit, itin: l0.itin, D: livDay(ls), t: rep ? 'R' : slotOf(l0), report: !!rep, dcOrig: rep ? rep.dcOrig : null, it, st,
       rS: sum(open, l => l.hrSilo), rP: sum(open, l => l.hrPick), rPal: sum(open, l => l.palSilo), rColis: sum(open, l => l.colisPick), prep: livStatus(ls).prep, ot: livStatus(ls).ot });
   });
   if (!L.length) return none('Aucune livraison pour ces filtres.');
@@ -3123,7 +3132,7 @@ function prepPlanning(lines) {
   const dayCards = days.map(D => {
     const xs = L.filter(x => x.D === D), row = P ? P.rows.find(r => r.D === D) : null;
     const hrsT = sum(xs, x => x.hrSilo + x.hrPick), hrsR = sum(xs, x => x.rS + x.rP);
-    const slots = uniq(xs.map(x => x.t)).sort((a, b) => (a === '') - (b === '') || a.localeCompare(b));
+    const slots = uniq(xs.map(x => x.t)).sort((a, b) => (b === 'R') - (a === 'R') || (a === '') - (b === '') || a.localeCompare(b));   // reliquat en tête
     const lateN = xs.filter(x => x.st === 'late').length;
     const dockV = P ? dockVerdict(dockSim(P), D) : null;
     const vd = (ok, m, lbl) => !row ? '' : `<div class="pv ${ok ? 'ok' : 'ko'}"><span>${lbl}</span><b>${ok ? '✓ passe' : '✗ ne passe pas'}</b><small>${ok ? `marge ${n1(m)} h` : `manque ${n1(-m)} h`}</small></div>`;
@@ -3139,7 +3148,7 @@ function prepPlanning(lines) {
       const finP = Math.max(0, ...ss.map(x => x.it?.finP || 0)), finS = Math.max(0, ...ss.map(x => x.it?.finS || 0));
       const dl = ss.some(x => x.it && x.st !== 'ready') ? Math.min(...ss.filter(x => x.it && x.st !== 'ready').map(x => x.it.dl)) : null;
       const sub = isOpen ? `<tr class="detail"><td colspan="9"><div style="padding:8px 10px">${table('plan' + key.replace(/\W/g, ''), [
-        { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' }, { k: 'itin', label: 'Itinéraire' }, { k: 'circuit', label: 'Circuit' },
+        { k: 'liv', label: 'Livraison', html: x => `${esc(x.liv)}${x.report ? `<br><span class="badge b-warn b-nodot">reliquat du ${fdate(x.dcOrig)}</span>` : ''}` }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' }, { k: 'itin', label: 'Itinéraire' }, { k: 'circuit', label: 'Circuit' },
         { k: 'heure', label: 'Heure chargement', html: x => { const si = slotInfo(x.liv, x.nom); return si && si.src === 'client' ? `<span class="muted">${siLbl(si)}</span>` : `<input class="inp" type="time" style="padding:4px 8px" data-likpset="${esc(x.liv)}|${esc(x.D)}" value="${esc(likpOf(x.liv)?.t || '')}">`; } },
         { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis picking', num: true, fmt: n0 },
         ...restCols(x => x.liv),
@@ -3148,7 +3157,7 @@ function prepPlanning(lines) {
         { k: 'st', label: 'Statut', html: stBadge },
       ], ss)}</div></td></tr>` : '';
       return `<tr class="clickable ${ss.some(x => x.st === 'late') ? 'row-late' : ''}" data-openslot="${esc(key)}">
-        <td><span class="caret">${isOpen ? '▾' : '▸'}</span> <b>${t ? (() => { const [a1, b1, n1] = t.split('|'); return siLbl({ start: a1, end: b1, src: n1 ? 'client' : 'likp', name: n1 }); })() : 'Sans créneau'}</b>${t ? (t.split('|')[2] ? '<br><span class="muted" style="font-size:11.5px">créneau fixe client</span>' : '') : `<br><span class="muted" style="font-size:11.5px">échéance estimée : ${[`avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'fin de journée'][+S.settings.prepDelai || 0]}</span>`}</td>
+        <td><span class="caret">${isOpen ? '▾' : '▸'}</span> <b>${t === 'R' ? 'Reliquat des jours précédents' : t ? (() => { const [a1, b1, n1] = t.split('|'); return siLbl({ start: a1, end: b1, src: n1 ? 'client' : 'likp', name: n1 }); })() : 'Sans créneau'}</b>${t === 'R' ? `<br><span class="muted" style="font-size:11.5px">à finir en priorité · du ${esc(uniq(ss.map(x => fdate(x.dcOrig))).join(', '))}</span>` : t ? (t.split('|')[2] ? '<br><span class="muted" style="font-size:11.5px">créneau fixe client</span>' : '') : `<br><span class="muted" style="font-size:11.5px">échéance estimée : ${[`avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'fin de journée'][+S.settings.prepDelai || 0]}</span>`}</td>
         <td class="num">${done}/${ss.length}${pr(done, ss.length)}</td>
         <td class="num">${n0(sum(ss, x => x.palSilo))}${sum(ss, x => x.rPal) ? `<br><span class="muted">reste ${n0(sum(ss, x => x.rPal))}</span>` : ''}</td>
         <td class="num">${n0(sum(ss, x => x.colisPick))}${sum(ss, x => x.rColis) ? `<br><span class="muted">reste ${n0(sum(ss, x => x.rColis))}</span>` : ''}</td>
@@ -4135,7 +4144,7 @@ function simResult(D) {
     return `<tr><td><b>${fdateL(r.D)}</b><br><small class="muted">${r.nLiv} livr. à préparer</small></td><td>${verd(r.okP, r.mP)}</td><td class="num">${hh(r.finP)}${delta(r.finP, b.finP)}</td><td>${verd(r.okS, r.mS)}</td><td class="num">${hh(r.finS)}${delta(r.finS, b.finS)}</td></tr>`; }).join('')}</tbody></table>`;
   if (D) {   // vue jour : détail par créneau de chargement
     const its = P.items.filter(i => i.D === D), bIt = new Map(base.items.map(i => [i.liv, i]));
-    const grp = new Map(); for (const i of its) { const si = slotInfo(i.liv, i.nom), k = si ? siLbl(si).replace(/<[^>]+>/g, '') : 'Sans créneau'; if (!grp.has(k)) grp.set(k, []); grp.get(k).push(i); }
+    const grp = new Map(); for (const i of its) { const si = i.report ? null : slotInfo(i.liv, i.nom), k = i.report ? 'Reliquat des jours précédents' : si ? siLbl(si).replace(/<[^>]+>/g, '') : 'Sans créneau'; if (!grp.has(k)) grp.set(k, []); grp.get(k).push(i); }
     const sl = [...grp.entries()].map(([k, xs]) => { const fin = Math.max(...xs.map(i => Math.max(i.finP || 0, i.finS || 0))), fin0 = Math.max(...xs.map(i => { const b = bIt.get(i.liv) || i; return Math.max(b.finP || 0, b.finS || 0); })), dl = Math.min(...xs.map(i => i.dl)), late = xs.filter(i => !i.okP || !i.okS).length;
       return { k, n: xs.length, pal: sum(xs, i => i.rPal), colis: sum(xs, i => i.rColis), dl, fin, fin0, late, m: (dl - fin) / H }; }).sort((a, b) => a.dl - b.dl);
     html += h3('Par créneau de chargement') + `<table class="t"><thead><tr><th>Créneau</th><th class="num">Livr. à faire</th><th class="num">Reste SILO</th><th class="num">Reste picking</th><th class="num">Échéance prépa</th><th class="num">Fin estimée</th><th>Verdict</th></tr></thead><tbody>${sl.map(s =>
@@ -4198,7 +4207,7 @@ function burnChart(B, unit, fmt, col) {
 // regroupement par créneau de chargement
 function slotRows(its, k) {
   const rk = k === 'P' ? 'rP' : 'rS', g = new Map();
-  for (const i of its) { const si = slotInfo(i.liv, i.nom), key = si ? siLbl(si).replace(/<[^>]+>/g, '') : 'Sans créneau'; if (!g.has(key)) g.set(key, []); g.get(key).push(i); }
+  for (const i of its) { const si = i.report ? null : slotInfo(i.liv, i.nom), key = i.report ? 'Reliquat des jours précédents' : si ? siLbl(si).replace(/<[^>]+>/g, '') : 'Sans créneau'; if (!g.has(key)) g.set(key, []); g.get(key).push(i); }
   return [...g.entries()].map(([key, xs]) => { const todo = xs.filter(i => i[rk] > 0), fin = Math.max(0, ...todo.map(i => (k === 'P' ? i.finP : i.finS) || 0)) || null, dl = Math.min(...xs.map(i => i.dl));
     return { key, n: xs.length, nTodo: todo.length, h: sum(xs, i => i[rk]), pal: sum(xs, i => i.rPal), palB: sum(xs, i => i.rPalB || 0), colis: sum(xs, i => i.rColis), dl, fin, m: fin ? (dl - fin) / H : null, late: todo.filter(i => !(k === 'P' ? i.okP : i.okS)).length }; }).sort((a, b) => a.dl - b.dl);
 }
@@ -4232,7 +4241,7 @@ function teamDetail(k, D0) {
   const todo = its.filter(i => i[rk] > 0);
   const livT = table(k + 'livs', [
     { k: 'ord', label: '#', num: true }, { k: 'liv', label: 'Livraison', html: r => `<button class="linkbtn" data-detail="liv|${esc(r.liv)}">${esc(r.liv)}</button>` }, { k: 'nom', label: 'Client', cls: 'wrap' },
-    { k: 'slot', label: 'Créneau', html: r => { const si = slotInfo(r.liv, r.nom); return si ? siLbl(si) : '<span class="muted">sans créneau</span>'; } },
+    { k: 'slot', label: 'Créneau', html: r => { if (r.report) return `<span class="badge b-warn b-nodot">reliquat du ${fdate(r.dcOrig)}</span>`; const si = slotInfo(r.liv, r.nom); return si ? siLbl(si) : '<span class="muted">sans créneau</span>'; } },
     isP ? { k: 'rColis', label: 'Colis', num: true, fmt: n0 } : { k: 'rPal', label: 'Palettes', num: true, html: r => `${n0(r.rPal)}${r.rPalB ? ` <span class="badge b-warn b-nodot" title="postes commencés : palettes peut-être déjà sorties">${n0(r.rPalB)} commencées</span>` : ''}` },
     { k: rk, label: 'Heures', num: true, fmt: hr }, { k: 'cum', label: isP ? 'Cumul (h)' : 'Cumul (pal)', num: true, fmt: isP ? hr : n0 },
     { k: 'fin', label: isP ? 'Fin prévue' : 'Sortie prévue', fmt: v => v ? esc(fdt(v)) : '—' }, { k: 'dl', label: 'Échéance', fmt: v => esc(fdt(v)) },

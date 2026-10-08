@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.35.0** · Développé par **Galaad Poivey**
+Version **1.36.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -156,6 +156,13 @@ Le numéro de version (`APP_VERSION` dans `index.html`) augmente à chaque modif
   - Le rendement est appliqué à la projection **en proportion de la certitude** (et borné entre 70 % et 130 %) : à 20 % de certitude, la projection reste proche des cadences théoriques.
   - Panneau « Ce que l'app a appris » dans le détail Charge SILO / picking, et tuile sur le tableau de bord. L'ajustement peut être désactivé dans Paramètres.
 - **Postes commencés (statut B) :** leurs palettes SILO restent comptées à faire, car la VL06O ne dit pas si elles sont déjà descendues. Elles sont signalées à part (« dont N pal sur postes commencés »). Le rendement SILO tend à être sous-estimé pour la même raison : un poste n'est compté fait qu'une fois entièrement au statut C, picking compris.
+
+## Reliquat des jours précédents
+
+Un poste pas terminé dont la date de chargement est passée reste à préparer : il est **reporté sur le jour de l'extraction** de la VL06O.
+- Il compte dans la charge de ce jour partout : jauges, planning, détails Picking / Sortie SILO, simulateur, tableau de bord.
+- Il passe **en premier** dans l'ordre de préparation, avec pour échéance celle du jour (par défaut avant 12h00, ou la fin du jour si elle est déjà passée).
+- Il apparaît dans le planning sur une ligne « Reliquat des jours précédents », en tête du jour, avec sa date d'origine (« reliquat du 05/10 »).
 
 ## Temps restant par livraison
 
