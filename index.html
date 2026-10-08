@@ -904,9 +904,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.36.0';
+const APP_VERSION = '1.36.1';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.36.1', '08/10/2026', 'Reliquat trié par échéance comme les autres livraisons (il ne retarde plus un chargement plus urgent, ex. Plateforme 38 à 6h) ; à échéance égale, il passe en premier. Frise : plus de barre « 0h–0h » pour le reliquat, et correction d’une erreur qui empêchait l’affichage du planning de chargement en v1.36.0.'],
   ['1.36.0', '08/10/2026', 'Reliquat : les postes pas terminés des jours précédents sont reportés sur le jour de l’extraction (charge du jour, jauges, planning, détails, simulateur), préparés en priorité pour l’échéance du jour, avec leur date d’origine affichée (« Reliquat des jours précédents »).'],
   ['1.35.0', '08/10/2026', 'Statut par poste : un poste est fait dès qu’il est validé (Validat. prélèvement = C) ou que son activité WM est terminée, même si la livraison est encore en B (le statut global de prélèvement est celui de la livraison entière) ; « commencé » = activité WM partielle. Apprentissage : intervalles de plus de 14 h entre deux imports ignorés, postes apparus et terminés entre deux imports comptés.'],
   ['1.34.0', '08/10/2026', 'Temps restant par livraison (travail réel restant en h/min, détaillé SILO / picking, au rendement appliqué) et marge avant l’échéance : planning de chargement (créneau déplié et détail du jour), vue « Par N° livraison » et détail d’une livraison.'],
@@ -2932,12 +2933,12 @@ function projectionRaw() {
   const byLiv = new Map(); for (const l of open) { if (!byLiv.has(l.liv)) byLiv.set(l.liv, []); byLiv.get(l.liv).push(l); }
   const items = [...byLiv.values()].map(ls => {
     const l0 = ls[0], D = dayOf(l0);
-    // reliquat : à faire en priorité, pour l'échéance par défaut du jour (ou la fin du jour si elle est passée)
+    // reliquat : échéance par défaut du jour (ou la fin du jour si elle est passée) ; il ne passe pas devant un chargement plus urgent
     const rep = ls.find(l => l.report); let dl = livDeadline(l0.liv, l0.dc, l0.nom);
     if (rep) { dl = deadlineTs(D); if (dl <= at) dl = dayStartTs(addDays(D, 1)); }
     return { liv: l0.liv, nom: l0.nom, circuit: l0.circuit, D, dc: l0.dc, report: !!rep, dcOrig: rep ? rep.dcOrig : null, hasT: !rep && !!slotInfo(l0.liv, l0.nom), dl,
       rS: sum(ls, l => l.hrSilo), rP: sum(ls, l => l.hrPick), rPal: sum(ls, l => l.palSilo), rPalB: sum(ls.filter(l => l.st === 'B'), l => l.palSilo), rColis: sum(ls, l => l.colisPick), prep: livIndex().get(l0.liv)?.prep };
-  }).filter(i => i.D).sort((a, b) => (b.report - a.report) || a.dl - b.dl || a.liv.localeCompare(b.liv));
+  }).filter(i => i.D).sort((a, b) => a.dl - b.dl || (b.report - a.report) || a.liv.localeCompare(b.liv));   // par échéance ; à échéance égale, le reliquat d'abord
   let cS = 0, cP = 0;
   for (const it of items) {
     cS += it.rS; cP += it.rP; it.cumS = cS; it.cumP = cP;
@@ -3070,7 +3071,7 @@ function dayTimeline(D, xs, P) {
   };
   g += lane(22, 'equipes', cssVar('--pick'), 'Picking') + lane(40, 'equipesSilo', cssVar('--silo'), 'SILO');
   // créneaux : répartis en lignes pour éviter les chevauchements
-  const groups = uniq(xs.map(x => x.t)).filter(t => t && t !== 'R').map(t => {   // le reliquat n'a pas de créneau horaire const [a, b, n] = t.split('|'); const ss = xs.filter(x => x.t === t); const st = d0 + hm(a) * H; let en = d0 + hm(b) * H; if (en <= st) en += 24 * H;
+  const groups = uniq(xs.map(x => x.t)).filter(t => t && t !== 'R').map(t => { const [a, b, n] = t.split('|'); const ss = xs.filter(x => x.t === t); const st = d0 + hm(a) * H; let en = d0 + hm(b) * H; if (en <= st) en += 24 * H;
     const late = ss.filter(x => x.st === 'late').length, ready = ss.every(x => x.st === 'ready');
     return { st, en, ss, late, ready, lbl: `${hLbl(a)}–${hLbl(b)}${n ? ' ' + n.charAt(0) + n.slice(1).toLowerCase() : ''}` }; }).sort((a, b) => a.st - b.st || b.en - a.en);
   const lanesEnd = []; for (const gr of groups) { let k = lanesEnd.findIndex(e => e <= gr.st); if (k < 0) { k = lanesEnd.length; lanesEnd.push(0); } lanesEnd[k] = gr.en; gr.k = k; }
@@ -3157,7 +3158,7 @@ function prepPlanning(lines) {
         { k: 'st', label: 'Statut', html: stBadge },
       ], ss)}</div></td></tr>` : '';
       return `<tr class="clickable ${ss.some(x => x.st === 'late') ? 'row-late' : ''}" data-openslot="${esc(key)}">
-        <td><span class="caret">${isOpen ? '▾' : '▸'}</span> <b>${t === 'R' ? 'Reliquat des jours précédents' : t ? (() => { const [a1, b1, n1] = t.split('|'); return siLbl({ start: a1, end: b1, src: n1 ? 'client' : 'likp', name: n1 }); })() : 'Sans créneau'}</b>${t === 'R' ? `<br><span class="muted" style="font-size:11.5px">à finir en priorité · du ${esc(uniq(ss.map(x => fdate(x.dcOrig))).join(', '))}</span>` : t ? (t.split('|')[2] ? '<br><span class="muted" style="font-size:11.5px">créneau fixe client</span>' : '') : `<br><span class="muted" style="font-size:11.5px">échéance estimée : ${[`avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'fin de journée'][+S.settings.prepDelai || 0]}</span>`}</td>
+        <td><span class="caret">${isOpen ? '▾' : '▸'}</span> <b>${t === 'R' ? 'Reliquat des jours précédents' : t ? (() => { const [a1, b1, n1] = t.split('|'); return siLbl({ start: a1, end: b1, src: n1 ? 'client' : 'likp', name: n1 }); })() : 'Sans créneau'}</b>${t === 'R' ? `<br><span class="muted" style="font-size:11.5px">à finir aujourd’hui · commandes du ${esc(uniq(ss.map(x => fdate(x.dcOrig))).join(', '))}</span>` : t ? (t.split('|')[2] ? '<br><span class="muted" style="font-size:11.5px">créneau fixe client</span>' : '') : `<br><span class="muted" style="font-size:11.5px">échéance estimée : ${[`avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'fin de journée'][+S.settings.prepDelai || 0]}</span>`}</td>
         <td class="num">${done}/${ss.length}${pr(done, ss.length)}</td>
         <td class="num">${n0(sum(ss, x => x.palSilo))}${sum(ss, x => x.rPal) ? `<br><span class="muted">reste ${n0(sum(ss, x => x.rPal))}</span>` : ''}</td>
         <td class="num">${n0(sum(ss, x => x.colisPick))}${sum(ss, x => x.rColis) ? `<br><span class="muted">reste ${n0(sum(ss, x => x.rColis))}</span>` : ''}</td>

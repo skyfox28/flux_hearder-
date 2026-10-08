@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.36.0** · Développé par **Galaad Poivey**
+Version **1.36.1** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -161,7 +161,7 @@ Le numéro de version (`APP_VERSION` dans `index.html`) augmente à chaque modif
 
 Un poste pas terminé dont la date de chargement est passée reste à préparer : il est **reporté sur le jour de l'extraction** de la VL06O.
 - Il compte dans la charge de ce jour partout : jauges, planning, détails Picking / Sortie SILO, simulateur, tableau de bord.
-- Il passe **en premier** dans l'ordre de préparation, avec pour échéance celle du jour (par défaut avant 12h00, ou la fin du jour si elle est déjà passée).
+- Il a pour échéance celle du jour (par défaut avant 12h00, ou la fin du jour si elle est déjà passée) et il est trié par échéance comme les autres livraisons : il ne retarde pas un chargement plus urgent (Plateforme 38 à 6h, par exemple). À échéance égale, il passe en premier.
 - Il apparaît dans le planning sur une ligne « Reliquat des jours précédents », en tête du jour, avec sa date d'origine (« reliquat du 05/10 »).
 
 ## Temps restant par livraison
