@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.34.0** · Développé par **Galaad Poivey**
+Version **1.35.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -30,7 +30,7 @@ Elle reprend la requête Power Query et les formules du classeur *Analyse_Activi
 - **Circuit** selon la priorité de livraison : 1 Entrepôt, 2 GMS, 3 Export, 4 Allotie, 6 MDD, 9 Interco ;
 - **Hr SILO** = Pal SILO ÷ 18 ; **Hr Pick** = colis picking ÷ cadence (Export 750, MDD 1300, autres circuits 400). Les cadences se modifient dans Paramètres ;
 - **Nb Pick** = 1 si le poste a du picking ; l'emplacement picking vient de MLGT ;
-- **Fait** = postes au statut global de prélèvement C, **A faire** = postes au statut A ou B.
+- **Fait / à faire, poste par poste.** Le « Statut global prélèv » de la VL06O est celui de la **livraison entière** (identique sur tous ses postes) : B veut dire « livraison commencée ». Un poste est donc compté **fait** si la livraison est en C, **ou** s'il est validé (« Validat. prélèvement » = C), **ou** si son « Statut activité WM » est C. Un poste « commencé » est un poste dont l'activité WM est en B (partielle). Sur la VL06O du 07/10, 213 postes de livraisons en B étaient ainsi déjà faits.
 
 Sur l'extraction VL06O fournie, les totaux ont été vérifiés contre un recalcul indépendant : 1 994 postes, 145 livraisons, 1 060 pal SILO, 58,89 h SILO, 64 419 colis picking et 140,51 h picking.
 
@@ -149,6 +149,8 @@ Le numéro de version (`APP_VERSION` dans `index.html`) augmente à chaque modif
 - **Verdict :** « passe » si le reste cumulé tient dans la capacité, sinon « ne passe pas » avec les heures manquantes. L'app donne aussi une heure de fin estimée, et calcule tout séparément pour le SILO et le picking.
 - **Limite réelle :** sur les graphiques, un trait rouge pointillé par jour = heures déjà faites + capacité encore disponible. Si le haut de la barre dépasse le trait, la journée ne passe pas.
 - **Rendement réel appris :** à chaque import de la VL06O, l'app compare avec l'import précédent (postes passés au statut C ou sortis de la VL06O, convertis en heures théoriques) et divise par les heures d'équipe écoulées.
+  - Les intervalles de **plus de 14 h** entre deux imports sont ignorés (week-end, oubli d'actualisation) : trop de commandes ont pu être créées et expédiées entre les deux.
+  - Les postes **apparus et terminés** entre deux imports sont comptés comme travail fait (la VL06O garde les livraisons préparées jusqu'à la sortie de stock).
   - Une mesure ne compte que si l'équipe **avait encore du travail à l'import suivant**. Sinon, elle a fini plus tôt (une commande finie à 11h vue à l'import de 14h) : l'heure d'import ne compte pas, l'app retient seulement « au moins ce rythme » et en déduit une heure de fin probable.
   - **Certitude** = volume observé × régularité des mesures × précision (écart moyen entre deux imports). Elle monte avec les actualisations, et d'autant plus vite qu'elles sont rapprochées. Une seule mesure donne environ 15–20 % ; 4 imports par jour pendant une semaine, environ 70–80 %.
   - Le rendement est appliqué à la projection **en proportion de la certitude** (et borné entre 70 % et 130 %) : à 20 % de certitude, la projection reste proche des cadences théoriques.
