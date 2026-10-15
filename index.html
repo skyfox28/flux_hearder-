@@ -1025,9 +1025,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.39.0';
+const APP_VERSION = '1.39.1';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.39.1', '15/10/2026', 'Export WTS cohérent partout : dans l’onglet Préparation il forme son propre groupe « Export WTS · pas d’horaire, date souple », sans échéance ni marge, n’est plus compté en retard ni dans les livraisons sans créneau.'],
   ['1.39.0', '15/10/2026', 'Nouveau tableau de bord « poste de pilotage » : bandeau d’état des données (verdicts « À confirmer » si la VL06O a plus de 4 h), « À traiter » en lignes cliquables, cartes Aujourd’hui / prochains jours avec un seul verdict (échéance dépassée, quai saturé, export seul), panneau latéral des livraisons en retard, semaine en colonnes cliquables, détail replié ; barre du haut sur une ligne avec menu ⋯. Export WTS : pas d’horaire, date souple, préparé après les chargements à heure fixe et jamais compté en retard.'],
   ['1.38.0', '15/10/2026', 'Nouvel onglet Préparation : moniteur hiérarchique Jour → Créneau → Livraison → Postes avec les mêmes colonnes à tous les niveaux (avancement, reste SILO / picking, temps restant, échéance, fin estimée, marge, statut) ; bandeau de synthèse fixe ; filtres en français sur une ligne (codes SAP dans « Filtres avancés ») avec étiquettes des filtres actifs ; déplier jusqu’aux jours / créneaux / livraisons / postes ; « Masquer ce qui est prêt » et « Problèmes en tête » ; frise horaire repliable ; volet latéral de la livraison ; choix des colonnes ; statuts unifiés (✗ En retard, ! Juste, ● En cours, ○ À faire, ✓ Prête). La Synthèse reste accessible.'],
   ['1.37.0', '08/10/2026', 'Onglet Préparation : avec un filtre Circuit ou Lieu, le calcul (file, fins estimées, verdicts, temps restants) porte sur les seules livraisons filtrées, comme si l’équipe ne préparait qu’elles ; bandeau explicatif avec les heures des autres circuits ignorées, et bouton pour revenir au calcul sur toute la file.'],
@@ -2034,11 +2035,12 @@ function pvModel(lines) {
     const done = ls.filter(l => l.done).length, hrsT = sum(ls, l => l.hrSilo + l.hrPick), hrsF = sum(ls.filter(l => l.done), l => l.hrSilo + l.hrPick);
     const open = ls.filter(l => !l.done), a = S.affret.rows[l0.liv];
     const stk = !open.length ? 'ready' : t && t.marge != null && t.marge < 0 ? 'late' : t && t.marge != null && t.marge < 2 ? 'risk' : ls.some(l => l.done || l.st === 'B') ? 'prog' : 'todo';
-    const slotKey = rep ? '0|R' : si ? `1|${si.start}|${si.end}|${si.src === 'client' ? si.name : ''}` : '2|';
-    const slotLbl = rep ? 'Reliquat des jours précédents' : si ? siLbl(si).replace(/<[^>]+>/g, '') : 'Sans créneau';
-    const slotSub = rep ? `commandes du ${uniq(ls.filter(l => l.report).map(l => fdate(l.dcOrig))).join(', ')}` : si ? (si.src === 'client' ? 'créneau fixe client' : 'créneau LIKP') : 'échéance estimée';
+    const flex = !rep && !si && isFlexCirc(l0.circuit);   // export WTS : pas d'horaire, date souple
+    const slotKey = rep ? '0|R' : si ? `1|${si.start}|${si.end}|${si.src === 'client' ? si.name : ''}` : flex ? '3|WTS' : '2|';
+    const slotLbl = rep ? 'Reliquat des jours précédents' : si ? siLbl(si).replace(/<[^>]+>/g, '') : flex ? 'Export WTS' : 'Sans créneau';
+    const slotSub = rep ? `commandes du ${uniq(ls.filter(l => l.report).map(l => fdate(l.dcOrig))).join(', ')}` : si ? (si.src === 'client' ? 'créneau fixe client' : 'créneau LIKP') : flex ? 'pas d’horaire · date souple' : 'échéance estimée';
     return { liv: l0.liv, nom: l0.nom, ville: l0.ville, circuit: l0.circuit, D: livDay(ls), lines: ls, nPostes: ls.length, done, av: hrsT ? hrsF / hrsT : 1,
-      pal: sum(open, l => l.palSilo), colis: sum(open, l => l.colisPick), h: t ? t.h : 0, dl: t ? t.dl : null, fin: t ? t.fin : null, marge: t ? t.marge : null,
+      pal: sum(open, l => l.palSilo), colis: sum(open, l => l.colisPick), h: t ? t.h : 0, dl: t && !t.flex ? t.dl : null, fin: t ? t.fin : null, marge: t ? t.marge : null,
       stk, slotKey, slotLbl, slotSub, transp: a ? transpName(a.transp) : '', prep: livStatus(ls).prep, ot: livStatus(ls).ot, report: !!rep,
       it: P ? P.items.find(i => i.liv === l0.liv) : null, st: !open.length ? 'ready' : stk === 'late' ? 'late' : 'ok', t: rep ? 'R' : si ? `${si.start}|${si.end}|${si.src === 'client' ? si.name : ''}` : '' };
   });
@@ -3237,11 +3239,11 @@ function livRest(liv) {
   if (_restM.P !== P) _restM = { P, m: new Map(P.items.map(i => [i.liv, i])) };
   const it = _restM.m.get(liv); if (!it) return null;
   const hs = it.rS / (P.effS || 1), hp = it.rP / (P.effP || 1), fin = Math.max(it.finP || 0, it.finS || 0) || null;
-  return { h: hs + hp, hs, hp, pal: it.rPal, colis: it.rColis, fin, dl: it.dl, marge: fin ? (it.dl - fin) / H : null, ok: it.okP && it.okS };
+  return { h: hs + hp, hs, hp, pal: it.rPal, colis: it.rColis, fin, dl: it.dl, marge: fin && !it.flex ? (it.dl - fin) / H : null, ok: it.okP && it.okS, flex: it.flex };   // export WTS : pas d'échéance ferme, donc pas de marge
 }
 const restDet = t => [t.pal > 0 ? `${n0(t.pal)} pal SILO (${dur(t.hs)})` : '', t.colis > 0 ? `${n0(t.colis)} colis (${dur(t.hp)})` : ''].filter(Boolean).join(' · ');
 const restCell = liv => { const t = livRest(liv); return !t || !(t.h > 1 / 120) ? '<span class="muted">—</span>' : `<b>${dur(t.h)}</b><br><small class="muted" style="white-space:nowrap">${restDet(t)}</small>`; };
-const margeCell = liv => { const t = livRest(liv); if (!t || t.marge == null) return '<span class="muted">—</span>'; return t.marge < 0 ? badge(`retard ${dur(-t.marge)}`, 'b-crit') : badge(`marge ${dur(t.marge)}`, t.marge < 2 ? 'b-warn' : 'b-good'); };
+const margeCell = liv => { const t = livRest(liv); if (t && t.flex) return badge('date souple', 'b-neutral'); if (!t || t.marge == null) return '<span class="muted">—</span>'; return t.marge < 0 ? badge(`retard ${dur(-t.marge)}`, 'b-crit') : badge(`marge ${dur(t.marge)}`, t.marge < 2 ? 'b-warn' : 'b-good'); };
 const restCols = (getLiv) => [
   { k: 'rest', label: 'Temps restant', num: true, sv: x => (livRest(getLiv(x)) || {}).h || 0, html: x => restCell(getLiv(x)) },
   { k: 'marge', label: 'Marge', sv: x => { const t = livRest(getLiv(x)); return t && t.marge != null ? t.marge : 999; }, html: x => margeCell(getLiv(x)) },
@@ -4534,7 +4536,7 @@ DETAILS.inx = (d, D) => flowX(true, D);
 DETAILS.outx = (d, D) => flowX(false, D);
 DETAILS.noslot = () => {
   const P = projection(), items = new Map((P ? P.items : []).map(i => [i.liv, i]));
-  const xs = [...livIndex().values()].filter(l => l.prep !== 'C' && !slotInfo(l.liv, l.nom) && !isExtShip(l)).map(l => Object.assign({}, l, { D: (likpOf(l.liv) || {}).d || l.dc, it: items.get(l.liv) })).sort((a, b) => (a.D || '').localeCompare(b.D || '') || a.liv.localeCompare(b.liv));
+  const xs = [...livIndex().values()].filter(l => l.prep !== 'C' && !slotInfo(l.liv, l.nom) && !isExtShip(l) && !isFlexCirc(l.circuit)).map(l => Object.assign({}, l, { D: (likpOf(l.liv) || {}).d || l.dc, it: items.get(l.liv) })).sort((a, b) => (a.D || '').localeCompare(b.D || '') || a.liv.localeCompare(b.liv));
   return { title: 'Livraisons sans créneau de chargement', sub: `${xs.length} livraison(s) · saisissez l’heure de début du créneau (ou collez la LIKP dans Sources)`, body: xs.length ? table('noslot', [
     { k: 'D', label: 'Chargement', fmt: fdateL }, { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' },
     { k: 'heure', label: 'Heure de chargement', html: x => `<input class="inp" type="time" style="padding:4px 8px" data-likpset="${esc(x.liv)}|${esc(x.D)}" value="">` },

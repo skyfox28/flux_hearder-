@@ -129,7 +129,7 @@ Une seule lecture, de haut en bas :
 
 ## Export WTS : date souple
 
-L'export WTS (McCormick France CPTRAS, circuit Export) n'a pas d'horaire de départ et sa date est souple. Dans le calcul, ses livraisons ont pour échéance la fin de leur jour : elles sont préparées **après les chargements à heure fixe** du jour, ne comptent ni dans la marge ni dans le taux réel, et ne sont **jamais en retard**. La carte du jour indique « N export WTS (souple) » et combien finiront après ce jour.
+L'export WTS (McCormick France CPTRAS, circuit Export) n'a pas d'horaire de départ et sa date est souple. Dans le calcul, ses livraisons ont pour échéance la fin de leur jour : elles sont préparées **après les chargements à heure fixe** du jour, ne comptent ni dans la marge ni dans le taux réel, et ne sont **jamais en retard**. La carte du jour indique « N export WTS (souple) » et combien finiront après ce jour. Dans l'onglet Préparation, il forme son propre groupe « Export WTS » (sans échéance ni marge, badge « date souple ») et n'apparaît pas dans les livraisons sans créneau à compléter.
 
 Les créneaux LIKP sont l'heure à laquelle la marchandise doit partir : l'échéance de préparation est calée sur le début du créneau, moins la marge réglée dans Paramètres.
 
