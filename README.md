@@ -293,7 +293,13 @@ Paramètres → À propos → « Animer l'écran d'ouverture » : décoché, la 
 
 - **Cartes jour et colonnes de la semaine** (voir « Tableau de bord : poste de pilotage ») : la couleur combine préparation, quai d'expédition et quai de réception ; orange au-delà de 85 % de la capacité. Une livraison n'est pas un camion : la VL06O et la LIKP ne disent pas lesquelles partent ensemble. Un clic ouvre la journée.
 - **Overlay « Journée »** : état des trois contraintes, entrées et sorties du jour, détail de la préparation, et bouton **Imprimer / PDF** (seul le contenu de la journée est imprimé).
-- **Écran atelier** (icône écran en haut) : plein écran, gros chiffres, statut du jour, semaine, horloge. Les chiffres sont rafraîchis chaque minute ; les dossiers SharePoint et la sauvegarde partagée sont relus toutes les 10 minutes. Échap pour quitter.
+- **Écran atelier** (icône écran, menu ⋯) : plein écran sombre, lisible de loin.
+  - En haut : l'équipe en cours, son horaire et le temps restant, et l'horloge.
+  - Quatre chiffres : colis picking à faire sur le total du jour, palettes SILO à sortir sur le total du jour (avec temps de travail et fin estimée), blocs occupés sur le quai d'expédition et heure du pic, camions encore attendus en réception. Le soir, quand le jour est fini, ils passent au prochain jour de chargement.
+  - Créneaux de chargement : le créneau en cours (fin dans…, livraisons prêtes, colis et palettes restants, clients), le prochain (dans…), et la frise de tous les créneaux du jour. Le soir, on voit déjà ceux du lendemain.
+  - **Départs** : les prochains chargements d'aujourd'hui et du jour suivant, une ligne par client et par créneau, avec transporteur, reste (colis, palettes), barre de préparation et état. Ce qui est prêt et déjà parti disparaît ; l'export WTS tient sur une ligne.
+  - **Arrivées** : camions attendus (RDV SST, rapatriements, navettes), avec heure, origine, palettes et état.
+  - En bas : alertes en une ligne (VL06O trop ancienne, retards prévus, quai saturé, livraisons sans heure), semaine, heure de la VL06O. Rafraîchi chaque minute ; les dossiers SharePoint et la sauvegarde partagée sont relus toutes les 10 minutes. Échap pour quitter.
 - **Recherche globale (Ctrl+K)** ou bouton « Rechercher » : n° de livraison, client, transporteur, entrepôt, sous-traitant, navette ou onglet. Entrée ouvre le résultat ; une livraison ouvre sa fiche (chargement, préparation, transporteur, fin estimée, quai, postes).
 - **Menu en 3 groupes** : Pilotage, Flux, Données.
 - **Planning de préparation replié** : seuls aujourd'hui et le prochain jour travaillé sont dépliés ; ▸ pour déplier les autres.
