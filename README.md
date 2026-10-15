@@ -47,8 +47,7 @@ Un clic sur le sens d'un camion l'inverse en cas d'exception.
 ## Réceptions sous-traitants
 
 Seuls les créneaux qui ont un RDV sous-traitant ou un nombre de palettes sont repris. Les onglets « Cumul » et « Ne pas toucher » sont ignorés.
-Le pointage « Reçu » se fait dans l'app, et il est conservé quand on ré-importe le planning.
-Un créneau passé sans pointage est signalé en orange.
+Pas de pointage manuel : l'état de chaque RDV vient du fichier. « Arrivé » si l'heure d'arrivée est saisie dans le planning, « Créneau passé » une fois l'heure dépassée, sinon « Planifié ». Un camion qui ne vient pas est déplacé (jour, heure) dans le planning : l'actualisation du fichier suffit.
 Les totaux sont calculés sur les lignes du planning, pas sur le tableau croisé « Cumul » : si celui-ci n'a pas été actualisé, les deux peuvent différer.
 
 ## Intercos : envois et retours
@@ -260,7 +259,7 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
   - **Courbe du reste à faire heure par heure** : elle descend quand l'équipe travaille et reste à plat hors des postes ; chaque point rouge est une échéance sous laquelle le reste doit passer.
   - Tableau par créneau de chargement, puis la liste des livraisons dans l'ordre de préparation. Côté SILO, c'est la **file du cariste**, avec l'heure de sortie prévue et les palettes des postes commencés signalées.
   - Côté picking : reste par circuit et **nombre de préparateurs par poste suffisant** pour tenir toutes les échéances.
-- **Détails dédiés « Entrées » et « Sorties »** (clic sur leur jauge ou leur tuile) : boutons Semaine / jour, chiffres clés face à la capacité du quai, graphique par jour avec la ligne de capacité (ou heure par heure pour un jour : arrivées pointées, RDV ou réparties ; départs selon le créneau de chargement), anneau par origine ou par transporteur, tableau jour par jour, puis les listes détaillées (camions, RDV, navettes, livraisons affrétées et non affrétées).
+- **Détails dédiés « Entrées » et « Sorties »** (clic sur leur jauge ou leur tuile) : boutons Semaine / jour, chiffres clés face à la capacité du quai, graphique par jour avec la ligne de capacité (ou heure par heure pour un jour : arrivées saisies dans le planning, RDV ou réparties ; départs selon le créneau de chargement), anneau par origine ou par transporteur, tableau jour par jour, puis les listes détaillées (camions, RDV, navettes, livraisons affrétées et non affrétées).
 - Les quais d'expédition et de réception gardent leur détail dédié (occupation heure par heure, saturation, calcul par livraison ou par camion).
 - **Anneaux cliquables** : chaque transporteur ouvre son détail, un circuit ouvre le détail Picking, un statut ouvre la liste des livraisons.
 - **Simulateur « Et si ? »** : curseurs pour les préparateurs (matin, après-midi), la cadence de picking entrepôt, et la cadence SILO (magasin automatique : 1 cariste par poste en entrée et en sortie, seule la cadence change). Le verdict, la marge et l'heure de fin se recalculent tout de suite, avec l'écart par rapport aux réglages. Dans la vue jour, le résultat est détaillé par créneau de chargement. Les paramètres ne sont jamais modifiés ; « Revenir aux réglages » annule la simulation.
@@ -274,7 +273,7 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
 - **État des sources** sous le titre : VL06O, LIKP, affrètement, rapatriements, SST.
   - Pastille verte = mise à jour depuis moins de 12 h, orange = plus ancienne, grise = absente.
   - Un clic ouvre l'onglet correspondant.
-- **Pastilles dans le menu :** livraisons en retard prévu pour Préparation, RDV passés non pointés pour Réceptions SST.
+- **Pastilles dans le menu :** livraisons en retard prévu pour Préparation.
 - **Points d'attention** affichés juste après les indicateurs, seulement s'il y en a.
 - **Tableaux zébrés** pour faciliter la lecture.
 
@@ -334,7 +333,7 @@ Dans tous les onglets, les longues explications sont repliées derrière une pet
 
 Simulation, jour par jour, de la réception de la semaine affichée :
 
-1. **Arrivée des camions :** heure d'arrivée pointée, sinon heure du RDV du planning SST, sinon (rapatriements sans heure) répartie régulièrement sur une plage réglable (06:00–14:00 par défaut).
+1. **Arrivée des camions :** heure d'arrivée saisie dans le planning SST, sinon heure du RDV du planning SST, sinon (rapatriements sans heure) répartie régulièrement sur une plage réglable (06:00–14:00 par défaut).
 2. **Portes :** chaque camion prend la première porte libre (3 portes par défaut) et décharge pendant 45 min (réglable). Si toutes les portes sont prises, il attend : l'attente est calculée.
 3. **Sol :** à la fin du déchargement, les palettes sont posées au sol (1 bloc par palette par défaut). Capacité du sol : 150 blocs par défaut.
 4. **Rangement :** dans l'ordre d'arrivée, à 25 palettes/h par **cariste entrée SILO** présent. Ses horaires se règlent dans Paramètres, section « Cariste entrée SILO » (par défaut, 1 cariste 05:00–12:30 et 1 cariste 12:30–20:00).

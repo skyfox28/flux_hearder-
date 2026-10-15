@@ -1106,9 +1106,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.40.0';
+const APP_VERSION = '1.41.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.41.0', '15/10/2026', 'Réceptions SST sans pointage manuel : l’état de chaque RDV vient du planning (« Arrivé » si l’heure d’arrivée est saisie, « Créneau passé », « Planifié »). Un camion qui ne vient pas est déplacé dans le fichier ; l’actualisation suffit. Plus de pastille « non pointés » dans le menu.'],
   ['1.40.0', '15/10/2026', 'Style « sable » au choix dans Paramètres › À propos : industriel chaud (fond crème, cartes ivoire, menu bleu pétrole, action en bleu pétrole), couleurs d’état réservées au « ça passe ? », flux en teintes douces, chiffres alignés, seul un retard réel respire en rouge. Mode sombre réparé : le verre plus transparent ne force plus les couleurs claires.'],
   ['1.39.1', '15/10/2026', 'Export WTS cohérent partout : dans l’onglet Préparation il forme son propre groupe « Export WTS · pas d’horaire, date souple », sans échéance ni marge, n’est plus compté en retard ni dans les livraisons sans créneau.'],
   ['1.39.0', '15/10/2026', 'Nouveau tableau de bord « poste de pilotage » : bandeau d’état des données (verdicts « À confirmer » si la VL06O a plus de 4 h), « À traiter » en lignes cliquables, cartes Aujourd’hui / prochains jours avec un seul verdict (échéance dépassée, quai saturé, export seul), panneau latéral des livraisons en retard, semaine en colonnes cliquables, détail replié ; barre du haut sur une ligne avec menu ⋯. Export WTS : pas d’horaire, date souple, préparé après les chargements à heure fixe et jamais compté en retard.'],
@@ -1787,11 +1788,18 @@ function renderSources() {
     return `<button class="src ${cls}" data-tab="src" title="${esc(det)}"><i></i>${n}${ts > 1 ? `<small>${esc(ts === snapTs() ? new Date(ts).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }))}</small>` : ''}</button>`; }).join('');
 }
 $('#sources').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) { S.ui.tab = b.dataset.tab; S.ui.modal = null; render(); } });
-// pastilles du menu : livraisons en retard prévu, RDV SST passés non pointés
+// état d'un RDV SST, lu uniquement dans le planning : pas de pointage manuel.
+// Un camion qui ne vient pas est déplacé (jour, heure) dans le fichier ; l'actualisation suffit.
+function sstState(r) {
+  if (r.arr || r.recu) return 'ok';
+  const t = today(), now = new Date(), nowH = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  return r.date < t || (r.date === t && r.heure && r.heure <= nowH) ? 'past' : 'plan';
+}
+const sstBadge = r => { const st = sstState(r); return st === 'ok' ? badge(r.arr ? `Arrivé ${r.arr}` : 'Arrivé', 'b-good') : st === 'past' ? badge('Créneau passé', 'b-good') : badge('Planifié', 'b-neutral'); };
+// pastilles du menu : livraisons en retard prévu
 function navBadges() {
   const out = {};
   const P = projection(); if (P) { const n = P.items.filter(i => !i.okP || !i.okS).length; if (n) out.prep = [n, 'crit', `${n} livraison(s) en retard prévu`]; }
-  const t = today(); const nb = S.sst.rows.filter(r => !r.recu && r.date <= t && inWeek(r.date)).length; if (nb) out.sst = [nb, 'warn', `${nb} RDV passé(s) non pointé(s)`];
   return out;
 }
 function renderNav() {
@@ -2435,7 +2443,7 @@ function viewInterco() {
       ${rs.length ? `<div class="bar"><span style="width:${Math.round(done / rs.length * 100)}%"></span></div><div class="det">${done}/${rs.length} envois prêts</div>` : ''}
       ${bk.length ? `<div class="det" style="margin-top:10px;padding-top:8px;border-top:1px solid var(--glass-border)">Reçu cette semaine (retours d’autres envois)</div>
       <div class="val" style="margin-top:0;font-size:20px">${n0(pIn)}<small>pal</small></div>
-      <div class="det">${bk.length} RDV · ${n0(sum(bk, r => r.cam || 1))} camion(s) · ${bk.filter(r => r.recu).length} pointé(s)</div>` : ''}</div>`;
+      <div class="det">${bk.length} RDV · ${n0(sum(bk, r => r.cam || 1))} camion(s)</div>` : ''}</div>`;
   }).join('');
   // aller / retour par jour
   const { days } = weekData();
@@ -2452,7 +2460,7 @@ function viewInterco() {
   const colsBack = [
     { k: 'date', label: 'Date', fmt: fdateL }, { k: 'heure', label: 'Créneau' }, { k: 'dest', label: 'Provenance' }, { k: 'sst', label: 'RDV (planning SST)' },
     { k: 'pal', label: 'Palettes', num: true, fmt: n0 }, { k: 'cam', label: 'Camions', num: true, fmt: n0 },
-    { k: 'recu', label: 'Pointage', html: r => r.recu ? badge('Reçu', 'b-good') : badge('À recevoir', 'b-neutral') },
+    { k: 'etat', label: 'État', sv: r => sstState(r), html: sstBadge },
   ];
   const cols = [
     { k: 'date', label: 'Date', fmt: fdateL }, { k: 'dest', label: 'Destination' }, { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' },
@@ -2628,16 +2636,13 @@ function viewSST() {
   const { days } = weekData();
   const rows = S.sst.rows.filter(r => inWeek(r.date)).sort((a, b) => a.date.localeCompare(b.date) || a.heure.localeCompare(b.heure));
   const dshow = days.filter((d, i) => i < 5 || rows.some(r => r.date === d));
-  const t = today(), nowH = `${pad(new Date().getHours())}:${pad(new Date().getMinutes())}`;
-  const state = r => r.recu ? 'ok' : (r.date < t || (r.date === t && r.heure && r.heure < nowH) ? 'late' : 'plan');
-  const stBadge = r => ({ ok: badge('Réceptionné', 'b-good'), late: badge('Non pointé', 'b-warn'), plan: badge('Planifié', 'b-neutral') })[state(r)];
+  const state = r => sstState(r) === 'plan' ? 'plan' : 'ok';
   const cols = [
     { k: 'date', label: 'Date', fmt: fdateL }, { k: 'heure', label: 'Créneau' },
     { k: 'sst', label: 'Sous-traitant', html: r => `${esc(r.sst || '—')}${isInterco(r.sst) ? ' <span class="badge b-info b-nodot">Interco</span>' : ''}` },
     { k: 'pal', label: 'Palettes', num: true, fmt: n0 }, { k: 'cam', label: 'Camions', num: true, fmt: n0 },
     { k: 'arr', label: 'Arrivée' }, { k: 'dep', label: 'Départ' }, { k: 'comm', label: 'Commentaire', cls: 'wrap muted' },
-    { k: 'etat', label: 'État', sv: r => state(r), html: stBadge },
-    { k: 'recu', label: 'Pointage', html: r => `<button class="chip ${r.recu ? 'on' : ''}" data-recu="${esc(r.id)}">${r.recu ? '✓ Reçu' : 'Pointer'}</button>` },
+    { k: 'etat', label: 'État', sv: r => sstState(r), html: sstBadge },
     { k: 'x', label: '', html: r => r.src === 'saisie' ? `<button class="iconbtn" data-delsst="${esc(r.id)}" aria-label="Supprimer">${icon('trash')}</button>` : '' },
   ];
   const ssts = uniq(rows.map(r => r.sst)).sort((a, b) => sum(rows.filter(r => r.sst === b), r => r.pal) - sum(rows.filter(r => r.sst === a), r => r.pal));
@@ -2650,7 +2655,7 @@ function viewSST() {
   const files = uniq(S.sst.rows.filter(r => r.src !== 'saisie').map(r => r.src.split(' / ')[0]));
   return `<section class="card glass">
     <div class="card-head"><div><h2>Planning de réception sous-traitants</h2>
-    <p class="hint">Déposez <kbd>Planning_Reception_SST_Monteux3.xlsb</kbd> : les onglets « PlanningReception AAAA » sont lus (créneaux avec RDV ou palettes). Le pointage « Reçu » est conservé lors des ré-imports.</p></div>
+    <p class="hint">Déposez <kbd>Planning_Reception_SST_Monteux3.xlsb</kbd> : les onglets « PlanningReception AAAA » sont lus (créneaux avec RDV ou palettes). Pas de pointage : l’état vient du fichier (heure d’arrivée si elle est saisie, sinon créneau passé ou planifié). Un camion qui ne vient pas est déplacé dans le planning ; l’actualisation suffit.</p></div>
     </div>
     ${srcBar(files.length ? `${files.map(esc).join(', ')} · ${n0(S.sst.rows.length)} RDV` : '<b>Planning non importé</b>', !files.length)}
     <details class="paste" style="margin-top:14px"><summary>+ Ajouter un RDV manuellement</summary>
@@ -2666,10 +2671,10 @@ function viewSST() {
   ${rows.length ? `<section class="card glass">
     <div class="kpis" style="margin-bottom:16px">
       <div class="kpi" data-detail="sst" role="button" tabindex="0"><div class="lab"><i style="background:var(--in)"></i>Palettes attendues</div><div class="val">${n0(sum(rows, r => r.pal))}</div><div class="det">${n0(sum(rows, r => r.cam))} camion(s) · ${rows.length} RDV</div></div>
-      <div class="kpi" data-detail="sst-pt" role="button" tabindex="0"><div class="lab">Réceptionnés</div><div class="val">${n0(rows.filter(r => r.recu).length)}<small>/ ${rows.length}</small></div><div class="bar"><span style="width:${Math.round(rows.filter(r => r.recu).length / rows.length * 100)}%"></span></div></div>
+      <div class="kpi" data-detail="sst-pt" role="button" tabindex="0"><div class="lab">Créneaux passés</div><div class="val">${n0(rows.filter(r => sstState(r) !== 'plan').length)}<small>/ ${rows.length}</small></div><div class="bar"><span style="width:${Math.round(rows.filter(r => sstState(r) !== 'plan').length / rows.length * 100)}%"></span></div><div class="det">${n0(rows.filter(r => r.arr).length)} avec heure d’arrivée · ${n0(sum(rows.filter(r => sstState(r) === 'plan'), r => r.pal))} pal encore attendues</div></div>
       ${ssts.slice(0, 3).map(sn => { const x = rows.filter(r => r.sst === sn); return `<div class="kpi" data-detail="sstn|${esc(sn)}" role="button" tabindex="0"><div class="lab">${esc(sn || '—')}</div><div class="val">${n0(sum(x, r => r.pal))}<small>pal</small></div><div class="det">${x.length} RDV</div></div>`; }).join('')}
     </div>
-    <h2>Créneaux de la semaine</h2><p class="hint">Gris = planifié · orange = créneau passé non pointé · vert = réceptionné.</p>
+    <h2>Créneaux de la semaine</h2><p class="hint">Gris = planifié · vert = créneau passé ou arrivée saisie dans le planning.</p>
     ${grid}
     <h2>Par sous-traitant</h2>
     <div class="tbl-wrap matrix" style="margin:10px 0 16px"><table class="t"><thead><tr><th>Sous-traitant</th>${dshow.map(d => `<th class="num dayhead">${DAYS[dayIdx(d)]}<small>${fdate(d)}</small></th>`).join('')}<th class="num">Semaine</th></tr></thead><tbody>
@@ -2681,7 +2686,6 @@ function viewSST() {
   </section>` : `<section class="card glass"><div class="empty"><b>Aucune réception planifiée cette semaine</b>${S.sst.rows.length ? 'Le planning contient ' + n0(S.sst.rows.length) + ' RDV sur d’autres semaines.' : ''}</div></section>`}`;
 }
 document.addEventListener('click', e => {
-  const a = e.target.closest('[data-recu]'); if (a) { const r = S.sst.rows.find(x => x.id === a.dataset.recu); if (r) { r.recu = !r.recu; save('sst'); render(); } return; }
   const d = e.target.closest('[data-delsst]'); if (d) { S.sst.rows = S.sst.rows.filter(x => x.id !== d.dataset.delsst); save('sst'); render(); }
 });
 
@@ -2877,7 +2881,7 @@ function exportWeek() {
   add('Préparation', prep.map(l => ({ 'Date chargement': l.dc, Livraison: l.liv, Réceptionnaire: l.nom, Circuit: l.circuit, Article: l.art, Désignation: l.des, SGP: l.sgp, VP: l.vp, SWM: l.swm, 'UQ/PAL': l.uqpal, 'Pal SILO': l.palSilo, 'Hr SILO': +l.hrSilo.toFixed(4), 'Colis Picking': l.colisPick, 'Hr Pick': +l.hrPick.toFixed(4), 'Total Colis': l.pk, Picking: l.picking })));
   add('Expéditions', aff.map(r => ({ 'Date Enl': r.date, Livraison: r.liv, Transporteur: transpName(r.transp), Destinataire: r.nom, Ville: r.ville, CP: r.cp, Palettes: r.pal, Blocs: r.blocs, 'Poids brut': r.poids, RDV: r.rdv, Statut: stLabel(affStatus(r))[0], Commentaire: r.comm })));
   add('Rapatriements', rap.map(l => ({ Date: l.date, Entrepôt: l.entrepot, Type: KIND[l.kind], Sens: l.sens === 'in' ? 'Entrée' : 'Sortie', 'N° DT': l.ref, Remorque: l.remorque, Palettes: l.pal, 'Poids kg': Math.round(l.poids), Articles: l.nbArt })));
-  add('Réceptions SST', sst.map(r => ({ Date: r.date, Heure: r.heure, 'Sous-traitant': r.sst, Référence: r.ref, Palettes: r.pal, Quai: r.quai, Réceptionné: r.recu ? 'oui' : 'non' })));
+  add('Réceptions SST', sst.map(r => ({ Date: r.date, Heure: r.heure, 'Sous-traitant': r.sst, Référence: r.ref, Palettes: r.pal, Quai: r.quai, État: { ok: 'arrivé', past: 'créneau passé', plan: 'planifié' }[sstState(r)] })));
   XLSX.writeFile(wb, `Flux_${S.ui.week.y}_S${pad(S.ui.week.w)}.xlsx`);
 }
 
@@ -2925,8 +2929,6 @@ async function handleFiles(kind, files, auto) {
       let n = 0;
       for (const f of files) {
         const wb = await readWorkbook(f); const rows = parseSST(wb, f.name);
-        const prev = new Map(S.sst.rows.filter(r => r.src.startsWith(f.name + ' / ')).map(r => [r.id, r]));
-        for (const r of rows) { const p = prev.get(r.id); if (p && p.recu) r.recu = true; }
         S.sst.rows = S.sst.rows.filter(r => !r.src.startsWith(f.name + ' / ')).concat(rows); n += rows.length;
       }
       await save('sst'); toast(n ? `<b>${n} réceptions importées</b>` : 'Aucune ligne reconnue — envoyez le fichier pour adapter la lecture (colonne « Date » requise).', 5000);
@@ -2967,7 +2969,7 @@ const rapTable = (id, loads) => loads.length ? table(id, [
 ], loads, { total: { pal: sum(loads, l => l.pal), poids: sum(loads, l => l.poids) } }) : none('Aucun camion');
 const sstTable = (id, rows) => rows.length ? table(id, [
   { k: 'date', label: 'Date', fmt: fdateL }, { k: 'heure', label: 'Créneau' }, { k: 'sst', label: 'Sous-traitant' }, { k: 'pal', label: 'Palettes', num: true, fmt: n0 },
-  { k: 'cam', label: 'Camions', num: true, fmt: n0 }, { k: 'recu', label: 'Pointage', html: r => r.recu ? badge('Reçu', 'b-good') : badge('À recevoir', 'b-neutral') },
+  { k: 'cam', label: 'Camions', num: true, fmt: n0 }, { k: 'etat', label: 'État', sv: r => sstState(r), html: sstBadge },
 ], rows, { total: { pal: sum(rows, r => r.pal), cam: sum(rows, r => r.cam) } }) : none('Aucun RDV');
 function affTable(id, rows) {
   const idx = livIndex();
@@ -3659,7 +3661,7 @@ function recTrucks(days) {
   for (const r of S.sst.rows) {
     if (!set.has(r.date) || !(r.pal > 0)) continue;
     const n = Math.max(1, Math.round(num(r.cam) || 1)), h = r.arr || r.heure;
-    for (let i = 0; i < n; i++) out.push({ kind: isInterco(r.sst) ? 'Retour interco' : 'Sous-traitant', lbl: r.sst || '—', ref: r.ref || '', date: r.date, pal: r.pal / n, t: h ? dayStartTs(r.date) + hm(h) * H : null, src: r.arr ? 'arrivée pointée' : r.heure ? 'RDV planning' : '' });
+    for (let i = 0; i < n; i++) out.push({ kind: isInterco(r.sst) ? 'Retour interco' : 'Sous-traitant', lbl: r.sst || '—', ref: r.ref || '', date: r.date, pal: r.pal / n, t: h ? dayStartTs(r.date) + hm(h) * H : null, src: r.arr ? 'arrivée (planning)' : r.heure ? 'RDV planning' : '' });
   }
   for (const l of Object.values(S.rapat.loads)) if (l.sens === 'in' && set.has(l.date) && l.pal > 0) out.push({ kind: 'Rapatriement', lbl: l.entrepot, ref: l.ref, date: l.date, pal: l.pal, t: null, src: '' });
   // navettes usines : ramenées au fil de la journée
@@ -3742,7 +3744,7 @@ function recDetail() {
       ['Capacité de rangement', n0(capaBetween('equipesRecep', dayStartTs(days[0]), dayStartTs(days[0]) + 24 * H) * R.cad), 'pal/jour', `${R.cad} pal/h × heures cariste entrée SILO`]]) +
     h3('Palettes au sol en attente de rangement', 'Surface = blocs posés au sol de la réception. Zones rouges = au-dessus de la capacité : plus de place pour décharger.') + occChart(R, days.filter(D => rows.some(r => r.D === D)), now, `maintenant ${hh(now)}`, 'Occupation du quai de réception') +
     h3('Par jour', `Verdict rouge si le sol dépasse ${n0(R.cap)} blocs ou si un camion attend 30 min ou plus une porte libre.`) + dayT +
-    h3('Calcul par camion', `Arrivée = heure pointée, sinon RDV du planning SST, sinon répartie sur ${esc(st.rapatDebut)}–${esc(st.rapatFin)} (rapatriements sans heure). Le camion prend la première porte libre parmi ${R.doors}, décharge ${R.dur / 60e3} min, puis ses palettes (× ${nf2.format(R.ratio)} bloc/palette) attendent au sol ; elles sont rangées dans l’ordre d’arrivée à ${R.cad} pal/h par cariste entrée SILO présent.`) + trT };
+    h3('Calcul par camion', `Arrivée = heure d’arrivée saisie dans le planning, sinon RDV du planning SST, sinon répartie sur ${esc(st.rapatDebut)}–${esc(st.rapatFin)} (rapatriements sans heure). Le camion prend la première porte libre parmi ${R.doors}, décharge ${R.dur / 60e3} min, puis ses palettes (× ${nf2.format(R.ratio)} bloc/palette) attendent au sol ; elles sont rangées dans l’ordre d’arrivée à ${R.cad} pal/h par cariste entrée SILO présent.`) + trT };
 }
 function recTile() {
   const R = recSim(); if (!R.trucks.length) return '';
@@ -3874,7 +3876,7 @@ const DETAILS = {
   sst(d, name) {
     const rows = wk(d).sst.filter(r => name == null || r.sst === name);
     return { title: name != null ? `Réceptions · ${esc(name || '—')}` : 'Réceptions sous-traitants', sub: scopeLbl(d) + ' · planning de réception', body:
-      mini([['Palettes', n0(sum(rows, r => r.pal))], ['Camions', n0(sum(rows, r => r.cam || 1))], ['RDV', n0(rows.length)], ['Pointés', n0(rows.filter(r => r.recu).length), `/ ${rows.length}`], ['dont retours interco', n0(sum(rows.filter(r => isInterco(r.sst)), r => r.pal)), 'pal']]) +
+      mini([['Palettes', n0(sum(rows, r => r.pal))], ['Camions', n0(sum(rows, r => r.cam || 1))], ['RDV', n0(rows.length)], ['Créneaux passés', n0(rows.filter(r => sstState(r) !== 'plan').length), `/ ${rows.length}`], ['dont retours interco', n0(sum(rows.filter(r => isInterco(r.sst)), r => r.pal)), 'pal']]) +
       (name != null ? '' : h3('Par sous-traitant') + groupTable('dSN', rows, r => r.sst || '—', 'Sous-traitant', [{ label: 'RDV', f: x => x.length }, { label: 'Palettes', f: x => sum(x, r => r.pal) }, { label: 'Camions', f: x => sum(x, r => r.cam || 1) }])) +
       (d ? '' : h3('Par jour') + byDay('dSD', rows, r => r.date, [{ label: 'RDV', f: x => x.length }, { label: 'Palettes', f: x => sum(x, r => r.pal) }])) +
       h3('RDV') + sstTable('dSL', rows) };
@@ -3882,8 +3884,8 @@ const DETAILS = {
   sstn(d, name) { return DETAILS.sst(d, name); },
   'sst-pt'(d) {
     const rows = wk(d).sst, t = today();
-    const late = rows.filter(r => !r.recu && r.date <= t);
-    return { title: 'Pointage des réceptions', sub: scopeLbl(d), body: mini([['Pointés', n0(rows.filter(r => r.recu).length), `/ ${rows.length}`], ['Passés non pointés', n0(late.length)], ['À venir', n0(rows.filter(r => !r.recu && r.date > t).length)]]) + h3('Créneaux passés non pointés') + sstTable('dPL', late) + h3('Tous les RDV') + sstTable('dPA', rows) };
+    const done = rows.filter(r => sstState(r) !== 'plan'), next = rows.filter(r => sstState(r) === 'plan');
+    return { title: 'Avancement des réceptions', sub: scopeLbl(d) + ' · selon le planning SST (pas de pointage)', body: mini([['Créneaux passés', n0(done.length), `/ ${rows.length}`], ['Avec heure d’arrivée', n0(rows.filter(r => r.arr).length)], ['À venir', n0(next.length), `${n0(sum(next, r => r.pal))} pal`]]) + h3('À venir') + sstTable('dPN', next) + h3('Créneaux passés') + sstTable('dPL', done) };
   },
   out(d) {
     const aff = wk(d).aff; const na = vlOnlyRows(x => inWeek(x) && (!d || x === d));
@@ -4590,7 +4592,7 @@ function flowX(isIn, D0) {
   const head = mini([
     [isIn ? 'Palettes reçues' : 'Palettes expédiées', n0(tot), 'pal', `${n0(its.length)} ${isIn ? 'camion(s)' : 'livraison(s) / transfert(s)'}`],
     ['Capacité quai', cap ? pct(t) : '–', '', `${n0(tot)} / ${n0(cap)} pal${cap ? ` · reste ${n0(Math.max(0, cap - tot))}` : ''}`],
-    D ? ['Heure la plus chargée', (() => { const h = new Map(); its.forEach(x => { if (x.t) { const k = new Date(x.t).getHours(); h.set(k, (h.get(k) || 0) + x.pal); } }); const m = [...h.entries()].sort((a, b) => b[1] - a[1])[0]; return m ? `${m[0]}h–${m[0] + 1}h` : '—'; })(), '', isIn ? 'arrivées (pointées, RDV, ou réparties)' : 'départs (créneau de chargement)']
+    D ? ['Heure la plus chargée', (() => { const h = new Map(); its.forEach(x => { if (x.t) { const k = new Date(x.t).getHours(); h.set(k, (h.get(k) || 0) + x.pal); } }); const m = [...h.entries()].sort((a, b) => b[1] - a[1])[0]; return m ? `${m[0]}h–${m[0] + 1}h` : '—'; })(), '', isIn ? 'arrivées (heure saisie, RDV, ou réparties)' : 'départs (créneau de chargement)']
       : ['Jour le plus chargé', peak ? DAYS[dayIdx(peak.d)] : '—', '', peak ? `${n0(peak.pal)} pal · ${peak.cap ? pct(peak.pal / peak.cap) : '–'} de la capacité` : ''],
     [isIn ? 'Origine principale' : 'Transporteur principal', cats0[0] ? esc(cats0[0].c) : '—', '', cats0[0] ? `${n0(cats0[0].v)} pal · ${pct(cats0[0].v / (tot || 1))}` : ''],
     ...(isIn ? [] : [['Blocs au sol', n0(sum(its, x => x.blocs || 0)), '', 'base affrètement']]),
@@ -4599,7 +4601,7 @@ function flowX(isIn, D0) {
   if (D) {
     const hrs = []; for (let h = 4; h <= 22; h++) hrs.push(h);
     const data = hrs.map(h => { const o = {}; cats.forEach(c => o[c] = sum(its.filter(x => x.t && new Date(x.t).getHours() === h && catOf(x) === c), x => x.pal)); return o; });
-    chart = h3(isIn ? 'Arrivées heure par heure' : 'Départs heure par heure', isIn ? 'Heure d’arrivée pointée, sinon RDV du planning SST ; rapatriements et navettes sans heure répartis sur leur plage (Paramètres).' : 'Heure de départ = créneau de chargement (LIKP ou client), selon le réglage « la livraison quitte le quai ».') +
+    chart = h3(isIn ? 'Arrivées heure par heure' : 'Départs heure par heure', isIn ? 'Heure d’arrivée saisie dans le planning, sinon RDV du planning SST ; rapatriements et navettes sans heure répartis sur leur plage (Paramètres).' : 'Heure de départ = créneau de chargement (LIKP ou client), selon le réglage « la livraison quitte le quai ».') +
       barChart({ cats: hrs.map(h => ({ label: `${h}h`, tip: `${h}h–${h + 1}h` })), series: cats.map(c => ({ key: c, label: c, color: colOf(c) })), data, stacked: true, unit: ' pal', height: 260 });
   } else {
     const data = days.map(d => { const x = flowItems(isIn, [d]), o = {}; cats.forEach(c => o[c] = sum(x.filter(i => catOf(i) === c), i => i.pal)); return o; });
