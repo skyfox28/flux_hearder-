@@ -35,6 +35,7 @@ window.REF_DEFAULT = {"date":"2026-08-24","articles":{"13316003":["VERP","PAL","
   --row-hover:rgba(74,120,176,.07);
   --row-alt:rgba(30,40,60,.022);
   --radius:20px;
+  --plate: rgba(255,255,255,.62); --neutral:#9aa3b2; --bgimg: none;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -57,6 +58,7 @@ window.REF_DEFAULT = {"date":"2026-08-24","articles":{"13316003":["VERP","PAL","
     --input:rgba(10,14,26,.55);
     --row-hover:rgba(93,141,202,.12);
     --row-alt:rgba(255,255,255,.025);
+    --plate: rgba(30,34,46,.7); --neutral:#5f6b7e;
   }
 }
 :root[data-theme="dark"]{
@@ -79,6 +81,7 @@ window.REF_DEFAULT = {"date":"2026-08-24","articles":{"13316003":["VERP","PAL","
     --input:rgba(10,14,26,.55);
     --row-hover:rgba(93,141,202,.12);
     --row-alt:rgba(255,255,255,.025);
+    --plate: rgba(30,34,46,.7); --neutral:#5f6b7e;
 }
 *{box-sizing:border-box}
 svg[aria-hidden="true"]{width:18px;height:18px;flex:none}
@@ -665,7 +668,12 @@ html.style-sobre .mpanel{background:var(--bg-1);border-radius:8px}
 html.style-sobre .appfoot{font-size:13px}
 
 /* ===== verre plus transparent, mais lisible (v1.30) ===== */
-:root:not(.style-sobre){
+@media not (prefers-color-scheme: dark){:root:not(.style-sobre):not([data-theme="dark"]){
+  --glass: rgba(255,255,255,.42); --glass-strong: rgba(255,255,255,.72); --glass-soft: rgba(255,255,255,.34);
+  --glass-border: rgba(255,255,255,.75);
+  --text-1:#111827; --text-2:#2f3747; --text-3:#4a5262;
+}}
+:root[data-theme="light"]:not(.style-sobre){
   --glass: rgba(255,255,255,.42); --glass-strong: rgba(255,255,255,.72); --glass-soft: rgba(255,255,255,.34);
   --glass-border: rgba(255,255,255,.75);
   --text-1:#111827; --text-2:#2f3747; --text-3:#4a5262;
@@ -682,7 +690,7 @@ body{font-size:15px}
 table.t{font-size:14px} .t th{font-size:13px} .t td{padding:8px 11px}
 .chart .axis-t{font-size:12.5px;fill:var(--text-2)} .chart .val-t{font-size:12.5px}
 /* plaques de données plus opaques : les chiffres ne flottent pas */
-:root:not(.style-sobre) .gauge,:root:not(.style-sobre) .donut,:root:not(.style-sobre) .kpi,:root:not(.style-sobre) .tbl-wrap{background:rgba(255,255,255,.62)}
+:root:not(.style-sobre) .gauge,:root:not(.style-sobre) .donut,:root:not(.style-sobre) .kpi,:root:not(.style-sobre) .tbl-wrap{background:var(--plate)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gauge,:root:not([data-theme="light"]) .donut,:root:not([data-theme="light"]) .kpi{background:rgba(30,34,46,.7)}}
 :root[data-theme="dark"] .gauge,:root[data-theme="dark"] .donut,:root[data-theme="dark"] .kpi{background:rgba(30,34,46,.7)}
 /* ===== bandeau de pilotage ===== */
@@ -861,6 +869,79 @@ button.dz-pill{cursor:pointer;font-weight:700} button.dz-pill.t-crit{color:var(-
 .dz-drawer tr[data-detail]{cursor:pointer} .dz-drawer tr[data-detail]:hover td{background:var(--row-hover)}
 @media (max-width:900px){.dz-wgrid{grid-template-columns:1fr}.dz-l{grid-template-columns:100px 1fr 14px}.dz-l small{grid-column:1/-1;text-align:left}}
 .dz-drawer table.t{font-size:12.5px;width:100%} .dz-drawer .t td,.dz-drawer .t th{padding:6px 8px;white-space:normal}
+
+/* ===== style « sable » (industriel chaud, inspiré de Manhattan / Blue Yonder) ===== */
+:root.amb:not(.style-sobre){
+  --font: "Segoe UI Variable Text","Segoe UI",Inter,system-ui,-apple-system,Roboto,sans-serif;
+}
+/* fond calme : plus de taches colorées qui teintent les cartes */
+:root.amb:not(.style-sobre) .blobs{display:none}
+:root.amb:not(.style-sobre) body{background:var(--bgimg),linear-gradient(160deg,var(--bg-1),var(--bg-2) 55%,var(--bg-3));background-attachment:fixed;font-family:var(--font)}
+/* typo : chiffres alignés partout, trois tailles (verdict / valeur / détail) */
+:root.amb body{font-variant-numeric:tabular-nums;letter-spacing:.005em}
+:root.amb h2{font-size:17px;letter-spacing:-.01em}
+:root.amb .dz-verdict b{font-size:18px;letter-spacing:-.01em}
+:root.amb .dz-l b{font-size:14.5px}
+:root.amb .dz-l small,.amb .dz-prog small,.amb .dz-pill{font-size:12.5px}
+:root.amb .group-title,.amb .dz-when{letter-spacing:.08em}
+/* niveaux de verre : 1 fond · 2 cartes (liseré clair en haut) · 3 flottant presque opaque */
+:root.amb:not(.style-sobre) .glass{-webkit-backdrop-filter:blur(28px) saturate(140%);backdrop-filter:blur(28px) saturate(140%);
+  box-shadow:var(--shadow), inset 0 1px 0 var(--glass-shine)}
+:root.amb:not(.style-sobre) .glass::before{background:linear-gradient(180deg,var(--glass-shine),transparent 2px);opacity:.9}
+:root.amb:not(.style-sobre) .gauge,:root.amb:not(.style-sobre) .donut,:root.amb:not(.style-sobre) .kpi,:root.amb:not(.style-sobre) .tbl-wrap,
+:root.amb .dz-verdict,:root.amb .dz-wd,:root.amb .dz-learn,:root.amb .dz-todo-it{background:var(--plate)}
+:root.amb .mpanel,:root.amb .dz-drawer,:root.amb .dz-mbox,:root.amb .pv-drawer,:root.amb .pv-menu{background:var(--glass-strong)!important}
+:root.amb .mback{background:color-mix(in srgb,var(--bg-1) 55%,transparent)}
+/* une seule couleur d'action : liens, chevrons, survols, boutons principaux */
+:root.amb .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;box-shadow:none}
+:root.amb .dz-chev{color:color-mix(in srgb,var(--accent) 55%,var(--text-3))}
+:root.amb .linkbtn{color:var(--accent)}
+/* états : bandeau de couleur + pastille ; le neutre est vraiment gris */
+:root.amb .dz-day{border-top-width:3px}
+:root.amb .dz-day.st-none{border-top-color:var(--neutral)}
+:root.amb .st-ok .dz-badge{background:var(--good)} :root.amb .st-warn .dz-badge{background:var(--warn);color:#1a1200} :root.amb .st-ko .dz-badge{background:var(--crit)}
+:root.amb .dz-verdict{border:1px solid var(--glass-border)}
+:root.amb .st-ko .dz-verdict{background:color-mix(in srgb,var(--crit) 14%,var(--plate));border-color:color-mix(in srgb,var(--crit) 45%,transparent)}
+:root.amb .st-warn .dz-verdict{background:color-mix(in srgb,var(--warn) 12%,var(--plate));border-color:color-mix(in srgb,var(--warn) 40%,transparent)}
+:root.amb .st-warn .dz-verdict b.t-warn{color:var(--warn-ink)}
+:root.amb .dz-src{background:var(--plate)}
+/* nav : onglet actif = couleur d'action */
+:root.amb .nav button.on{background:color-mix(in srgb,var(--accent) 14%,var(--glass-strong));color:var(--text-1);box-shadow:inset 3px 0 0 var(--accent)}
+:root.amb .brand .logo{background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 50%,var(--pick)))}
+/* 7. animation sobre : seul un retard réel « respire » ; les chiffres glissent à la mise à jour */
+@keyframes ambBreath{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--crit) 55%,transparent)}50%{box-shadow:0 0 0 7px color-mix(in srgb,var(--crit) 0%,transparent)}}
+:root.amb .dz-day.st-ko .dz-badge,:root.amb .dz-todo-it.t-crit .dz-n{animation:ambBreath 2.4s ease-in-out infinite}
+:root.amb .dz-todo-it.t-crit .dz-n{border-radius:8px}
+@keyframes ambSlide{from{transform:translateY(6px);opacity:0}to{transform:none;opacity:1}}
+:root.amb .amb-new{animation:ambSlide .45s cubic-bezier(.2,.8,.2,1)}
+:root.amb .dz-day,:root.amb .dz-wd,:root.amb .dz-todo-it,:root.amb .dz-l{transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,background .16s ease}
+@media (prefers-reduced-motion: reduce){:root.amb *{animation:none!important;transition:none!important}}
+:root.amb .dz-todo-it.t-crit .dz-n{padding:0 6px;color:var(--crit-ink)}
+/* B. Sable (Manhattan / Blue Yonder) : industriel chaud, crème et bleu pétrole */
+:root.amb-sable:not(.style-sobre):not([data-theme="dark"]){
+  color-scheme: light;
+  --bg-1:#ece6dc; --bg-2:#e6dfd3; --bg-3:#efe9df;
+  --glass: rgba(255,252,246,.62); --glass-strong: rgba(255,252,246,.95); --glass-soft: rgba(255,250,240,.6);
+  --plate: rgba(255,253,249,.82);
+  --glass-border: rgba(255,255,255,.85); --glass-edge: rgba(70,50,20,.08); --glass-shine: rgba(255,255,255,1);
+  --shadow: 0 1px 2px rgba(70,50,20,.07), 0 10px 26px rgba(70,50,20,.08);
+  --text-1:#24201a; --text-2:#5a5145; --text-3:#857a6b;
+  --grid:#e1d9cc; --axis:#b3a894;
+  --accent:#0f6b7a; --accent-ink:#fff;
+  --in:#4f86a8; --out:#8c6fa8; --pick:#3e9a86; --silo:#7d8796; --c4:#b9955c; --c5:#b8828f; --c6:#86985c;
+  --good:#2f8f55; --good-ink:#226b3f; --warn:#d58b16; --warn-ink:#8a5600; --crit:#c8412f; --crit-ink:#a33222; --neutral:#a59a8a;
+  --chip:rgba(255,253,248,.75); --chip-on:#0f6b7a; --chip-on-ink:#fff;
+  --input:rgba(255,253,249,.9); --row-hover:rgba(15,107,122,.07); --row-alt:rgba(70,50,20,.025);
+  --radius:12px;
+  --bgimg: radial-gradient(1000px 600px at 0% 0%, rgba(15,107,122,.10), transparent 60%), repeating-linear-gradient(90deg, rgba(70,50,20,.025) 0 1px, transparent 1px 120px);
+}
+:root.amb-sable:not([data-theme="dark"]) .dz-day,:root.amb-sable:not([data-theme="dark"]) .dz-todo-it,:root.amb-sable:not([data-theme="dark"]) .dz-wd,:root.amb-sable:not([data-theme="dark"]) .dz-verdict{border-radius:10px}
+:root.amb-sable:not([data-theme="dark"]) h2,:root.amb-sable:not([data-theme="dark"]) .dz-day header b{font-weight:650}
+:root.amb-sable:not([data-theme="dark"]) .nav{background:linear-gradient(180deg,#123f49,#0d2f36)!important;border-color:transparent!important}
+:root.amb-sable:not([data-theme="dark"]) .nav button,:root.amb-sable:not([data-theme="dark"]) .nav .brand b{color:#e9f3f2} :root.amb-sable:not([data-theme="dark"]) .nav .brand small,:root.amb-sable:not([data-theme="dark"]) .nav .nav-sec,:root.amb-sable:not([data-theme="dark"]) .nav .navfoot,:root.amb-sable:not([data-theme="dark"]) .nav small{color:#9fc0c1}
+:root.amb-sable:not([data-theme="dark"]) .nav button.on{color:#fff;background:rgba(255,255,255,.14);box-shadow:inset 3px 0 0 #f0b84a}
+:root.amb-sable:not([data-theme="dark"]) .nav button:hover{background:rgba(255,255,255,.08);color:#fff}
+
 </style>
 </head>
 <body>
@@ -887,7 +968,7 @@ button.dz-pill{cursor:pointer;font-weight:700} button.dz-pill.t-crit{color:var(-
 /* Écran d'ouverture : petite scène 3D en CSS (entrepôt, quais, camions, chariot, palettes) + étapes réelles du démarrage */
 const SPLASH = (() => {
   const el = document.getElementById('splash');
-  try { const th = localStorage.getItem('flux-theme'); if (th) document.documentElement.dataset.theme = th; if (localStorage.getItem('flux-style') === 'sobre') document.documentElement.classList.add('style-sobre'); const dn = localStorage.getItem('flux-density'); if (dn === 'compact' || dn === 'airy') document.documentElement.classList.add('dens-' + dn); } catch (e) {}
+  try { const th = localStorage.getItem('flux-theme'); if (th) document.documentElement.dataset.theme = th; const sty = localStorage.getItem('flux-style'); if (sty === 'sobre') document.documentElement.classList.add('style-sobre'); if (sty === 'sable') document.documentElement.classList.add('amb', 'amb-sable'); const dn = localStorage.getItem('flux-density'); if (dn === 'compact' || dn === 'airy') document.documentElement.classList.add('dens-' + dn); } catch (e) {}
   let still = false; try { still = localStorage.getItem('flux-splash') === 'off'; } catch (e) {}
   const off = !/[?#&]splash\b/.test(location.href) && navigator.webdriver;   // tests automatisés : pas d'écran d'ouverture
   if (still) el.classList.add('still');
@@ -1025,9 +1106,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.39.1';
+const APP_VERSION = '1.40.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.40.0', '15/10/2026', 'Style « sable » au choix dans Paramètres › À propos : industriel chaud (fond crème, cartes ivoire, menu bleu pétrole, action en bleu pétrole), couleurs d’état réservées au « ça passe ? », flux en teintes douces, chiffres alignés, seul un retard réel respire en rouge. Mode sombre réparé : le verre plus transparent ne force plus les couleurs claires.'],
   ['1.39.1', '15/10/2026', 'Export WTS cohérent partout : dans l’onglet Préparation il forme son propre groupe « Export WTS · pas d’horaire, date souple », sans échéance ni marge, n’est plus compté en retard ni dans les livraisons sans créneau.'],
   ['1.39.0', '15/10/2026', 'Nouveau tableau de bord « poste de pilotage » : bandeau d’état des données (verdicts « À confirmer » si la VL06O a plus de 4 h), « À traiter » en lignes cliquables, cartes Aujourd’hui / prochains jours avec un seul verdict (échéance dépassée, quai saturé, export seul), panneau latéral des livraisons en retard, semaine en colonnes cliquables, détail replié ; barre du haut sur une ligne avec menu ⋯. Export WTS : pas d’horaire, date souple, préparé après les chargements à heure fixe et jamais compté en retard.'],
   ['1.38.0', '15/10/2026', 'Nouvel onglet Préparation : moniteur hiérarchique Jour → Créneau → Livraison → Postes avec les mêmes colonnes à tous les niveaux (avancement, reste SILO / picking, temps restant, échéance, fin estimée, marge, statut) ; bandeau de synthèse fixe ; filtres en français sur une ligne (codes SAP dans « Filtres avancés ») avec étiquettes des filtres actifs ; déplier jusqu’aux jours / créneaux / livraisons / postes ; « Masquer ce qui est prêt » et « Problèmes en tête » ; frise horaire repliable ; volet latéral de la livraison ; choix des colonnes ; statuts unifiés (✗ En retard, ! Juste, ● En cours, ○ À faire, ✓ Prête). La Synthèse reste accessible.'],
@@ -2696,7 +2778,7 @@ function viewSettings() {
     <div class="drop" data-drop="ref">${icon('upload')}<div><b>Déposez un référentiel</b> ou <button class="btn sm" data-pick="ref">choisir</button></div></div>
     ${S.ref ? `<div class="row" style="margin-top:10px"><button class="btn sm" data-act="ref-reset">Revenir au référentiel par défaut</button></div>` : ''}
   </section>
-  <section class="card glass"><h2>À propos</h2><label class="row" style="float:right;gap:6px;font-size:13px;margin-left:16px">Style <select class="inp" data-style style="padding:4px 8px;width:auto">${(() => { const v = document.documentElement.classList.contains('style-sobre') ? 'sobre' : 'verre'; return [['sobre', 'sobre (industriel)'], ['verre', 'verre']].map(([k, l]) => `<option value="${k}" ${v === k ? 'selected' : ''}>${l}</option>`).join(''); })()}</select></label><label class="row" style="float:right;gap:6px;font-size:13px;margin-left:16px">Affichage <select class="inp" data-density style="padding:4px 8px;width:auto">${(() => { let v = 'std'; try { v = localStorage.getItem('flux-density') || 'std'; } catch (e) {} return [['std', 'standard'], ['compact', 'compact (bureau)'], ['airy', 'aéré (tablette)']].map(([k, l]) => `<option value="${k}" ${v === k ? 'selected' : ''}>${l}</option>`).join(''); })()}</select></label><label class="row" style="float:right;gap:6px;font-size:13px"><input type="checkbox" data-splash ${(() => { try { return localStorage.getItem('flux-splash') === 'off' ? '' : 'checked'; } catch (e) { return 'checked'; } })()}> Animer l’écran d’ouverture</label><p class="hint" style="margin:0">Flux Hebdo Dépôt — version <button class="linkbtn" data-detail="version">${APP_VERSION}</button> — développé par <b>${APP_AUTHOR}</b>. Application 100 % locale : les données restent dans ce navigateur et, si vous l’activez, dans le dossier de sauvegarde partagé.</p></section>
+  <section class="card glass"><h2>À propos</h2><label class="row" style="float:right;gap:6px;font-size:13px;margin-left:16px">Style <select class="inp" data-style style="padding:4px 8px;width:auto">${(() => { const c = document.documentElement.classList, v = c.contains('style-sobre') ? 'sobre' : c.contains('amb-sable') ? 'sable' : 'verre'; return [['verre', 'verre'], ['sable', 'sable (industriel chaud)'], ['sobre', 'sobre (opaque)']].map(([k, l]) => `<option value="${k}" ${v === k ? 'selected' : ''}>${l}</option>`).join(''); })()}</select></label><label class="row" style="float:right;gap:6px;font-size:13px;margin-left:16px">Affichage <select class="inp" data-density style="padding:4px 8px;width:auto">${(() => { let v = 'std'; try { v = localStorage.getItem('flux-density') || 'std'; } catch (e) {} return [['std', 'standard'], ['compact', 'compact (bureau)'], ['airy', 'aéré (tablette)']].map(([k, l]) => `<option value="${k}" ${v === k ? 'selected' : ''}>${l}</option>`).join(''); })()}</select></label><label class="row" style="float:right;gap:6px;font-size:13px"><input type="checkbox" data-splash ${(() => { try { return localStorage.getItem('flux-splash') === 'off' ? '' : 'checked'; } catch (e) { return 'checked'; } })()}> Animer l’écran d’ouverture</label><p class="hint" style="margin:0">Flux Hebdo Dépôt — version <button class="linkbtn" data-detail="version">${APP_VERSION}</button> — développé par <b>${APP_AUTHOR}</b>. Application 100 % locale : les données restent dans ce navigateur et, si vous l’activez, dans le dossier de sauvegarde partagé.</p></section>
     <section class="card glass"><h2>Dossiers SharePoint des sources</h2><p class="hint">Chemin du dossier SharePoint synchronisé par OneDrive où arrivent les fichiers. Il est rappelé au moment de relier le dossier (onglet Sources) ; l’app vérifie que le dossier choisi porte le bon nom.</p>
       <div class="set-grid"><label style="grid-column:1/-1">Dossier VL06O<input class="inp" data-setstr="srcPathVl06o" value="${esc(st.srcPathVl06o || '')}" placeholder="MC CORMICK &amp; COMPANY INC\\WeDeliver - Documents\\…\\VL06O"></label></div>
     </section>
@@ -4643,7 +4725,7 @@ document.addEventListener('fullscreenchange', () => { if (!document.fullscreenEl
 
 // densité d'affichage
 const applyDensity = v => { document.documentElement.classList.remove('dens-compact', 'dens-airy'); if (v === 'compact' || v === 'airy') document.documentElement.classList.add('dens-' + v); };
-document.addEventListener('change', e => { if (e.target.matches('[data-style]')) { try { localStorage.setItem('flux-style', e.target.value); } catch (x) {} document.documentElement.classList.toggle('style-sobre', e.target.value === 'sobre'); render(); } });
+document.addEventListener('change', e => { if (e.target.matches('[data-style]')) { try { localStorage.setItem('flux-style', e.target.value); } catch (x) {} const c = document.documentElement.classList, v = e.target.value; c.toggle('style-sobre', v === 'sobre'); c.toggle('amb', v === 'sable'); c.toggle('amb-sable', v === 'sable'); render(); } });
 document.addEventListener('change', e => { if (e.target.matches('[data-density]')) { try { localStorage.setItem('flux-density', e.target.value); } catch (x) {} applyDensity(e.target.value); } });
 
 // ---------- Démarrage ----------
