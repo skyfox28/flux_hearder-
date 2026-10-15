@@ -107,6 +107,32 @@ Le bouton **Purger** en haut de l'écran (également dans Paramètres) ouvre une
 Une confirmation est demandée avant de supprimer. En mode « avant la semaine », la VL06O est décochée d'office : c'est une photo unique, qu'on ne supprime qu'en entier.
 Pensez à exporter une sauvegarde avant de purger.
 
+## Tableau de bord : poste de pilotage
+
+Une seule lecture, de haut en bas :
+
+1. **État des données** : une pastille par source (VL06O, LIKP, affrètement, navettes) avec son heure, et le bouton « Mettre à jour ». Vert si tout est récent ; une source ancienne est signalée en orange (navettes : au-delà de 7 jours). Si la VL06O a plus de 4 h, le bandeau passe en rouge et **tous les verdicts deviennent « À confirmer »** (gris hachuré), avec le résultat calculé en petit : on ne décide pas sur un vieux vert. Un badge prévient aussi quand la semaine affichée n'est pas celle de la VL06O.
+2. **À traiter** : une ligne par problème, avec son nombre, cliquable en entier (›). Les contrôles de cohérence (livraisons absentes de la VL06O ou de l'affrètement…) sont regroupés et repliés.
+3. **Cartes jour** : aujourd'hui, le prochain jour de chargement et le suivant. Chaque carte donne **un seul verdict** :
+   - « Passe · marge … » avec la fin estimée et la dernière échéance ;
+   - « Ne passe pas · manque … » avec le nombre de livraisons en retard prévu ;
+   - « Échéance … dépassée » quand l'heure est passée et qu'il reste des livraisons (au lieu d'un simple « ne passe pas ») ;
+   - orange « Prépa passe · quai saturé » quand la préparation tient mais pas le quai d'expédition ;
+   - « Export WTS seulement » quand il ne reste que de l'export (date souple).
+   Puis l'avancement de la préparation du jour, et quatre lignes cliquables : Picking, Sortie SILO, Quai expédition, Réception. Sans donnée, c'est écrit en gris (« aucun camion prévu », « pas de simulation ») plutôt qu'un faux vert. En bas : « N livr. en retard › » ouvre un **panneau latéral** avec échéance, fin estimée et retard (clic sur une ligne = fiche de la livraison).
+4. **Semaine** : une colonne par jour (statut, entrées et sorties face à la capacité du quai, % de préparation), cliquable ; jauges entrées / sorties de la semaine ; rendement appris.
+5. **Plus de détail**, replié : Répartition (anneaux), Et si ?, Tous les indicateurs, Graphiques de la semaine, Semaine jour par jour.
+
+**Règle de clic, partout pareille :** ce qui porte un › et réagit au survol est cliquable ; le reste ne l'est pas. Les grosses analyses s'ouvrent dans la fenêtre de détail, les petites listes dans le panneau de droite.
+
+**Barre du haut sur une ligne :** titre, semaine, sauvegarde, recherche, et un menu ⋯ (écran atelier, thème, Purger).
+
+## Export WTS : date souple
+
+L'export WTS (McCormick France CPTRAS, circuit Export) n'a pas d'horaire de départ et sa date est souple. Dans le calcul, ses livraisons ont pour échéance la fin de leur jour : elles sont préparées **après les chargements à heure fixe** du jour, ne comptent ni dans la marge ni dans le taux réel, et ne sont **jamais en retard**. La carte du jour indique « N export WTS (souple) » et combien finiront après ce jour.
+
+Les créneaux LIKP sont l'heure à laquelle la marchandise doit partir : l'échéance de préparation est calée sur le début du créneau, moins la marge réglée dans Paramètres.
+
 ## Grands détails : flux palettes et charge SILO / picking
 
 Sur le tableau de bord, un clic sur les graphiques « Flux palettes par jour » et « Charge SILO / picking » ouvre un détail en quasi plein écran.
@@ -226,7 +252,7 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
 ## Interface
 
 - **Pilotage visuel (tableau de bord et vue jour) :**
-  - **jauges en demi-cercle**, de 0 à 120 % : vert sous 85 %, orange de 85 à 100 %, rouge au-delà. Sur le tableau de bord : quai d'expédition (pic prévu sur 3 jours), quai de réception (pic de la semaine), picking et sortie SILO du prochain jour de chargement (taux réel, heure de fin), entrées et sorties de la semaine. Dans la vue jour : les mêmes, calculées pour ce jour-là ;
+  - **jauges en demi-cercle**, de 0 à 120 % : vert sous 85 %, orange de 85 à 100 %, rouge au-delà. Sur le tableau de bord : entrées et sorties de la semaine. Dans la vue jour : picking, sortie SILO, quais d'expédition et de réception, entrées et sorties, calculés pour ce jour-là ;
   - **anneaux** : avancement des livraisons (terminées / en cours / à faire), heures de picking par circuit, palettes sorties par transporteur (4 premiers + autres) ;
   - un clic sur une jauge ou un anneau ouvre le détail correspondant.
 - **Détails dédiés « Picking » et « Sortie SILO »** (clic sur leur jauge, dans le tableau de bord ou la vue jour, ou sur les tuiles « Taux de charge ») : un jour à la fois, avec des boutons pour changer de jour.
@@ -237,7 +263,6 @@ Les autres livraisons prennent leur créneau dans la LIKP. Liste modifiable dans
 - **Détails dédiés « Entrées » et « Sorties »** (clic sur leur jauge ou leur tuile) : boutons Semaine / jour, chiffres clés face à la capacité du quai, graphique par jour avec la ligne de capacité (ou heure par heure pour un jour : arrivées pointées, RDV ou réparties ; départs selon le créneau de chargement), anneau par origine ou par transporteur, tableau jour par jour, puis les listes détaillées (camions, RDV, navettes, livraisons affrétées et non affrétées).
 - Les quais d'expédition et de réception gardent leur détail dédié (occupation heure par heure, saturation, calcul par livraison ou par camion).
 - **Anneaux cliquables** : chaque transporteur ouvre son détail, un circuit ouvre le détail Picking, un statut ouvre la liste des livraisons.
-- **Tableau de bord épuré** : « À traiter » en haut, puis Pilotage et les verdicts des prochains chargements ; le simulateur, « Tous les indicateurs de la semaine » et « Semaine jour par jour » sont repliés (un clic les ouvre).
 - **Simulateur « Et si ? »** : curseurs pour les préparateurs (matin, après-midi), la cadence de picking entrepôt, et la cadence SILO (magasin automatique : 1 cariste par poste en entrée et en sortie, seule la cadence change). Le verdict, la marge et l'heure de fin se recalculent tout de suite, avec l'écart par rapport aux réglages. Dans la vue jour, le résultat est détaillé par créneau de chargement. Les paramètres ne sont jamais modifiés ; « Revenir aux réglages » annule la simulation.
 - **Verre plus lisible :** cartes plus transparentes, mais textes plus grands et plus foncés ; le détail des tuiles est affiché en entier.
 
@@ -265,8 +290,7 @@ Paramètres → À propos → « Animer l'écran d'ouverture » : décoché, la 
 
 ## Pilotage au quotidien
 
-- **Bandeau « Aujourd'hui »** en haut du tableau de bord : préparation (passe ou non), quai d'expédition, quai de réception, camions entrants et livraisons sortantes du jour (↘ · ↗ ; une livraison n'est pas un camion, la VL06O et la LIKP ne disent pas lesquelles partent ensemble). Un clic ouvre la journée.
-- **Feu tricolore de la semaine** : une pastille par jour, vert / orange / rouge. La couleur combine préparation, quai d'expédition et quai de réception ; orange au-delà de 85 % de la capacité. Un clic ouvre la journée.
+- **Cartes jour et colonnes de la semaine** (voir « Tableau de bord : poste de pilotage ») : la couleur combine préparation, quai d'expédition et quai de réception ; orange au-delà de 85 % de la capacité. Une livraison n'est pas un camion : la VL06O et la LIKP ne disent pas lesquelles partent ensemble. Un clic ouvre la journée.
 - **Overlay « Journée »** : état des trois contraintes, entrées et sorties du jour, détail de la préparation, et bouton **Imprimer / PDF** (seul le contenu de la journée est imprimé).
 - **Écran atelier** (icône écran en haut) : plein écran, gros chiffres, statut du jour, semaine, horloge. Les chiffres sont rafraîchis chaque minute ; les dossiers SharePoint et la sauvegarde partagée sont relus toutes les 10 minutes. Échap pour quitter.
 - **Recherche globale (Ctrl+K)** ou bouton « Rechercher » : n° de livraison, client, transporteur, entrepôt, sous-traitant, navette ou onglet. Entrée ouvre le résultat ; une livraison ouvre sa fiche (chargement, préparation, transporteur, fin estimée, quai, postes).

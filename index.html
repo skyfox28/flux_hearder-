@@ -785,6 +785,82 @@ tr.pv-frise td{padding:8px 12px!important;background:transparent!important}
 .t-warn{color:var(--warn-ink)}
 .pv-drawer table.t{font-size:12.5px} .pv-drawer .t td,.pv-drawer .t th{padding:6px 8px} .pv-drawer .badge{font-size:11.5px;padding:2px 7px}
 .pv-drawer .tbl-wrap{background:var(--glass)}
+/* ===== tableau de bord « poste de pilotage » ===== */
+body[data-tab="dash"] header.top #sources, body[data-tab="dash"] header.top #pageSub, body[data-tab="dash"] header.top .only-sobre{display:none!important}
+header.top{align-items:center;position:relative;z-index:25}
+.dz-menu{position:relative} .dz-menu summary{list-style:none;cursor:pointer;font-size:20px;line-height:1} .dz-menu summary::-webkit-details-marker{display:none}
+.dz-mbox{position:absolute;right:0;top:calc(100% + 8px);z-index:20;display:flex;flex-direction:column;gap:4px;padding:8px;min-width:230px;border-radius:14px;background:color-mix(in srgb,var(--bg-1) 75%,var(--glass-strong));-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border:1px solid var(--glass-border);box-shadow:var(--shadow)}
+.dz-mbox .dz-mi{all:unset;box-sizing:border-box;display:flex!important;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:10px;cursor:pointer;font-size:14px;color:var(--text-1)}
+.dz-mbox .dz-mi:hover{background:var(--row-hover)} .dz-mbox .dz-mi svg{width:18px;height:18px}
+.dz-mbox .danger{color:var(--crit-ink)!important}
+/* état des données */
+.dz-data{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 16px;border-radius:16px;border:1px solid var(--glass-border);background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.dz-data .dz-dot{width:10px;height:10px;border-radius:50%;background:var(--good);box-shadow:0 0 0 4px color-mix(in srgb,var(--good) 20%,transparent)}
+.dz-data.st-old{background:color-mix(in srgb,var(--crit) 14%,var(--glass));border-color:color-mix(in srgb,var(--crit) 50%,var(--glass-border))}
+.dz-data.st-old .dz-dot,.dz-data.st-none .dz-dot{background:var(--crit);box-shadow:0 0 0 4px color-mix(in srgb,var(--crit) 22%,transparent)}
+.dz-msg{flex:1;min-width:260px;font-size:14px}
+.dz-srcs{display:flex;gap:6px;flex-wrap:wrap}
+.dz-src{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12.5px;font-weight:600;border:1px solid var(--glass-border);background:var(--glass-soft)}
+.dz-src small{font-weight:500;color:var(--text-2)} .dz-src i{width:7px;height:7px;border-radius:50%;background:var(--good)}
+.dz-src.st-old i{background:var(--warn)} .dz-src.st-old{border-color:color-mix(in srgb,var(--warn) 60%,var(--glass-border))} .dz-src.st-none i{background:var(--text-3)}
+.dz-src:hover{border-color:var(--accent)}
+/* en-têtes de bloc */
+.dz-h{display:flex;align-items:baseline;gap:12px;margin-bottom:10px} .dz-h h2{margin:0}
+/* À traiter */
+.dz-todo{padding-bottom:12px}
+.dz-todo-it{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;margin-top:6px;border-radius:12px;border:1px solid var(--glass-border);background:var(--glass-soft);border-left:4px solid var(--text-3);transition:transform .12s,border-color .12s}
+.dz-todo-it.t-crit{border-left-color:var(--crit)} .dz-todo-it.t-warn{border-left-color:var(--warn)} .dz-todo-it.t-info{border-left-color:var(--accent)}
+.dz-todo-it:hover{border-color:var(--accent);transform:translateX(2px)}
+.dz-ic svg{width:18px;height:18px} .t-crit .dz-ic{color:var(--crit-ink)} .t-warn .dz-ic{color:var(--warn-ink)} .t-info .dz-ic{color:var(--accent)}
+.dz-n{font-size:22px;font-weight:700;min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
+.dz-tt{flex:1;min-width:0;display:flex;flex-direction:column} .dz-tt b{font-size:14px} .dz-tt small{color:var(--text-2);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dz-chev{color:var(--text-3);font-size:20px;font-weight:600;line-height:1} .dz-chev.big{font-size:26px}
+.dz-infos{margin-top:8px} .dz-infos summary{cursor:pointer;font-size:13px;color:var(--text-2);padding:4px 2px}
+/* cartes jour */
+.dz-days{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.dz-day{cursor:pointer;padding:16px 18px!important;display:flex;flex-direction:column;gap:12px;border-top:4px solid var(--text-3);transition:transform .14s,box-shadow .14s}
+.dz-day:hover{transform:translateY(-2px);box-shadow:var(--shadow)} .dz-day:hover .dz-chev.big{color:var(--accent)}
+.dz-day.st-ok{border-top-color:var(--good)} .dz-day.st-warn{border-top-color:var(--warn)} .dz-day.st-ko{border-top-color:var(--crit)} .dz-day.st-stale{border-top-color:var(--text-3);border-top-style:dashed}
+.dz-day header{display:flex;justify-content:space-between;align-items:flex-start}
+.dz-when{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2)} .dz-day header b{font-size:18px}
+.dz-verdict{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--glass-soft)}
+.dz-verdict>div{display:flex;flex-direction:column} .dz-verdict b{font-size:16px} .dz-verdict small{font-size:12.5px;color:var(--text-2)}
+.dz-badge{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:50%;font-weight:800;font-size:17px;color:#fff;background:var(--text-3)}
+.st-ok .dz-badge{background:var(--good)} .st-warn .dz-badge{background:var(--warn)} .st-ko .dz-badge{background:var(--crit)}
+.st-ko .dz-verdict{background:color-mix(in srgb,var(--crit) 12%,var(--glass-soft))} .st-ko .dz-verdict b{color:var(--crit-ink)}
+.st-stale .dz-verdict{background:repeating-linear-gradient(135deg,var(--glass-soft) 0 8px,transparent 8px 16px)} .st-stale .dz-verdict b{color:var(--text-2)}
+.dz-prog .bar{margin:0 0 4px;height:6px} .dz-prog small{font-size:12px;color:var(--text-2)}
+.dz-lines{display:flex;flex-direction:column;border-top:1px solid var(--glass-border)}
+.dz-l{display:grid;grid-template-columns:104px auto 1fr 14px;align-items:baseline;gap:8px;padding:7px 4px;border-bottom:1px solid var(--glass-border);font-size:13.5px}
+.dz-l small{color:var(--text-2);font-size:12px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dz-l.clk{cursor:pointer;border-radius:8px} .dz-l.clk:hover{background:var(--row-hover)} .dz-l.clk:hover .dz-chev{color:var(--accent)}
+.dz-l .dz-chev{font-size:16px}
+.dz-ll{color:var(--text-2);font-size:12.5px;font-weight:600}
+.dz-na{color:var(--text-3);font-weight:500;font-style:italic}
+.t-crit{color:var(--crit-ink)} .t-good{color:var(--good-ink,var(--good))}
+.dz-foot{display:flex;flex-wrap:wrap;gap:6px}
+.dz-pill{all:unset;font-size:12px;padding:3px 10px;border-radius:999px;background:var(--glass-soft);border:1px solid var(--glass-border);color:var(--text-2)}
+button.dz-pill{cursor:pointer;font-weight:700} button.dz-pill.t-crit{color:var(--crit-ink);border-color:color-mix(in srgb,var(--crit) 55%,var(--glass-border))} button.dz-pill:hover{background:var(--row-hover)}
+/* semaine */
+.dz-wgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+.dz-wdays{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.dz-wd{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:12px;border:1px solid var(--glass-border);background:var(--glass-soft);transition:border-color .12s}
+.dz-wd:hover{border-color:var(--accent)} .dz-wd.today{box-shadow:inset 0 0 0 2px var(--accent)} .dz-wd.past{opacity:.72}
+.dz-wh{display:flex;align-items:baseline;gap:6px} .dz-wh i{width:9px;height:9px;border-radius:50%;background:var(--text-3);align-self:center} .dz-wh small{color:var(--text-2);font-size:12px}
+.dz-wd.st-ok .dz-wh i{background:var(--good)} .dz-wd.st-warn .dz-wh i{background:var(--warn)} .dz-wd.st-ko .dz-wh i{background:var(--crit)}
+.dz-wr{display:grid;grid-template-columns:48px 1fr 40px;align-items:center;gap:6px;font-size:12px} .dz-wr em{font-style:normal;color:var(--text-2)} .dz-wr b{text-align:right;font-variant-numeric:tabular-nums}
+.dz-b{height:6px;border-radius:4px;background:var(--grid);overflow:hidden} .dz-b span{display:block;height:100%;border-radius:4px}
+.dz-ws{font-size:11.5px;color:var(--text-2)}
+.dz-wside{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;align-items:stretch} .dz-wside .gauge{padding:6px}
+.dz-learn{position:relative;justify-content:center;cursor:pointer;padding:10px 12px;border-radius:12px;border:1px solid var(--glass-border);background:var(--glass-soft);display:flex;flex-direction:column;gap:4px}
+.dz-learn:hover{border-color:var(--accent)} .dz-learn small{font-size:11.5px;color:var(--text-2)} .dz-learn .dz-chev{position:absolute;right:10px;top:8px}
+.dz-more{margin-top:4px}
+/* panneau latéral */
+.dz-drawer{position:fixed;top:16px;right:16px;bottom:16px;width:min(520px,calc(100vw - 32px));z-index:30;overflow:auto;padding:16px 18px;border-radius:18px;background:color-mix(in srgb,var(--bg-1) 72%,var(--glass-strong))!important;-webkit-backdrop-filter:blur(30px)!important;backdrop-filter:blur(30px)!important;box-shadow:0 20px 60px rgba(20,30,60,.35);animation:pvIn .18s ease}
+.dz-dh{display:flex;justify-content:space-between;gap:10px;margin-bottom:10px}
+.dz-drawer tr[data-detail]{cursor:pointer} .dz-drawer tr[data-detail]:hover td{background:var(--row-hover)}
+@media (max-width:900px){.dz-wgrid{grid-template-columns:1fr}.dz-l{grid-template-columns:100px 1fr 14px}.dz-l small{grid-column:1/-1;text-align:left}}
+.dz-drawer table.t{font-size:12.5px;width:100%} .dz-drawer .t td,.dz-drawer .t th{padding:6px 8px;white-space:normal}
 </style>
 </head>
 <body>
@@ -926,10 +1002,12 @@ const SPLASH = (() => {
       <button class="btn sm data-chip only-sobre" id="dataChip" data-gotab="src" title="État des sources (clic : onglet Sources)"></button>
       <button class="btn sm primary only-sobre" data-gotab="src">Mettre à jour</button>
       <button class="btn sm sync-chip" id="syncChip" hidden></button>
-      <button class="btn sm danger" data-detail="purge" title="Purger les données de l’app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg> Purger</button>
       <button class="btn sm" id="qkBtn" title="Rechercher une livraison, un client, un transporteur… (Ctrl+K)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg> Rechercher <kbd>Ctrl K</kbd></button>
-      <button class="iconbtn" id="tvBtn" aria-label="Écran atelier" title="Écran atelier (plein écran, rafraîchi automatiquement)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button>
-      <button class="iconbtn" id="themeBtn" aria-label="Changer de thème" title="Thème clair / sombre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      <details class="dz-menu"><summary class="iconbtn" aria-label="Plus d’actions" title="Plus d’actions">⋯</summary><div class="dz-mbox">
+        <button class="dz-mi" id="tvBtn" aria-label="Écran atelier" title="Écran atelier (plein écran, rafraîchi automatiquement)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg> <span>Écran atelier</span></button>
+        <button class="dz-mi" id="themeBtn" aria-label="Changer de thème" title="Thème clair / sombre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg> <span>Thème clair / sombre</span></button>
+        <button class="dz-mi danger" data-detail="purge" title="Purger les données de l’app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg> <span>Purger les données…</span></button>
+      </div></details>
     </header>
     <div id="view" class="grid"></div>
     <footer class="appfoot">Flux Hebdo <button class="linkbtn" data-detail="version" id="footVer"></button> · Développé par <b>Galaad Poivey</b></footer>
@@ -947,9 +1025,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.38.0';
+const APP_VERSION = '1.39.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.39.0', '15/10/2026', 'Nouveau tableau de bord « poste de pilotage » : bandeau d’état des données (verdicts « À confirmer » si la VL06O a plus de 4 h), « À traiter » en lignes cliquables, cartes Aujourd’hui / prochains jours avec un seul verdict (échéance dépassée, quai saturé, export seul), panneau latéral des livraisons en retard, semaine en colonnes cliquables, détail replié ; barre du haut sur une ligne avec menu ⋯. Export WTS : pas d’horaire, date souple, préparé après les chargements à heure fixe et jamais compté en retard.'],
   ['1.38.0', '15/10/2026', 'Nouvel onglet Préparation : moniteur hiérarchique Jour → Créneau → Livraison → Postes avec les mêmes colonnes à tous les niveaux (avancement, reste SILO / picking, temps restant, échéance, fin estimée, marge, statut) ; bandeau de synthèse fixe ; filtres en français sur une ligne (codes SAP dans « Filtres avancés ») avec étiquettes des filtres actifs ; déplier jusqu’aux jours / créneaux / livraisons / postes ; « Masquer ce qui est prêt » et « Problèmes en tête » ; frise horaire repliable ; volet latéral de la livraison ; choix des colonnes ; statuts unifiés (✗ En retard, ! Juste, ● En cours, ○ À faire, ✓ Prête). La Synthèse reste accessible.'],
   ['1.37.0', '08/10/2026', 'Onglet Préparation : avec un filtre Circuit ou Lieu, le calcul (file, fins estimées, verdicts, temps restants) porte sur les seules livraisons filtrées, comme si l’équipe ne préparait qu’elles ; bandeau explicatif avec les heures des autres circuits ignorées, et bouton pour revenir au calcul sur toute la file.'],
   ['1.36.3', '08/10/2026', 'Temps restant par livraison : palettes SILO et colis de picking restants affichés avec leur temps.'],
@@ -1699,12 +1778,9 @@ function viewDash() {
   const empty = !prep.length && !aff.length && !rap.length && !sst.length;
   const kpi = (lab, val, unit, det, color, key, extra = '') => `<div class="kpi"${key ? ` data-detail="${key}" role="button" tabindex="0"` : ''}><div class="lab">${color ? `<i style="background:${color}"></i>` : ''}${lab}</div><div class="val">${val}${unit ? `<small>${unit}</small>` : ''}${extra}</div>${det ? `<div class="det">${det}</div>` : ''}</div>`;
 
-  const alerts = buildAlerts(aff, prep), PW = prevWeekTotals();
+  const PW = prevWeekTotals();
   return `
-  ${empty ? '' : todayStrip()}
-  ${alerts ? `<section class="card glass"><h2>À traiter</h2><div class="alerts">${alerts}</div></section>` : ''}
-  ${empty ? '' : pilotBand()}
-  ${empty ? '' : `<section class="card glass">${reelTiles().replace('style="margin-top:18px"', 'style="margin-top:0"')}</section>`}
+  ${dashTop(aff, prep, empty)}
   ${empty || !projection() ? '' : fold('sim', 'Et si ?', 'simuler un autre effectif de préparateurs ou d’autres cadences', simCard().replace('class="card glass sim"', 'class="sim"'))}
   ${empty ? `<section class="card glass"><div class="empty"><b>Aucune donnée pour cette semaine</b>Importez la VL06O (Préparation), collez la base affrètement (Expéditions) et déposez les fichiers de rapatriement pour alimenter le tableau de bord.</div></section>` : ''}
   ${fold('kpis', 'Tous les indicateurs de la semaine', 'entrées, sorties, capacité quai, préparation', `
@@ -1738,16 +1814,134 @@ function viewDash() {
       <div class="kpi" data-detail="avanc" role="button" tabindex="0"><div class="lab">Avancement (heures faites)</div><div class="val">${pct(hrs ? hrsFait / hrs : NaN)}</div><div class="bar"><span style="width:${hrs ? Math.round(hrsFait / hrs * 100) : 0}%"></span></div><div class="det">${n1(hrsFait)} h faites / ${n1(hrs)} h</div></div>
     </div>
   `)}
-  <div class="grid g2">
+  ${fold('charts', 'Graphiques de la semaine', 'flux palettes par jour · charge SILO / picking face à la capacité', `<div class="grid g2">
     <section class="card glass clickcard" data-detail="flux" role="button" tabindex="0"><span class="expand">Agrandir ⤢</span><h2>Flux palettes par jour</h2><p class="hint">Entrées = rapatriements + réceptions SST · Sorties = expéditions affrétées + transferts vers externes. Pointillés : capacité quai (${n0(S.settings.capaInWeek)} pal/sem. en entrée, ${n0(S.settings.capaOutWeek)} en sortie, sur ${nbWorkDays()} jours).</p>
       ${barChart({ cats, series: [{ key: 'palIn', label: 'Entrées', color: cssVar('--in') }, { key: 'palOutAll', label: 'Sorties', color: cssVar('--out') }], data: pd, unit: ' pal', ref: [{ value: num(S.settings.capaInWeek) / nbWorkDays(), label: `cap. entrées ${n0(num(S.settings.capaInWeek) / nbWorkDays())}`, legend: 'Capacité entrées / jour', color: cssVar('--in') }, { value: num(S.settings.capaOutWeek) / nbWorkDays(), label: `cap. sorties ${n0(num(S.settings.capaOutWeek) / nbWorkDays())}`, legend: 'Capacité sorties / jour', color: cssVar('--out') }] })}
     </section>
     <section class="card glass clickcard" data-detail="prepxl" role="button" tabindex="0"><span class="expand">Agrandir ⤢</span><h2>Charge SILO / picking vs capacité</h2><p class="hint">Heures de travail picking (colis ÷ cadence du circuit, pour 1 préparateur) comparées à la capacité : ${esc(teamsLbl())} = ${n1(capaDay())} h/jour. Le SILO (${n1(A.hrSilo)} h sur la semaine) est à part. <b style="color:var(--crit-ink)">Limite réelle</b> : heures déjà faites + capacité encore disponible d’ici l’échéance, calculées sur la dernière VL06O — si le haut de la barre la dépasse, la journée ne passe pas.</p>
       ${barChart({ cats, series: [{ key: 'hrPickF', label: 'Picking fait', color: cssVar('--pick') }, { key: 'hrPickR', label: 'Picking à faire', color: cssVar('--silo') }], data: pd, stacked: true, unit: ' h', fmt: n1, ref: { value: capaDay(), label: `capacité ${n1(capaDay())} h`, legend: `Capacité (${nbPrep()} préparateurs)` }, marks: reelMarks(pd.map(r => r.d), 'P') })}
     </section>
-  </div>
+  </div>`)}
   ${fold('week', 'Semaine jour par jour', 'tous les flux du dépôt, jour par jour — cliquez un chiffre pour le détail', dayMatrix(pd))}
 `;
+}
+// ============================================================
+//   TABLEAU DE BORD : poste de pilotage
+//   état des données → À traiter → jours (aujourd'hui, prochains) → semaine → détail replié
+// ============================================================
+const agoLbl = ts => { const m = (Date.now() - ts) / 60e3; return m < 60 ? `il y a ${Math.max(1, Math.round(m))} min` : m < 48 * 60 ? `il y a ${Math.round(m / 60)} h` : `il y a ${Math.round(m / 1440)} j`; };
+// B. une seule référence de date : état de chaque source, bandeau si c'est vieux
+function dzData() {
+  const src = [
+    ['VL06O', S.prep && (S.prep.extractedAt || S.prep.importedAt), 4, 'src'],
+    ['LIKP', S.likp && S.likp.importedAt, 12, 'src'],
+    ['Affrètement', S.affret && S.affret.importedAt, 24, 'exp'],
+    ['Navettes', S.nav && S.nav.at, 7 * 24, 'nav'],
+  ];
+  const st = ([, ts, lim]) => !ts ? 'none' : (Date.now() - ts) / H > lim ? 'old' : 'ok';
+  const chips = src.map(s => `<button class="dz-src st-${st(s)}" data-gotab="${s[3]}" title="${s[1] ? esc(fdt(s[1])) : 'jamais importé'}"><i></i>${s[0]} <small>${s[1] ? (st(s) === 'ok' ? esc(hhmm(s[1])) : esc(fdateL(isoLocal(new Date(s[1]))))) : '—'}</small></button>`).join('');
+  const vl = src[0], old = st(vl) !== 'ok', wk = S.prep && vl[1] && !weekDays().includes(isoLocal(new Date(vl[1])));
+  const others = src.slice(1).filter(s => st(s) === 'old').map(s => `${s[0]} ${agoLbl(s[1])}`);
+  let msg, cls;
+  if (!vl[1]) { cls = 'none'; msg = '<b>Aucune VL06O</b> — les verdicts de préparation sont indisponibles.'; }
+  else if (old) { cls = 'old'; msg = `<b>VL06O ${agoLbl(vl[1])}</b> (${esc(fdt(vl[1]))}) — les verdicts ci-dessous sont <b>à confirmer</b> : actualisez avant de décider.`; }
+  else { cls = 'ok'; msg = `<b>Données à jour</b> · calculs au ${esc(fdt(vl[1]))}${others.length ? ` · <span class="t-warn">${esc(others.join(' · '))}</span>` : ''}`; }
+  return { old, html: `<section class="dz-data st-${cls}"><span class="dz-dot"></span><div class="dz-msg">${msg}${wk ? ` <span class="badge b-warn">semaine affichée ≠ semaine de la VL06O</span>` : ''}</div><div class="dz-srcs">${chips}</div><button class="btn sm primary" data-gotab="src">${icon('upload')} Mettre à jour</button></section>` };
+}
+// A + C. À traiter : une ligne = un problème, cliquable en entier, infos regroupées
+function dzTodo(aff, prep) {
+  const raw = buildAlerts(aff, prep); if (!raw) return '';
+  const box = document.createElement('div'); box.innerHTML = raw;
+  const its = [...box.querySelectorAll('.alert')].map(a => {
+    const c = a.classList.contains('crit') ? 'crit' : a.classList.contains('warn') ? 'warn' : 'info', btn = a.querySelector('button');
+    const b = a.querySelector('b').innerText, x = (a.querySelector('.x') || {}).innerText || '', n = (b.match(/^\d+/) || [''])[0];
+    const attr = btn ? [...btn.attributes].filter(t => /^data-/.test(t.name)).map(t => `${t.name}="${esc(t.value)}"`).join(' ') : '';
+    return { c, html: `<button class="dz-todo-it t-${c}" ${attr}><span class="dz-ic">${icon(c === 'info' ? 'info' : 'warn')}</span>${n ? `<b class="dz-n">${n}</b>` : ''}<span class="dz-tt"><b>${esc(b.replace(/^\d+\s*/, ''))}</b><small>${esc(x)}</small></span><span class="dz-chev">›</span></button>` };
+  });
+  const main = its.filter(i => i.c !== 'info'), info = its.filter(i => i.c === 'info');
+  return `<section class="card glass dz-todo"><div class="dz-h"><h2>À traiter</h2><span class="meta">${main.length ? `${main.length} action${main.length > 1 ? 's' : ''}` : 'rien d’urgent'}${info.length ? ` · ${info.length} info${info.length > 1 ? 's' : ''}` : ''}</span></div>
+    ${main.map(i => i.html).join('')}
+    ${info.length ? `<details class="dz-infos"${(S.ui.fold || {}).dzinfo ? ' open' : ''} data-fold="dzinfo"><summary>${info.length} information${info.length > 1 ? 's' : ''} (contrôles de cohérence)</summary>${info.map(i => i.html).join('')}</details>` : ''}</section>`;
+}
+// A + D. carte d'un jour : un verdict unique, honnête, puis le détail en 4 lignes
+function dzDay(D, lbl, stale) {
+  const x = dayStatus(D), r = x.row, P = projection(), now = P ? P.at : Date.now();
+  const late = P ? P.items.filter(i => i.D === D && (!i.okP || !i.okS)) : [];
+  let st, verdict, why = '';
+  if (!r && !x.dd.prep.length && !x.outN && !x.inCam) { st = 'none'; verdict = 'Pas de données'; why = 'rien dans la VL06O ni dans l’affrètement pour ce jour'; }
+  else if (!r) { st = x.dd.prep.length ? 'ok' : 'none'; verdict = x.dd.prep.length ? 'Préparation terminée' : 'Pas de préparation'; why = x.dd.prep.length ? 'tous les postes sont au statut C' : 'aucune ligne VL06O ce jour'; }
+  else if (r.nFlex === r.nLiv) { st = 'ok'; verdict = 'Export WTS seulement'; why = `pas d’horaire, date souple · fin estimée ${esc(fdt(Math.max(r.finP || 0, r.finS || 0)))}`; }
+  else if (r.okP && r.okS) { const m = Math.min(r.mP, r.mS); st = Math.max(r.tP || 0, r.tS || 0) > .85 ? 'warn' : 'ok'; verdict = `Passe · marge ${dur(m)}`; why = `fin estimée ${esc(finLbl(Math.max(r.finP || 0, r.finS || 0), D).replace('fin ', ''))} · dernière échéance ${esc(hhmm(r.dl))}`; }
+  else if (r.dl < now) { st = 'ko'; verdict = `Échéance ${hhmm(r.dl)} dépassée`; why = `${late.length || r.nLiv} livr. pas finie${(late.length || r.nLiv) > 1 ? 's' : ''} · fin estimée ${esc(fdt(Math.max(r.finP || 0, r.finS || 0)))}`; }
+  else { st = 'ko'; verdict = `Ne passe pas · manque ${dur(-Math.min(r.mP, r.mS))}`; why = `${late.length} livr. en retard prévu · fin estimée ${esc(fdt(Math.max(r.finP || 0, r.finS || 0)))}`; }
+  if (x.dock && x.dock.st === 'ko' && (st === 'ok' || st === 'warn')) { st = 'warn'; verdict = verdict.replace(/^Passe/, 'Prépa passe'); why = `<b class="t-warn">quai saturé</b> · ${esc(x.dock.det)}`; }
+  if (stale && st !== 'none') { why = `selon la VL06O du ${esc(fdt(now))} : ${verdict.toLowerCase()}`; verdict = 'À confirmer'; st = 'stale'; }
+  // avancement de la préparation (heures théoriques faites / totales)
+  const hT = sum(x.dd.prep, l => l.hrSilo + l.hrPick), hF = sum(x.dd.prep.filter(l => l.done), l => l.hrSilo + l.hrPick), av = hT ? hF / hT : NaN;
+  const line = (lab, val, sub, tone, key) => `<div class="dz-l${key ? ' clk' : ''}"${key ? ` data-detail="${key}" role="button" tabindex="0"` : ''}><span class="dz-ll">${lab}</span><b class="${tone ? 't-' + tone : ''}">${val}</b><small>${sub || ''}</small>${key ? '<span class="dz-chev">›</span>' : ''}</div>`;
+  const grey = v => `<span class="dz-na">${v}</span>`;
+  const pick = r ? (r.rP > 0 ? line('Picking', `${dur(r.rP)} à faire`, `${n0(r.rColis)} colis · ${finLbl(r.finP, D)}`, r.okP ? '' : 'crit', 'pick|' + D) : line('Picking', '✓ fait', '', 'good', 'pick|' + D)) : line('Picking', grey('—'), x.dd.prep.length ? 'terminé' : 'pas de VL06O');
+  const silo = r ? (r.rS > 0 ? line('Sortie SILO', `${n0(r.rPal)} pal à sortir`, `${dur(r.rS)} cariste · ${finLbl(r.finS, D)}`, r.okS ? '' : 'crit', 'siloOut|' + D) : line('Sortie SILO', '✓ fait', '', 'good', 'siloOut|' + D)) : line('Sortie SILO', grey('—'), '');
+  const dock = x.dock ? line('Quai expédition', x.dock.lbl.replace(/^[✓✗] /, ''), esc(x.dock.det), x.dock.st === 'ko' ? 'crit' : x.dock.st === 'warn' ? 'warn' : '', 'quai') : line('Quai expédition', grey('pas de simulation'), x.outN ? `${n0(x.outN)} livr. · ${n0(x.outPal)} pal` : '');
+  const rec = x.rec ? line('Réception', `${n0(x.inCam)} camion${x.inCam > 1 ? 's' : ''} · ${n0(x.inPal)} pal`, esc(x.rec.lbl.replace(/^[✓✗] /, '')), x.rec.st === 'ko' ? 'crit' : '', 'inx|' + D) : line('Réception', grey('aucun camion prévu'), '');
+  const foot = [late.length ? `<button class="dz-pill t-crit" data-dz="late|${D}">${late.length} livr. en retard ›</button>` : '',
+    r && r.nLiv - r.nFlex ? `<span class="dz-pill">${r.withT}/${r.nLiv - r.nFlex} créneaux LIKP connus</span>` : '',
+    r && r.nFlex ? `<span class="dz-pill" title="export WTS : pas d’horaire de départ, date souple — préparé après les chargements à heure fixe, jamais compté en retard">${r.nFlex} export WTS (souple)${r.nFlexLate ? ` · ${r.nFlexLate} fini${r.nFlexLate > 1 ? 's' : ''} après ce jour` : ''}</span>` : '',
+    r && r.rPalB ? `<span class="dz-pill" title="postes commencés : la VL06O ne dit pas si ces palettes sont déjà descendues">${n0(r.rPalB)} pal sur postes commencés</span>` : ''].filter(Boolean).join('');
+  const stl = { ok: '✓', warn: '!', ko: '✗', none: '–', stale: '?' }[st];
+  return `<article class="card glass dz-day st-${st}" data-detail="day" data-day="${D}" role="button" tabindex="0">
+    <header><div><span class="dz-when">${lbl}</span><b>${esc(DAYS[dayIdx(D)])} ${esc(fdate(D))}</b></div><span class="dz-chev big">›</span></header>
+    <div class="dz-verdict"><span class="dz-badge">${stl}</span><div><b>${verdict}</b><small>${why}</small></div></div>
+    <div class="dz-prog" title="heures de préparation faites / totales du jour"><div class="bar"><span style="width:${isFinite(av) ? Math.round(av * 100) : 0}%"></span></div><small>${isFinite(av) ? `préparation ${pct(av)} faite · ${n1(hF)} / ${n1(hT)} h` : 'pas de préparation ce jour'}</small></div>
+    <div class="dz-lines">${pick}${silo}${dock}${rec}</div>
+    ${foot ? `<div class="dz-foot">${foot}</div>` : ''}
+  </article>`;
+}
+// semaine : une colonne par jour (statut + barres flux), cliquable
+function dzWeek() {
+  const { prep, aff, rap, sst, nav } = weekData();
+  const rin = rap.filter(l => l.sens === 'in'), rout = rap.filter(l => l.sens === 'out');
+  const palIn = sum(rin, l => l.pal) + sum(sst, r => r.pal) + sum(nav, r => r.pal), palOut = sum(aff, r => r.pal) + sum(rout, l => l.pal);
+  const ci = num(S.settings.capaInWeek), co = num(S.settings.capaOutWeek), t = today();
+  const days = weekDays().filter(d => workDay(d) || dayData(d).aff.length);
+  const bar = (v, c, col) => `<div class="dz-b"><span style="width:${c ? Math.min(100, Math.round(v / c * 100)) : 0}%;background:${col}"></span></div>`;
+  const cols = days.map(d => { const x = dayStatus(d), dd = x.dd, hT = sum(dd.prep, l => l.hrSilo + l.hrPick), hF = sum(dd.prep.filter(l => l.done), l => l.hrSilo + l.hrPick);
+    return `<button class="dz-wd st-${x.overall}${d === t ? ' today' : ''}${d < t ? ' past' : ''}" data-detail="day" data-day="${d}">
+      <span class="dz-wh"><i></i><b>${DAYS[dayIdx(d)].slice(0, 3)}.</b><small>${fdate(d)}</small></span>
+      <span class="dz-wr"><em>Entrées</em>${bar(x.inPal, capaInDay(d), 'var(--in)')}<b>${n0(x.inPal)}</b></span>
+      <span class="dz-wr"><em>Sorties</em>${bar(x.outPal, capaOutDay(d), 'var(--out)')}<b>${n0(x.outPal)}</b></span>
+      <span class="dz-wr"><em>Prépa</em>${bar(hF, hT, 'var(--pick)')}<b>${hT ? pct(hF / hT) : '–'}</b></span>
+      <span class="dz-ws">${stLbl[x.overall]}</span></button>`; }).join('');
+  const P = projection();
+  const learn = P ? `<div class="dz-learn" data-detail="prepxl" role="button" tabindex="0"><span class="dz-ll">Rendement appris</span>${certLine('Picking', P.R.LP, P.R.pA)}${certLine('SILO', P.R.LS, P.R.sA)}<small>${P.R.n} actualisations · plus vous actualisez, plus c’est sûr</small><span class="dz-chev">›</span></div>` : '';
+  return `<section class="card glass dz-week"><div class="dz-h"><h2>Semaine ${S.ui.week.w}</h2><span class="meta">palettes entrées / sorties face à la capacité quai · avancement de la préparation</span></div>
+    <div class="dz-wgrid"><div class="dz-wdays">${cols}</div>
+      <div class="dz-wside">${gauge(ci ? palIn / ci : null, n0(palIn), `/ ${n0(ci)} pal`, 'Entrées semaine', 'capacité quai', 'inx')}${gauge(co ? palOut / co : null, n0(palOut), `/ ${n0(co)} pal`, 'Sorties semaine', 'capacité quai', 'outx')}${learn}</div></div></section>`;
+}
+// panneau latéral (petits détails sans quitter la page)
+function dzDrawer() {
+  if (!S.ui.dz) return '';
+  const [, D] = S.ui.dz.split('|'), P = projection(); if (!P) return '';
+  const its = P.items.filter(i => i.D === D && (!i.okP || !i.okS));
+  const rows = its.map(i => `<tr data-detail="liv|${esc(i.liv)}" role="button" tabindex="0"><td><b>${esc(i.liv)}</b> <small class="muted">${esc(i.circuit || '')}</small>${i.report ? ' <span class="badge b-warn">reliquat</span>' : ''}<br><small>${esc(i.nom)}</small></td><td class="num">${esc(fdt(i.dl))}${i.hasT ? '' : '<br><small class="muted">estimée</small>'}</td><td class="num">${esc(fdt(Math.max(i.finP || 0, i.finS || 0)))}</td><td class="num t-crit"><b>${dur(Math.max(i.retP || 0, i.retS || 0))}</b></td></tr>`).join('');
+  return `<aside class="dz-drawer glass"><div class="dz-dh"><div><b>Livraisons en retard</b><br><small class="muted">${esc(fdateL(D))} · ${its.length} livraison(s) · calcul au ${esc(fdt(P.at))}</small></div><button class="iconbtn" data-dz="close" aria-label="Fermer">✕</button></div>
+    <table class="t"><thead><tr><th>Livraison</th><th class="num">Échéance</th><th class="num">Fin estimée</th><th class="num">Retard</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="hint">Clic sur une ligne : fiche complète de la livraison. Échéance « estimée » = pas de créneau LIKP (jour même avant ${esc(S.settings.likpDefaut || '12:00')}).</p>
+    <button class="btn sm" data-detail="prepxl">Voir tout le calcul ›</button></aside>`;
+}
+document.addEventListener('click', e => { const m = document.querySelector('.dz-menu[open]'); if (m && (!e.target.closest('.dz-menu') || e.target.closest('.dz-mi'))) m.open = false; });
+document.addEventListener('click', e => { const b = e.target.closest('[data-dz]'); if (!b) return; e.stopPropagation(); S.ui.dz = b.dataset.dz === 'close' || S.ui.dz === b.dataset.dz ? null : b.dataset.dz; render(); }, true);
+
+// haut du tableau de bord : état des données, À traiter, jours, semaine
+function dashTop(aff, prep, empty) {
+  const dd = dzData(), P = projection(), t = today();
+  if (empty) return dd.html + dzTodo(aff, prep);
+  const next = P ? P.rows.map(r => r.D).filter(d => d > t).slice(0, 2) : [];
+  return `${dd.html}${dzTodo(aff, prep)}
+    <div class="dz-days">${dzDay(t, 'Aujourd’hui', dd.old)}${next.map((d, i) => dzDay(d, i ? 'Ensuite' : 'Prochain jour', dd.old)).join('')}</div>
+    ${dzWeek()}
+    <div class="dz-more"><span class="group-title">Plus de détail</span></div>
+    ${fold('rep', 'Répartition', 'livraisons par statut · picking par circuit · sorties par transporteur', donutsOf(prep, aff))}${dzDrawer()}`;
 }
 const MATRIX_DETAIL = { palNav: 'nav', camNav: 'nav', palRap: 'rapin', camRap: 'rapin', palSst: 'sst', camSst: 'sst', palIntercoBack: 'sst', palIn: 'in', livOut: 'out', livNA: 'out', palOut: 'out', palOutAll: 'flux', capIn: 'flux', capOut: 'flux', tIn: 'flux', tOut: 'flux', blocs: 'blocs', palInterco: 'interco', poids: 'poids', palExt: 'ext', livPrep: 'livprep', codes: 'livprep', hrs: 'charge', hrsFait: 'avanc', hrSilo: 'charge', capaS: 'charge', tauxS: 'charge', hrPick: 'charge', capa: 'charge', taux: 'charge', prepNeed: 'charge', dureeEq: 'charge' };
 const MATRIX_WEEK = { hrSilo: 'prepxl', capaS: 'prepxl', tauxS: 'prepxl', palIn: 'flux', palOut: 'flux', palOutAll: 'flux', capIn: 'flux', capOut: 'flux', tIn: 'flux', tOut: 'flux', hrs: 'prepxl', hrPick: 'prepxl', capa: 'prepxl', taux: 'prepxl', prepNeed: 'prepxl', dureeEq: 'prepxl' };
@@ -3070,6 +3264,8 @@ function projection() {
   const k = scopeKey(PROJ_SCOPE); if (!_projM.m.has(k)) _projM.m.set(k, projectionRaw(PROJ_SCOPE));
   return _projM.m.get(k);
 }
+// export WTS (McCormick France CPTRAS) : pas d'horaire de départ et date souple → échéance = fin de journée, jamais en retard
+const isFlexCirc = c => c === 'Export';
 function projectionRaw(scope) {
   const at = snapTs(); if (!at) return null;
   const R = rendement(), adj = S.settings.projAjust !== false;
@@ -3083,7 +3279,8 @@ function projectionRaw(scope) {
     // reliquat : échéance par défaut du jour (ou la fin du jour si elle est passée) ; il ne passe pas devant un chargement plus urgent
     const rep = ls.find(l => l.report); let dl = livDeadline(l0.liv, l0.dc, l0.nom);
     if (rep) { dl = deadlineTs(D); if (dl <= at) dl = dayStartTs(addDays(D, 1)); }
-    return { liv: l0.liv, nom: l0.nom, circuit: l0.circuit, D, dc: l0.dc, report: !!rep, dcOrig: rep ? rep.dcOrig : null, hasT: !rep && !!slotInfo(l0.liv, l0.nom), dl,
+    const flex = isFlexCirc(l0.circuit); if (flex) dl = Math.max(dayStartTs(addDays(D, 1)), at);   // export WTS : préparé après les chargements à heure fixe
+    return { liv: l0.liv, nom: l0.nom, circuit: l0.circuit, D, dc: l0.dc, report: !!rep, flex, dcOrig: rep ? rep.dcOrig : null, hasT: !rep && !!slotInfo(l0.liv, l0.nom), dl,
       rS: sum(ls, l => l.hrSilo), rP: sum(ls, l => l.hrPick), rPal: sum(ls, l => l.palSilo), rPalB: sum(ls.filter(l => l.st === 'B'), l => l.palSilo), rColis: sum(ls, l => l.colisPick), prep: livIndex().get(l0.liv)?.prep };
   }).filter(i => i.D).sort((a, b) => a.dl - b.dl || (b.report - a.report) || a.liv.localeCompare(b.liv));   // par échéance ; à échéance égale, le reliquat d'abord
   let cS = 0, cP = 0;
@@ -3093,26 +3290,27 @@ function projectionRaw(scope) {
     it.okS = it.rS <= 1e-9 || cS <= it.capS + 1e-6; it.okP = it.rP <= 1e-9 || cP <= it.capP + 1e-6;
     it.finS = it.rS > 0 ? finishTs('equipesSilo', at, cS / effS) : null; it.finP = it.rP > 0 ? finishTs('equipes', at, cP / effP) : null;
     it.retS = it.finS ? Math.max(0, (it.finS - it.dl) / H) : 0; it.retP = it.finP ? Math.max(0, (it.finP - it.dl) / H) : 0;
+    if (it.flex) { it.flexLate = !it.okS || !it.okP; it.okS = it.okP = true; it.retS = it.retP = 0; }   // date souple : jamais compté en retard
   }
   const late = items.filter(i => i.D < today);
   const lateS = sum(late, i => i.rS), lateP = sum(late, i => i.rP);
   const livD = new Map(); for (const l of lines) livD.set(l.liv, dayOf(l));
   const rows = uniq([...lines.map(dayOf)]).filter(d => d && d >= today).sort().map(D => {
     const its = items.filter(i => i.D === D), all = lines.filter(l => livD.get(l.liv) === D);
-    const last = its.length ? its[its.length - 1] : null;
+    const fx = its.filter(i => !i.flex), last = fx.length ? fx[fx.length - 1] : null;   // marges et taux : chargements à heure fixe (l'export WTS est souple)
     const rS = sum(its, i => i.rS), rP = sum(its, i => i.rP);
     const capS = last ? last.capS : capaBetween('equipesSilo', at, deadlineTs(D)) * effS, capP = last ? last.capP : capaBetween('equipes', at, deadlineTs(D)) * effP;
     const cumS = last ? last.cumS : 0, cumP = last ? last.cumP : 0;
-    const mS = its.length ? Math.min(...its.filter(i => i.rS > 0).map(i => i.capS - i.cumS).concat([capS - cumS])) : capS;
-    const mP = its.length ? Math.min(...its.filter(i => i.rP > 0).map(i => i.capP - i.cumP).concat([capP - cumP])) : capP;
+    const mS = fx.length ? Math.min(...fx.filter(i => i.rS > 0).map(i => i.capS - i.cumS).concat([capS - cumS])) : capS;
+    const mP = fx.length ? Math.min(...fx.filter(i => i.rP > 0).map(i => i.capP - i.cumP).concat([capP - cumP])) : capP;
     return { D, dl: last ? last.dl : deadlineTs(D), rS, rP, rPal: sum(its, i => i.rPal), rPalB: sum(its, i => i.rPalB), rColis: sum(its, i => i.rColis),
       fS: sum(all, l => l.hrSilo) - rS, fP: sum(all, l => l.hrPick) - rP, fPal: sum(all, l => l.palSilo) - sum(its, i => i.rPal),
       cumS, cumP, capS, capP, availS: Math.max(0, capS - (cumS - rS)), availP: Math.max(0, capP - (cumP - rP)),
       okS: its.every(i => i.okS), okP: its.every(i => i.okP), mS, mP, nLateS: its.filter(i => !i.okS).length, nLateP: its.filter(i => !i.okP).length, nLiv: its.length,
-      withT: its.filter(i => i.hasT).length,
+      withT: its.filter(i => i.hasT).length, nFlex: its.filter(i => i.flex).length, nFlexLate: its.filter(i => i.flexLate).length,
       // taux réel = point le plus tendu de la journée (cumul à l'échéance ÷ capacité disponible à cette échéance)
-      tS: Math.max(capS ? cumS / capS : (cumS ? Infinity : 0), ...its.filter(i => i.rS > 0).map(i => i.capS ? i.cumS / i.capS : Infinity)),
-      tP: Math.max(capP ? cumP / capP : (cumP ? Infinity : 0), ...its.filter(i => i.rP > 0).map(i => i.capP ? i.cumP / i.capP : Infinity)),
+      tS: Math.max(capS ? cumS / capS : (cumS ? Infinity : 0), ...fx.filter(i => i.rS > 0).map(i => i.capS ? i.cumS / i.capS : Infinity)),
+      tP: Math.max(capP ? cumP / capP : (cumP ? Infinity : 0), ...fx.filter(i => i.rP > 0).map(i => i.capP ? i.cumP / i.capP : Infinity)),
       finS: Math.max(0, ...its.map(i => i.finS || 0)) || null, finP: Math.max(0, ...its.map(i => i.finP || 0)) || null };
   });
   return { at, today, rows, items, lateS, lateP, R, effS, effP, adj, scope: scope || null };
@@ -3147,17 +3345,6 @@ const tauxReel = v => isFinite(v) ? `<span class="badge b-nodot ${v > 1 ? 'b-cri
 function dockTile() {
   const P = projection(); if (!P || !P.rows.length) return '';
   return (() => { const dk = dockSim(P); const nx = dk.sat[0]; const pk = Math.max(...P.rows.slice(0, 3).map(r => dk.dayPeak(r.D).peak), dk.now); return `<div class="kpi" data-detail="quai" role="button" tabindex="0"><div class="lab">Quai expédition (blocs)</div><div class="val">${n0(dk.now)}<small>/ ${n0(dk.cap)} blocs</small></div><div class="bar"><span style="width:${Math.min(100, Math.round(dk.now / dk.cap * 100))}%;background:${dk.now > dk.cap ? 'var(--crit)' : dk.now > dk.cap * .85 ? 'var(--warn)' : 'var(--good)'}"></span></div><div class="det">${nx ? `<strong style="color:var(--crit-ink)">saturé ${esc(fdt(nx.from))} (pic ${n0(nx.peak)} blocs)</strong>` : `pic prévu ${n0(pk)} blocs · pas de saturation`}</div></div>`; })();
-}
-function reelTiles() {
-  const P = projection(); if (!P || !P.rows.length) return '';
-  const rows = P.rows.slice(0, 3);
-  return `<div class="group-title" style="margin-top:18px">Réel — VL06O du ${esc(fdt(P.at))}</div>
-    <div class="kpis">${rows.map(r => `<div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Chargement ${fdateL(r.D)}</div>
-      <div class="reel-line"><span>Picking</span>${r.okP ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumP)} h à faire / ${n1(r.capP)} h dispo · taux ${isFinite(r.tP) ? pct(r.tP) : '∞'}${r.nLateP ? ` · <strong class="late">${r.nLateP} livr. en retard</strong>` : ''}</small></div>
-      <div class="reel-line"><span>SILO</span>${r.okS ? '<b class="ok">✓ passe</b>' : '<b class="ko">✗ ne passe pas</b>'}<small>${n1(r.cumS)} h à faire / ${n1(r.capS)} h dispo · taux ${isFinite(r.tS) ? pct(r.tS) : '∞'}${r.nLateS ? ` · <strong class="late">${r.nLateS} livr. en retard</strong>` : ''}${r.rPalB ? ` · ${n0(r.rPal)} pal, ${palBLbl(r.rPalB)}` : ''}</small></div>
-      <div class="det">${r.withT ? `${r.withT}/${r.nLiv} livr. avec créneau · ` : ''}dernière échéance ${esc(fdt(r.dl))}${r.finP ? ` · fin picking estimée ${esc(fdt(r.finP))}` : ''}</div></div>`).join('')}
-      <div class="kpi" data-detail="prepxl" role="button" tabindex="0"><div class="lab">Ce que l’app a appris</div>${certLine('Picking', P.R.LP, P.R.pA)}${certLine('SILO', P.R.LS, P.R.sA)}<div class="det">${P.R.n} actualisation${P.R.n > 1 ? 's' : ''} analysée${P.R.n > 1 ? 's' : ''} (21 j) · plus vous actualisez, plus c’est sûr</div></div>
-    </div>`;
 }
 // marqueurs « limite réelle » pour un graphique par jour de chargement
 function reelMarks(days, kind, unitMul = 1) {
@@ -3197,7 +3384,7 @@ function reelSection() {
     { k: 'satS', label: 'Cariste occupé jusqu’à l’import', html: r => occ(r.satS, r.finS, r.to) },
   ], recs) : none('Pas encore de mesure : l’app apprend entre deux imports successifs de la VL06O (par exemple le matin et l’après-midi).');
   return h3(`Réel : les journées passent-elles ? — VL06O extraite le ${esc(fdt(P.at))}`,
-      `Reste à faire = postes pas encore au statut C, convertis en heures avec les cadences. Il est cumulé dans l’ordre des chargements (retard compris : SILO ${n1(P.lateS)} h, picking ${n1(P.lateP)} h), puis comparé à la capacité restante des équipes entre l’heure d’extraction et l’échéance de chaque livraison : ${+S.settings.likpRef === 1 ? 'fin' : 'début'} de son créneau de chargement LIKP − ${num(S.settings.likpMarge)} min si elle est connue, sinon ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')} (estimé)`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}. ${!P.adj ? 'Capacité théorique (ajustement au rendement désactivé dans Paramètres).' : R.pA || R.sA ? `Capacité ajustée au rendement réel : picking ${rendLbl(R, 'p')}, SILO ${rendLbl(R, 's')}.` : `Capacité théorique : rendement appliqué seulement après ${R.minN} mesures et ${n1(R.minH)} h d’équipe mesurées (picking ${rendLbl(R, 'p')} ; SILO ${rendLbl(R, 's')}).`} Les palettes SILO des postes commencés (statut B) restent comptées à faire : la VL06O ne dit pas si elles sont déjà descendues ; elles sont signalées à part. Tout se recalcule à chaque actualisation de la VL06O.`)
+      `Reste à faire = postes pas encore au statut C, convertis en heures avec les cadences. Il est cumulé dans l’ordre des chargements (retard compris : SILO ${n1(P.lateS)} h, picking ${n1(P.lateP)} h), puis comparé à la capacité restante des équipes entre l’heure d’extraction et l’échéance de chaque livraison : ${+S.settings.likpRef === 1 ? 'fin' : 'début'} de son créneau de chargement LIKP − ${num(S.settings.likpMarge)} min si elle est connue, sinon ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')} (estimé)`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}. L’export WTS (pas d’horaire, date souple) passe après les chargements à heure fixe du jour et n’est jamais compté en retard. ${!P.adj ? 'Capacité théorique (ajustement au rendement désactivé dans Paramètres).' : R.pA || R.sA ? `Capacité ajustée au rendement réel : picking ${rendLbl(R, 'p')}, SILO ${rendLbl(R, 's')}.` : `Capacité théorique : rendement appliqué seulement après ${R.minN} mesures et ${n1(R.minH)} h d’équipe mesurées (picking ${rendLbl(R, 'p')} ; SILO ${rendLbl(R, 's')}).`} Les palettes SILO des postes commencés (statut B) restent comptées à faire : la VL06O ne dit pas si elles sont déjà descendues ; elles sont signalées à part. Tout se recalcule à chaque actualisation de la VL06O.`)
     + t + h3(`Livraisons en retard prévu (${risk.length})`, `Ordonnancement par échéance : chaque livraison est préparée dans l’ordre de son heure de chargement${S.likp ? ` (LIKP, ${n0(Object.keys(S.likp.map).length)} livraisons connues, créneaux de ${num(S.settings.likpSlot)} h, préparation finie ${num(S.settings.likpMarge)} min avant le ${+S.settings.likpRef === 1 ? 'fin' : 'début'} du créneau)` : ''} ; sans heure LIKP, échéance estimée : ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')} (estimé)`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}.`) + riskT + learnPanel(R) + h3('Mesures entre deux actualisations', 'Heures théoriques réalisées (postes passés au statut C ou sortis de la VL06O) ÷ heures d’équipe écoulées. Si l’équipe n’avait plus de travail à l’import suivant, elle a fini plus tôt : l’heure d’import ne compte pas, l’app en déduit seulement un minimum (« au moins ») et une heure de fin probable.') + hist;
 }
 
@@ -3710,6 +3897,7 @@ function render() {
   $('#wLabel').innerHTML = `Semaine ${w}<small>${fdate(mon)} → ${fdate(addDays(mon, 6))}/${y}</small>`;
   const [t, s] = TITLES[S.ui.tab]; $('#pageTitle').textContent = t; $('#pageSub').textContent = s;
   document.title = `${t} · Flux Hebdo`;
+  document.body.dataset.tab = S.ui.tab;
   renderNav();
   renderSources();
   $('#footVer').textContent = 'v' + APP_VERSION;
@@ -4064,17 +4252,6 @@ function dayStatus(D) {
   return { D, prep, dock, rec, inPal, inCam, outPal, outN, overall, dd, row, R, rr };
 }
 const stLbl = { ok: 'OK', warn: 'à surveiller', ko: 'en tension', none: 'pas de données' };
-function todayStrip() {
-  const t = today(), ds = dayStatus(t);
-  const it = (lab, x, key) => `<div class="ts-it st-${x ? x.st : 'none'}"${key ? ` data-detail="${key}" role="button" tabindex="0"` : ''} title="${esc(x ? x.det : 'pas de données')}"><i></i><span>${lab}</span><b>${x ? x.lbl : '—'}</b></div>`;
-  const days = weekDays().filter(d => workDay(d) || dayData(d).aff.length);
-  const dots = days.map(d => { const x = d === t ? ds : dayStatus(d); return `<button class="tl-dot st-${x.overall}${d === t ? ' today' : ''}" data-detail="day" data-day="${d}" title="${esc(`${DAYS[dayIdx(d)]} ${fdate(d)} : ${stLbl[x.overall]}`)}"><i></i><b>${DAYS[dayIdx(d)].slice(0, 3)}.</b><small>${fdate(d)}</small></button>`; }).join('');
-  return `<section class="card glass today-strip">
-    <div class="ts-today" data-detail="day" data-day="${t}" role="button" tabindex="0"><div class="ts-h"><b>Aujourd’hui</b><span>${esc(fdateL(t))}</span></div>
-      <div class="ts-items">${it('Préparation', ds.prep)}${it('Quai exp.', ds.dock)}${it('Quai réc.', ds.rec)}<div class="ts-it st-none"><span>Entrées · sorties</span><b>↘ ${n0(ds.inCam)} cam. · ↗ ${n0(ds.outN)} livr.</b></div></div></div>
-    <div class="ts-week"><span class="ts-lab">Semaine ${S.ui.week.w}</span><div class="tl-dots">${dots}</div></div>
-  </section>`;
-}
 DETAILS.day = (d) => {
   const D = d || today(), x = dayStatus(D), dd = x.dd;
   const byT = uniq(dd.aff.map(r => r.transp)).map(t => { const a = dd.aff.filter(r => r.transp === t); return { t: transpName(t), liv: a.length, pal: sum(a, r => r.pal), bl: sum(a, r => r.blocs) }; }).sort((a, b) => b.pal - a.pal);
@@ -4133,23 +4310,6 @@ function donutsOf(prep, aff) {
   const top = byT.slice(0, 4).concat(byT.length > 4 ? [{ lab: `${byT.length - 4} autres`, v: sum(byT.slice(4), x => x.v) }] : []).map((x, i) => Object.assign(x, { col: cols[i] }));
   const d3 = donut('Sorties par transporteur', top, n0(sum(byT, x => x.v)), 'pal', 'out');
   return `<div class="donuts">${d1}${d2}${d3}</div>`;
-}
-// bandeau de la semaine (tableau de bord)
-function pilotBand() {
-  const { prep, aff, rap, sst, nav } = weekData(), P = projection();
-  const rin = rap.filter(l => l.sens === 'in'), rout = rap.filter(l => l.sens === 'out');
-  const palIn = sum(rin, l => l.pal) + sum(sst, r => r.pal) + sum(nav, r => r.pal), palOut = sum(aff, r => r.pal) + sum(rout, l => l.pal);
-  const ci = num(S.settings.capaInWeek), co = num(S.settings.capaOutWeek), g = [];
-  if (P && P.rows.length) { const dk = dockSim(P), pk = Math.max(...P.rows.slice(0, 3).map(r => dk.dayPeak(r.D).peak), dk.now); g.push(gauge(pk / dk.cap, n0(pk), `/ ${n0(dk.cap)} blocs`, 'Quai expédition', 'pic prévu (3 jours)', 'quai')); }
-  const R = recSim(); if (R.trucks.length) { const pk = Math.max(0, ...R.days.map(D => recDayRow(R, D)).filter(r => r.cam).map(r => r.peak)); g.push(gauge(pk / R.cap, n0(pk), `/ ${n0(R.cap)} blocs`, 'Quai réception', 'pic de la semaine', 'recq')); }
-  const nx = P ? P.rows.find(r => r.rS + r.rP > 0) : null;
-  if (nx) {
-    g.push(gauge(nx.tP, n1(nx.cumP), `h / ${n1(nx.capP)} h`, `Picking · ${fdateL(nx.D)}`, finLbl(nx.finP, nx.D), 'pick|' + nx.D));
-    g.push(gauge(nx.tS, n0(nx.rPal), `pal · ${n1(nx.cumS)} h`, `Sortie SILO · ${fdateL(nx.D)}`, finLbl(nx.finS, nx.D), 'siloOut|' + nx.D));
-  }
-  g.push(gauge(ci ? palIn / ci : null, n0(palIn), `/ ${n0(ci)} pal`, 'Entrées semaine', 'capacité quai', 'inx'));
-  g.push(gauge(co ? palOut / co : null, n0(palOut), `/ ${n0(co)} pal`, 'Sorties semaine', 'capacité quai', 'outx'));
-  return `<section class="card glass pilot"><div class="group-title">Pilotage</div><div class="gauges">${g.join('')}</div>${donutsOf(prep, aff)}</section>`;
 }
 // bandeau d'une journée (overlay « Journée »)
 function pilotDay(x) {
