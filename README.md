@@ -1,6 +1,6 @@
 # Flux Hebdo Dépôt
 
-Version **1.37.0** · Développé par **Galaad Poivey**
+Version **1.38.0** · Développé par **Galaad Poivey**
 
 Application HTML 100 % frontend pour suivre chaque semaine l'activité du dépôt : flux entrants, sortants et préparation.
 Aucun serveur : on ouvre le fichier de l'app dans Edge ou Chrome, et les données restent stockées dans le navigateur (IndexedDB).
@@ -162,7 +162,7 @@ Le numéro de version (`APP_VERSION` dans `index.html`) augmente à chaque modif
 Un poste pas terminé dont la date de chargement est passée reste à préparer : il est **reporté sur le jour de l'extraction** de la VL06O.
 - Il compte dans la charge de ce jour partout : jauges, planning, détails Picking / Sortie SILO, simulateur, tableau de bord.
 - Il a pour échéance celle du jour (par défaut avant 12h00, ou la fin du jour si elle est déjà passée) et il est trié par échéance comme les autres livraisons : il ne retarde pas un chargement plus urgent (Plateforme 38 à 6h, par exemple). À échéance égale, il passe en premier.
-- Il apparaît dans le planning sur une ligne « Reliquat des jours précédents », en tête du jour, avec sa date d'origine (« reliquat du 05/10 »).
+- Il apparaît dans le moniteur sur une ligne « Reliquat des jours précédents », en tête du jour, avec sa date d'origine.
 
 ## Filtrer le calcul par circuit ou par lieu
 
@@ -172,7 +172,7 @@ Dans l'onglet Préparation, un filtre **Circuit** ou **Lieu** limite aussi le ca
 
 ## Temps restant par livraison
 
-Dans le planning de chargement (créneau déplié et « Détail des livraisons du jour »), la vue « Par N° livraison » et le détail d'une livraison :
+Dans le moniteur de l'onglet Préparation (à tous les niveaux), le volet latéral et le détail d'une livraison :
 - **Temps restant** = travail encore à faire sur la livraison, en heures et minutes : heures théoriques des postes pas encore au statut C (palettes SILO ÷ cadence SILO, colis ÷ cadence du circuit), divisées par le rendement appliqué. Sous le total : palettes SILO et colis de picking restants, avec leur temps (ex. « 2 pal SILO (7 min) · 1 646 colis (2 h 12) »).
 - **Marge** = échéance de préparation − fin estimée (orange sous 2 h, rouge = retard).
 - Un poste au statut B compte encore en entier : la VL06O ne dit pas quelle part est déjà prélevée (voir « quantité prélevée » si elle est ajoutée à l'extraction).
@@ -193,22 +193,20 @@ L'heure LIKP est le **début d'un créneau de chargement de 2 h** (8h → 8h–1
 
 La durée du créneau, le calage (début ou fin du créneau) et la marge se règlent dans Paramètres. Sans heure LIKP, l'échéance est **estimée le jour même avant 12h00**. L'heure et la règle se règlent dans Paramètres : jour même avant une heure, veille au soir ou fin de journée.
 
-## Planning de chargement (onglet Préparation)
+## Onglet Préparation : le moniteur
 
-C'est la vue par défaut de l'onglet Préparation. Elle se lit **jour par jour**.
+Une seule liste dépliable **Jour → Créneau de chargement → Livraison → Postes**, avec **les mêmes colonnes à tous les niveaux** (additionnées en montant) : avancement, livraisons prêtes (postes faits pour une livraison), reste SILO en palettes, reste picking en colis, temps restant, échéance de préparation, fin estimée, marge et statut.
 
-- **En-tête du jour :** volume, avancement, verdict picking et SILO (passe / ne passe pas, marge ou manque) et nombre de livraisons en retard.
-- **Une ligne par créneau de chargement LIKP** (6h–8h, 8h–10h… puis « Sans créneau LIKP ») :
-  - livraisons prêtes, palettes SILO et colis de picking (reste compris) ;
-  - reste à faire SILO et picking, échéance de préparation et fin estimée ;
-  - statut : ✓ tout est prêt, ✓ passe (avec la marge) ou ✗ en retard (avec le nombre de livraisons et le retard maximal).
-- **Frise horaire du jour (0h–24h) :**
-  - plages des équipes picking et SILO, y compris la nuit SILO 20h–3h30 ;
-  - créneaux de chargement en blocs (vert = passe ou prêt, orange = en cours, rouge = retard), avec les livraisons au survol ;
-  - repères de fin estimée du picking et du SILO, et heure d'extraction de la VL06O si elle tombe ce jour-là.
-- **Un clic sur un créneau** déplie ses livraisons : reste à faire, fin estimée, statut prépa / OT et verdict.
-- **« Détail des N livraisons du jour »** affiche toutes les livraisons du jour, triées par créneau. On peut y **saisir l'heure de chargement** d'une livraison sans créneau ; elle est enregistrée comme une heure LIKP. Un bandeau signale les livraisons à préparer sans créneau et donne leurs n° pour les extraire de la LIKP.
-- Les filtres de l'onglet (date, circuit, statuts, recherche) s'appliquent.
+- **Bandeau de synthèse** (fixe en haut) : temps restant, fin estimée et retards pour aujourd'hui et le prochain jour de chargement (un clic amène au jour) ; périmètre du calcul (toute la file ou le filtre) ; heure de la VL06O et de la LIKP.
+- **Filtres sur une ligne** : Jour, Circuit, Statut (✗ En retard, ● En cours, ○ À faire, ✓ Prête) et recherche. Les codes SAP (statut global de la livraison, statut WM du poste) sont dans « Filtres avancés ». Les filtres actifs s'affichent en étiquettes avec une croix.
+- **Déplier jusqu'à** : Jours, Créneaux (par défaut), Livraisons ou Postes ; chaque ligne se déplie aussi avec ▸.
+- **Masquer ce qui est prêt** (coché par défaut) et **Problèmes en tête** (retards et marges courtes remontés). Les jours terminés se replient ; les jours passés terminés disparaissent.
+- **Frise** : bouton sur chaque jour pour afficher la frise horaire (équipes, quai d'expédition, créneaux).
+- **Volet latéral** : un clic sur une livraison ouvre à droite ses statuts, son temps restant et son reste en palettes et colis, son créneau, son échéance, sa fin estimée et sa marge, le transporteur, le quai et la liste des postes avec leur statut ; « Fiche complète » ouvre le détail habituel.
+- **Colonnes** : menu pour choisir les colonnes affichées (Circuit et Transporteur en plus), mémorisé sur le poste.
+- **Alerte « sans créneau »** : les livraisons à préparer sans créneau de chargement sont signalées, avec un bouton pour saisir les heures.
+- **Statuts** : ✗ En retard (échéance dépassée à la fin estimée), ! Juste (marge sous 2 h), ● En cours, ○ À faire, ✓ Prête (tous les postes terminés).
+- La **Synthèse** (analyse par circuit et par jour) reste accessible par le sélecteur « Moniteur / Synthèse ».
 
 ## Créneaux fixes par client
 

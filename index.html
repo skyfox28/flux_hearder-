@@ -742,6 +742,49 @@ details.fold[open] > summary::before{transform:rotate(90deg)}
 .fold-t{font-size:16px;font-weight:700}
 .fold-b{padding:0 20px 18px}
 li.clk{cursor:pointer;border-radius:6px} li.clk:hover{background:var(--row-hover)}
+
+/* ===== vue Préparation : moniteur hiérarchique ===== */
+.pv-card{padding:0 0 16px}
+.pv-band{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;padding:14px 18px;background:var(--glass-strong);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid var(--glass-border);border-radius:var(--radius) var(--radius) 0 0}
+.pv-kpi{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:2px;padding:10px 14px;border-radius:14px;border:1px solid var(--glass-border);background:var(--glass-soft);cursor:default}
+button.pv-kpi{cursor:pointer} button.pv-kpi:hover{border-color:var(--accent)}
+.pv-kpi.st-late{border-color:color-mix(in srgb,var(--crit) 60%,var(--glass-border))} .pv-kpi.st-risk{border-color:color-mix(in srgb,var(--warn) 70%,var(--glass-border))}
+.pv-k-l{font-size:12.5px;color:var(--text-2);font-weight:600} .pv-k-v{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums} .pv-k-v small{font-size:13px;font-weight:500;color:var(--text-2)} .pv-k-s{font-size:12.5px;color:var(--text-2)}
+.pv-filters{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:12px 18px 0}
+.pv-filters .search{margin-left:auto;min-width:240px}
+.pv-adv{padding-top:8px} .btn.on{background:var(--chip-on);color:var(--chip-on-ink)}
+.pv-active{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 18px 0}
+.pv-x{font-size:12px;padding:3px 10px}
+.pv-tools{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:12px 18px}
+.seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--glass-soft);border:1px solid var(--glass-border)}
+.seg button{all:unset;cursor:pointer;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;color:var(--text-2)}
+.seg button.on{background:var(--chip-on);color:var(--chip-on-ink)}
+.pv-tg{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;color:var(--text-2);cursor:pointer}
+.pv-colmenu{position:relative} .pv-colmenu summary{list-style:none} .pv-colmenu summary::-webkit-details-marker{display:none}
+.pv-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:9;display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--bg-1) 70%,var(--glass-strong));-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border:1px solid var(--glass-border);box-shadow:var(--shadow);min-width:200px;font-size:13.5px}
+.pv-main{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;padding:0 18px}
+.pv-wrap{max-height:none}
+table.pvt td{vertical-align:middle}
+table.pvt th:first-child,table.pvt td:first-child{min-width:260px;white-space:normal}
+table.pvt td,table.pvt th{padding-left:8px;padding-right:8px}
+.pv-caret{all:unset;cursor:pointer;display:inline-grid;place-items:center;width:20px;height:20px;margin-right:4px;border-radius:6px;color:var(--text-2)} .pv-caret:hover{background:var(--row-hover)}
+tr.pv-day td{background:color-mix(in srgb,var(--glass-strong) 85%,transparent)!important;font-size:15px;border-top:2px solid var(--glass-border)}
+tr.pv-day.st-late td:first-child{box-shadow:inset 4px 0 0 var(--crit)} tr.pv-day.st-risk td:first-child{box-shadow:inset 4px 0 0 var(--warn)} tr.pv-day.st-ready td:first-child{box-shadow:inset 4px 0 0 var(--good)}
+tr.pv-slot td{font-size:14px}
+tr.pv-liv{cursor:pointer} tr.pv-liv.sel td{background:color-mix(in srgb,var(--accent) 14%,transparent)!important}
+tr.pv-poste td{font-size:12.5px;color:var(--text-2)}
+.pv-nom{color:var(--text-2)}
+.pv-fr{margin-left:8px;padding:2px 8px!important;font-size:12px!important}
+.pv-av{display:flex;align-items:center;gap:6px;min-width:90px} .pv-av .bar{flex:1;margin:0;height:6px} .pv-av small{font-size:12px;color:var(--text-2);min-width:34px;text-align:right}
+tr.pv-frise td{padding:8px 12px!important;background:transparent!important}
+.pv-drawer{position:fixed;top:16px;right:16px;bottom:16px;width:min(460px,calc(100vw - 32px));z-index:30;overflow:auto;padding:16px 18px;border-radius:18px;background:color-mix(in srgb,var(--bg-1) 70%,var(--glass-strong))!important;-webkit-backdrop-filter:blur(30px)!important;backdrop-filter:blur(30px)!important;box-shadow:0 20px 60px rgba(20,30,60,.35);animation:pvIn .18s ease}
+@keyframes pvIn{from{transform:translateX(24px);opacity:0}}
+.pv-dh{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.pv-kvs{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.pv-kv{display:flex;flex-direction:column;font-size:12.5px;color:var(--text-2)} .pv-kv b{font-size:14px;color:var(--text-1)}
+.t-warn{color:var(--warn-ink)}
+.pv-drawer table.t{font-size:12.5px} .pv-drawer .t td,.pv-drawer .t th{padding:6px 8px} .pv-drawer .badge{font-size:11.5px;padding:2px 7px}
+.pv-drawer .tbl-wrap{background:var(--glass)}
 </style>
 </head>
 <body>
@@ -904,9 +947,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.37.0';
+const APP_VERSION = '1.38.0';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.38.0', '15/10/2026', 'Nouvel onglet Préparation : moniteur hiérarchique Jour → Créneau → Livraison → Postes avec les mêmes colonnes à tous les niveaux (avancement, reste SILO / picking, temps restant, échéance, fin estimée, marge, statut) ; bandeau de synthèse fixe ; filtres en français sur une ligne (codes SAP dans « Filtres avancés ») avec étiquettes des filtres actifs ; déplier jusqu’aux jours / créneaux / livraisons / postes ; « Masquer ce qui est prêt » et « Problèmes en tête » ; frise horaire repliable ; volet latéral de la livraison ; choix des colonnes ; statuts unifiés (✗ En retard, ! Juste, ● En cours, ○ À faire, ✓ Prête). La Synthèse reste accessible.'],
   ['1.37.0', '08/10/2026', 'Onglet Préparation : avec un filtre Circuit ou Lieu, le calcul (file, fins estimées, verdicts, temps restants) porte sur les seules livraisons filtrées, comme si l’équipe ne préparait qu’elles ; bandeau explicatif avec les heures des autres circuits ignorées, et bouton pour revenir au calcul sur toute la file.'],
   ['1.36.3', '08/10/2026', 'Temps restant par livraison : palettes SILO et colis de picking restants affichés avec leur temps.'],
   ['1.36.2', '08/10/2026', 'Correction du statut par poste : un poste n’est fait que si son activité WM est terminée (C) ou si la livraison est en C. « Validat. prélèvement » = C ne suffit pas (des postes validés ont encore une activité WM en B ou en A) : des livraisons en cours étaient affichées « prêtes ».'],
@@ -1768,56 +1812,185 @@ document.addEventListener('click', e => {
   f[group] = a.includes(v) ? a.filter(x => x !== v) : [...a, v];
   render();
 });
-function viewPrep() {
-  const all = prepLines();
-  let body0 = '';
-  const imp = S.prep ? srcBar(`VL06O extraite ${esc(fdt(snapTs()))} · ${n0(S.prep.rows.length)} postes${S.likp ? ` · LIKP ${n0(Object.keys(S.likp.map).length)} créneaux` : ' · LIKP non collée'}`) : srcBar('<b>VL06O non importée</b> — importez l’extraction SAP pour suivre la préparation.', true);
-  if (!S.prep) return imp;
-
-  const f = S.ui.pf;
-  const dates = uniq(all.map(l => l.dc)).filter(Boolean).sort();
-  const lines = prepFiltered(all);
-  const circs = uniq(all.map(l => l.circuit)).sort();
-  const lieux = uniq(all.map(l => l.lieu)).filter(Boolean).sort();
-  const filters = `
-  <div class="filters">
-    <div class="fgroup"><label>Date chrgt</label>${dates.map(d => `<button class="chip ${(f.dates || []).includes(d) ? 'on' : ''}" data-chip="pf|dates|${d}">${fdateL(d)}</button>`).join('')}</div>
-    <div class="fgroup"><label>Circuit</label>${chips('circ', circs)}</div>
-    ${lieux.length > 1 ? `<div class="fgroup"><label>Lieu</label>${chips('lieu', lieux)}</div>` : ''}
-  </div>
-  <div class="filters">
-    <div class="fgroup"><label title="Statut global prélèvement">Prépa terminée ?</label>${chips('sgp', ['A', 'B', 'C'], { A: 'A · Non', B: 'B · Partiel', C: 'C · Oui' })}</div>
-    <div class="fgroup"><label title="Validation prélèvement">Prépa commencée ?</label>${chips('vp', ['–', 'C'], { '–': 'Vide', C: 'C' })}</div>
-    <div class="fgroup"><label title="Statut activité WM">OT créés ?</label>${chips('swm', ['A', 'B', 'C'], { A: 'A · Non', B: 'B · Partiel', C: 'C · Oui' })}</div>
-    <div class="spacer"></div>
-    <input class="search" type="search" placeholder="Livraison, client, article…" value="${esc(f.q || '')}" data-q="pf" aria-label="Rechercher">
-    <button class="btn sm" data-act="pf-reset">Supprimer les filtres</button>
-  </div>`;
-  const tabs = `<div class="tabs" role="tablist">${[['plan', 'Planning de chargement'], ['synth', 'Synthèse'], ['liv', 'Par N° livraison'], ['codes', 'Livraisons & codes']].map(([k, l]) => `<button role="tab" class="${S.ui.prepView === k ? 'on' : ''}" data-prepview="${k}">${l}</button>`).join('')}</div>`;
-  const noRef = lines.filter(l => l.noRef).length;
-  const noRefAll = all.filter(l => l.noRef).length;
-  if (all.length && noRefAll / all.length > .5) body0 = `<div class="alert crit" style="margin-bottom:12px">${icon('warn')}<div><b>${Math.round(noRefAll / all.length * 100)} % des postes ne trouvent pas leur fiche article</b> : Pal SILO et Colis picking ne peuvent pas être calculés (ils ne sont pas comptés, comme dans le fichier Excel). Référentiel chargé : ${n0(Object.keys(ref().articles).length)} articles. Exemples d’articles VL06O non trouvés : ${uniq(all.filter(l => l.noRef).map(l => l.art)).slice(0, 8).map(esc).join(', ')}. Mettez à jour le Fichier Article dans Paramètres (vous pouvez y déposer Analyse_Activité_Préparation.xlsb).</div></div>`;
-  let body = '';
-  // filtre Circuit / Lieu : le calcul (file, fins estimées, verdicts) peut ne porter que sur le filtre
-  const scope = (f.circ && f.circ.length) || (f.lieu && f.lieu.length) ? { circ: f.circ || [], lieu: f.lieu || [] } : null;
-  const useScope = scope && S.ui.projAll !== true;
-  let scopeBar = '';
-  if (scope && snapTs()) {
-    const Pall = projection(), out = Pall ? Pall.items.filter(i => !inScope(scope, { circuit: i.circuit, lieu: (livIndex().get(i.liv) || {}).lines?.[0]?.lieu })) : [];
-    const hOut = sum(out, i => i.rP + i.rS), what = [...(scope.circ || []), ...(scope.lieu || [])].join(', ');
-    scopeBar = useScope
-      ? `<div class="alert info" style="margin-bottom:12px">${icon('info')}<div style="flex:1"><b>Calcul limité au filtre (${esc(what)})</b> : fins estimées, verdicts et temps restants comme si l’équipe ne préparait que ces livraisons.${hOut > .05 ? ` Les autres circuits représentent ${n1(hOut)} h restantes, ignorées ici.` : ''}</div><button class="btn sm" data-act="proj-all" style="align-self:center;flex:none">Tenir compte de toute la file</button></div>`
-      : `<div class="alert warn" style="margin-bottom:12px">${icon('warn')}<div style="flex:1"><b>Calcul sur toute la file</b> : ${n1(hOut)} h restantes d’autres circuits (non affichées) passent aussi dans la file commune de l’équipe et repoussent les fins estimées.</div><button class="btn sm" data-act="proj-scope" style="align-self:center;flex:none">Limiter le calcul au filtre</button></div>`;
-  }
-  PROJ_SCOPE = useScope ? scope : null;
-  try {
-    if (S.ui.prepView === 'plan') body = prepPlanning(lines);
-    else if (S.ui.prepView === 'synth') body = prepSynth(lines);
-    else if (S.ui.prepView === 'liv') body = prepByLiv(lines);
-    else body = prepCodes(lines);
-  } finally { PROJ_SCOPE = null; }
-  return imp + `<section class="card glass">${body0}${filters}${scopeBar}${tabs}${noRef ? `<div class="alert warn" style="margin-bottom:12px">${icon('warn')}<div><b>${noRef} ligne(s) sans fiche article</b> — non comptées en SILO / picking (identique au fichier Excel). Mettez à jour le Fichier Article dans Paramètres.</div></div>` : ''}${body}</section>`;
+// ============================================================
+//   VUE PRÉPARATION : moniteur hiérarchique
+//   Jour → Créneau → Livraison → Postes · mêmes colonnes à tous les niveaux · panneau latéral
+// ============================================================
+const PV_COLS = [
+  ['av', 'Avancement'], ['nliv', 'Livraisons'], ['pal', 'Reste SILO'], ['colis', 'Reste picking'], ['rest', 'Temps restant'],
+  ['dl', 'Échéance'], ['fin', 'Fin estimée'], ['marge', 'Marge'], ['circ', 'Circuit'], ['transp', 'Transporteur'], ['st', 'Statut'],
+];
+const PV_DEF_COLS = ['av', 'nliv', 'pal', 'colis', 'rest', 'dl', 'fin', 'marge', 'st'];
+const pvCols = () => { try { const c = JSON.parse(localStorage.getItem('flux-pv-cols') || 'null'); if (Array.isArray(c) && c.length) return c; } catch (e) {} return PV_DEF_COLS; };
+const PV_LEVELS = [['day', 'Jours'], ['slot', 'Créneaux'], ['liv', 'Livraisons'], ['poste', 'Postes']];
+const PV_ST = {
+  ready: { sym: '✓', lbl: 'Prête', cls: 'b-good' }, late: { sym: '✗', lbl: 'En retard', cls: 'b-crit' },
+  risk: { sym: '!', lbl: 'Juste', cls: 'b-warn' }, prog: { sym: '●', lbl: 'En cours', cls: 'b-info' }, todo: { sym: '○', lbl: 'À faire', cls: 'b-neutral' },
+};
+const sdt = ts => ts ? new Date(ts).toLocaleString('fr-FR', { weekday: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+const pvBadge = k => `<span class="badge b-nodot ${PV_ST[k].cls}">${PV_ST[k].sym} ${PV_ST[k].lbl}</span>`;
+const PV_RANK = { late: 0, risk: 1, prog: 2, todo: 3, ready: 4 };
+// statut d'un ensemble de livraisons = le plus préoccupant
+const worst = xs => xs.reduce((m, x) => PV_RANK[x.stk] < PV_RANK[m] ? x.stk : m, 'ready');
+function pvModel(lines) {
+  const P = projection(), byLiv = new Map();
+  for (const l of lines) { if (!byLiv.has(l.liv)) byLiv.set(l.liv, []); byLiv.get(l.liv).push(l); }
+  const livs = [...byLiv.values()].map(ls => {
+    const l0 = ls[0], t = livRest(l0.liv), rep = ls.find(l => l.report), si = rep ? null : slotInfo(l0.liv, l0.nom);
+    const done = ls.filter(l => l.done).length, hrsT = sum(ls, l => l.hrSilo + l.hrPick), hrsF = sum(ls.filter(l => l.done), l => l.hrSilo + l.hrPick);
+    const open = ls.filter(l => !l.done), a = S.affret.rows[l0.liv];
+    const stk = !open.length ? 'ready' : t && t.marge != null && t.marge < 0 ? 'late' : t && t.marge != null && t.marge < 2 ? 'risk' : ls.some(l => l.done || l.st === 'B') ? 'prog' : 'todo';
+    const slotKey = rep ? '0|R' : si ? `1|${si.start}|${si.end}|${si.src === 'client' ? si.name : ''}` : '2|';
+    const slotLbl = rep ? 'Reliquat des jours précédents' : si ? siLbl(si).replace(/<[^>]+>/g, '') : 'Sans créneau';
+    const slotSub = rep ? `commandes du ${uniq(ls.filter(l => l.report).map(l => fdate(l.dcOrig))).join(', ')}` : si ? (si.src === 'client' ? 'créneau fixe client' : 'créneau LIKP') : 'échéance estimée';
+    return { liv: l0.liv, nom: l0.nom, ville: l0.ville, circuit: l0.circuit, D: livDay(ls), lines: ls, nPostes: ls.length, done, av: hrsT ? hrsF / hrsT : 1,
+      pal: sum(open, l => l.palSilo), colis: sum(open, l => l.colisPick), h: t ? t.h : 0, dl: t ? t.dl : null, fin: t ? t.fin : null, marge: t ? t.marge : null,
+      stk, slotKey, slotLbl, slotSub, transp: a ? transpName(a.transp) : '', prep: livStatus(ls).prep, ot: livStatus(ls).ot, report: !!rep,
+      it: P ? P.items.find(i => i.liv === l0.liv) : null, st: !open.length ? 'ready' : stk === 'late' ? 'late' : 'ok', t: rep ? 'R' : si ? `${si.start}|${si.end}|${si.src === 'client' ? si.name : ''}` : '' };
+  });
+  const agg2 = xs => {
+    const hrsT = sum(xs, x => sum(x.lines, l => l.hrSilo + l.hrPick)), hrsF = sum(xs, x => sum(x.lines.filter(l => l.done), l => l.hrSilo + l.hrPick));
+    const ms = xs.filter(x => x.marge != null && x.stk !== 'ready').map(x => x.marge), fins = xs.map(x => x.fin).filter(Boolean), dls = xs.filter(x => x.stk !== 'ready').map(x => x.dl).filter(Boolean);
+    return { n: xs.length, nReady: xs.filter(x => x.stk === 'ready').length, nLate: xs.filter(x => x.stk === 'late').length, av: hrsT ? hrsF / hrsT : 1,
+      pal: sum(xs, x => x.pal), colis: sum(xs, x => x.colis), h: sum(xs, x => x.h), dl: dls.length ? Math.min(...dls) : null, fin: fins.length ? Math.max(...fins) : null,
+      marge: ms.length ? Math.min(...ms) : null, stk: worst(xs), circ: uniq(xs.map(x => x.circuit)), transp: uniq(xs.map(x => x.transp).filter(Boolean)) };
+  };
+  const days = uniq(livs.map(x => x.D)).filter(Boolean).sort().map(D => {
+    const xs = livs.filter(x => x.D === D);
+    const slots = uniq(xs.map(x => x.slotKey)).sort().map(k => { const ss = xs.filter(x => x.slotKey === k); return Object.assign(agg2(ss), { key: k, lbl: ss[0].slotLbl, sub: ss[0].slotSub, livs: ss }); });
+    return Object.assign(agg2(xs), { D, slots, livs: xs, row: P ? P.rows.find(r => r.D === D) : null });
+  });
+  return { P, livs, days };
 }
+// ---------- rendu ----------
+const pvOpen = (k, def) => { const o = (S.ui.pv || {}).open || {}; return k in o ? o[k] : def; };
+const levelIdx = () => PV_LEVELS.findIndex(x => x[0] === ((S.ui.pv || {}).level || 'slot'));
+function pvCells(r, cols, kind) {
+  const c = {
+    av: `<div class="pv-av"><div class="bar"><span style="width:${Math.round(r.av * 100)}%;background:${r.av >= 1 ? 'var(--good)' : 'var(--accent)'}"></span></div><small>${pct(r.av)}</small></div>`,
+    nliv: kind === 'liv' ? `<span class="muted">${r.done}/${r.nPostes} postes</span>` : `${r.nReady}/${r.n}`,
+    pal: r.pal ? `${n0(r.pal)} pal` : '<span class="muted">—</span>', colis: r.colis ? `${n0(r.colis)} colis` : '<span class="muted">—</span>',
+    rest: r.h > 1 / 120 ? `<b>${dur(r.h)}</b>` : '<span class="muted">—</span>',
+    dl: r.dl && r.stk !== 'ready' ? esc(sdt(r.dl)) : '<span class="muted">—</span>', fin: r.fin && r.stk !== 'ready' ? esc(sdt(r.fin)) : '<span class="muted">—</span>',
+    marge: r.marge == null || r.stk === 'ready' ? '<span class="muted">—</span>' : r.marge < 0 ? `<span class="t-crit">retard ${dur(-r.marge)}</span>` : `<span class="${r.marge < 2 ? 't-warn' : 't-good'}">${dur(r.marge)}</span>`,
+    circ: esc([].concat(r.circ || r.circuit || []).join(', ')), transp: esc([].concat(r.transp || []).join(', ')) || '<span class="muted">—</span>',
+    st: kind === 'liv' || kind === 'slot' || kind === 'day' ? (r.nLate ? `<span class="badge b-nodot b-crit" title="${r.nLate} livraison(s) en retard">✗ ${r.nLate} retard${r.nLate > 1 ? 's' : ''}</span>` : pvBadge(r.stk)) : '',
+  };
+  if (kind === 'liv') c.st = pvBadge(r.stk);
+  const num = ['nliv', 'pal', 'colis', 'rest'];
+  return cols.map(k => `<td class="${num.includes(k) ? 'num' : ''}">${c[k] ?? ''}</td>`).join('');
+}
+function pvStatusFilter(x) { const f = (S.ui.pv || {}).st || []; return !f.length || f.includes(x.stk === 'risk' ? 'prog' : x.stk); }
+function viewPrep() {
+  if (!S.prep) return srcBar('<b>VL06O non importée</b> — importez l’extraction dans l’onglet Sources.', true);
+  const pv = S.ui.pv = Object.assign({ level: 'slot', open: {}, st: [], hideReady: true, probFirst: true, adv: false }, S.ui.pv || {});
+  const f = S.ui.pf, all = prepLines(), lines = prepFiltered(all);
+  const scope = (f.circ && f.circ.length) || (f.lieu && f.lieu.length) ? { circ: f.circ || [], lieu: f.lieu || [] } : null;
+  PROJ_SCOPE = scope && S.ui.projAll !== true ? scope : null;
+  try {
+    const M = pvModel(lines), cols = pvCols(), lvl = levelIdx(), today = M.P ? M.P.today : isoLocal(new Date());
+    // ----- bandeau de synthèse (fixe) -----
+    const nextDays = M.days.filter(d => d.D >= today && d.stk !== 'ready').slice(0, 2);
+    const band = `<div class="pv-band">${nextDays.map(d => `<button class="pv-kpi st-${d.stk}" data-pvjump="${d.D}"><span class="pv-k-l">${d.D === today ? 'Aujourd’hui' : 'Prochain'} · ${esc(fdateL(d.D))}</span>
+        <span class="pv-k-v">${dur(d.h)} <small>restant</small></span><span class="pv-k-s">fin ${d.fin ? esc(sdt(d.fin)) : '—'} · ${d.nLate ? `<b class="t-crit">${d.nLate} en retard</b>` : `marge ${d.marge != null ? dur(Math.max(0, d.marge)) : '—'}`}</span></button>`).join('')}
+      <div class="pv-kpi"><span class="pv-k-l">Calcul</span><span class="pv-k-v" style="font-size:16px">${PROJ_SCOPE ? 'limité au filtre' : 'toute la file'}</span><span class="pv-k-s">${scope ? `<button class="linkbtn" data-act="${PROJ_SCOPE ? 'proj-all' : 'proj-scope'}">${PROJ_SCOPE ? 'tenir compte de toute la file' : 'limiter au filtre'}</button>` : 'même équipe pour tous les circuits'}</span></div>
+      <div class="pv-kpi"><span class="pv-k-l">Données</span><span class="pv-k-v" style="font-size:16px">VL06O ${esc(new Date(snapTs()).toLocaleString('fr-FR', { weekday: 'short', hour: '2-digit', minute: '2-digit' }))}</span><span class="pv-k-s">LIKP ${S.likp ? esc(fdt(S.likp.importedAt)) : 'non collée'} · <button class="linkbtn" data-gotab="src">mettre à jour</button></span></div></div>`;
+    // ----- filtres (une ligne) -----
+    const dates = uniq(all.map(l => l.dc)).filter(Boolean).sort(), circs = uniq(all.map(l => l.circuit)).sort();
+    const chipSt = k => `<button class="chip${pv.st.includes(k) ? ' on' : ''}" data-pvst="${k}">${PV_ST[k].sym} ${PV_ST[k].lbl}</button>`;
+    const active = [...(f.dates || []).map(d => ['dates', d, fdateL(d)]), ...(f.circ || []).map(c => ['circ', c, c]), ...(f.lieu || []).map(c => ['lieu', c, c]), ...pv.st.map(s => ['st', s, PV_ST[s].lbl]),
+      ...(f.sgp || []).map(c => ['sgp', c, `statut global ${c}`]), ...(f.swm || []).map(c => ['swm', c, `WM ${c}`]), ...(f.q ? [['q', f.q, `« ${f.q} »`]] : [])];
+    const filters = `<div class="pv-filters">
+      <div class="fgroup"><label>Jour</label>${dates.filter(d => d >= addDays(today, -3)).map(d => `<button class="chip ${(f.dates || []).includes(d) ? 'on' : ''}" data-chip="pf|dates|${d}">${fdateL(d)}</button>`).join('')}</div>
+      <div class="fgroup"><label>Circuit</label>${chips('circ', circs)}</div>
+      <div class="fgroup"><label>Statut</label>${['late', 'prog', 'todo', 'ready'].map(chipSt).join('')}</div>
+      <input class="search" type="search" placeholder="Livraison, client, article…" value="${esc(f.q || '')}" data-q="pf" aria-label="Rechercher">
+      <button class="btn sm ${pv.adv ? 'on' : ''}" data-pvt="adv">Filtres avancés ${pv.adv ? '▴' : '▾'}</button>
+    </div>
+    ${pv.adv ? `<div class="pv-filters pv-adv"><div class="fgroup"><label title="Statut global prélèvement (livraison entière)">Statut global SAP</label>${chips('sgp', ['A', 'B', 'C'], { A: 'A · non commencée', B: 'B · commencée', C: 'C · terminée' })}</div>
+      <div class="fgroup"><label title="Statut activité WM du poste">Statut WM du poste</label>${chips('swm', ['A', 'B', 'C'], { A: 'A', B: 'B', C: 'C' })}</div></div>` : ''}
+    ${active.length ? `<div class="pv-active">${active.map(([g, v, l]) => `<button class="chip on pv-x" data-pvx="${g}|${esc(v)}">${esc(l)} ✕</button>`).join('')}<button class="linkbtn" data-act="pf-reset" data-pvreset>tout effacer</button></div>` : ''}`;
+    // ----- livraisons à préparer sans créneau de chargement : échéance seulement estimée -----
+    const noSlot = M.livs.filter(x => !x.report && x.slotKey === '2|' && x.stk !== 'ready' && x.D >= today);
+    const noSlotBar = noSlot.length ? `<div class="pv-filters"><div class="alert warn" style="flex:1">${icon('warn')}<div style="flex:1"><b>${noSlot.length} livraison(s) à préparer sans créneau de chargement</b> (${esc(uniq(noSlot.map(x => fdateL(x.D))).join(', '))}) : échéance estimée, verdict moins sûr.</div>${actBtn({ lbl: 'Compléter les heures', detail: 'noslot' })}</div></div>` : '';
+    // ----- barre d'outils de la liste -----
+    const isSynth = S.ui.prepView === 'synth';
+    const tools = `<div class="pv-tools"><div class="seg" role="group" aria-label="Vue"><button class="${!isSynth ? 'on' : ''}" data-pvview="mon">Moniteur</button><button class="${isSynth ? 'on' : ''}" data-pvview="synth">Synthèse</button></div>${isSynth ? '' : `
+      <div class="seg" role="group" aria-label="Déplier jusqu’à">${PV_LEVELS.map(([k, l], i) => `<button class="${i === lvl ? 'on' : ''}" data-pvlvl="${k}">${l}</button>`).join('')}</div>
+      <label class="pv-tg"><input type="checkbox" data-pvt="hideReady" ${pv.hideReady ? 'checked' : ''}> Masquer ce qui est prêt</label>
+      <label class="pv-tg"><input type="checkbox" data-pvt="probFirst" ${pv.probFirst ? 'checked' : ''}> Problèmes en tête</label>
+      <span class="spacer"></span>
+      <details class="pv-colmenu"${pv.colOpen ? ' open' : ''}><summary class="btn sm">Colonnes ▾</summary><div class="pv-menu">${PV_COLS.map(([k, l]) => `<label><input type="checkbox" data-pvcol="${k}" ${cols.includes(k) ? 'checked' : ''}> ${l}</label>`).join('')}<button class="linkbtn" data-pvcolreset>colonnes par défaut</button></div></details>`}
+    </div>`;
+    // ----- liste hiérarchique -----
+    const head = `<tr><th>Jour · créneau · livraison</th>${cols.map(k => `<th class="${['nliv', 'pal', 'colis', 'rest'].includes(k) ? 'num' : ''}">${PV_COLS.find(c => c[0] === k)[1]}${k === 'nliv' ? '<br><small>prêtes</small>' : ''}</th>`).join('')}</tr>`;
+    const sortP = (xs) => pv.probFirst ? xs.slice().sort((a, b) => PV_RANK[a.stk] - PV_RANK[b.stk]) : xs;
+    const caret = (k, open) => `<button class="pv-caret" data-pvopen="${esc(k)}" aria-expanded="${open}">${open ? '▾' : '▸'}</button>`;
+    let body = '';
+    const days = M.days.filter(d => d.D >= today || d.stk !== 'ready');
+    for (const d of days) {
+      const dlivs = d.livs.filter(pvStatusFilter); if (!dlivs.length) continue;
+      const allReady = d.stk === 'ready', dOpen = pvOpen('d|' + d.D, !allReady && lvl >= 1 && d.D <= addDays(today, 7));
+      const fr = pvOpen('f|' + d.D, false);
+      body += `<tr class="pv-day st-${d.stk}" id="pvd-${d.D}"><td>${caret('d|' + d.D, dOpen)}<b>${esc(fdateL(d.D))}</b> ${d.D === today ? '<span class="badge b-info b-nodot">aujourd’hui</span>' : ''}
+        ${allReady ? '<span class="muted"> · tout est prêt</span>' : ''}<button class="btn sm ghost pv-fr" data-pvopen="f|${d.D}" title="Frise horaire du jour">${fr ? 'Masquer la frise' : 'Frise'}</button></td>${pvCells(d, cols, 'day')}</tr>`;
+      if (fr) body += `<tr class="pv-frise"><td colspan="${cols.length + 1}">${dayTimeline(d.D, d.livs, M.P)}</td></tr>`;
+      if (!dOpen) continue;
+      for (const s of sortP(d.slots)) {
+        const sl = s.livs.filter(pvStatusFilter).filter(x => !(pv.hideReady && x.stk === 'ready')); if (!sl.length) continue;   // créneau sans livraison correspondant aux filtres
+        const sOpen = pvOpen('s|' + d.D + s.key, lvl >= 2);
+        body += `<tr class="pv-slot st-${s.stk}"><td style="padding-left:30px">${caret('s|' + d.D + s.key, sOpen)}<b>${esc(s.lbl)}</b> <small class="muted">${esc(s.sub)}</small></td>${pvCells(s, cols, 'slot')}</tr>`;
+        if (!sOpen) continue;
+        for (const x of sortP(sl)) {
+          const lOpen = pvOpen('l|' + x.liv, lvl >= 3), sel = (S.ui.pv.sel === x.liv);
+          body += `<tr class="pv-liv st-${x.stk}${sel ? ' sel' : ''}" data-pvsel="${esc(x.liv)}"><td style="padding-left:56px">${caret('l|' + x.liv, lOpen)}<b>${esc(x.liv)}</b> <span class="pv-nom">${esc(x.nom)}</span>${x.report ? ` <span class="badge b-warn b-nodot">reliquat</span>` : ''} <span class="muted">· ${esc(x.circuit)}</span></td>${pvCells(x, cols, 'liv')}</tr>`;
+          if (!lOpen) continue;
+          for (const l of x.lines) {
+            const pk = l.st === 'C' ? 'ready' : l.st === 'B' ? 'prog' : 'todo', h = l.done ? 0 : l.hrSilo / (M.P?.effS || 1) + l.hrPick / (M.P?.effP || 1);
+            body += `<tr class="pv-poste"><td style="padding-left:84px"><span class="muted">${l.poste}</span> ${esc(l.art)} <span class="pv-nom">${esc(l.des)}</span></td>${cols.map(k => `<td class="${['nliv', 'pal', 'colis', 'rest'].includes(k) ? 'num' : ''}">${k === 'pal' ? (l.done ? '<span class="muted">—</span>' : l.palSilo ? n0(l.palSilo) + ' pal' : '<span class="muted">—</span>') : k === 'colis' ? (l.done ? '<span class="muted">—</span>' : l.colisPick ? n0(l.colisPick) + ' colis' : '<span class="muted">—</span>') : k === 'rest' ? (h > 1 / 120 ? dur(h) : '<span class="muted">—</span>') : k === 'st' ? pvBadge(pk) : k === 'nliv' ? `<span class="muted">WM ${esc(l.swm || '–')}</span>` : ''}</td>`).join('')}</tr>`;
+          }
+        }
+      }
+    }
+    const table0 = `<div class="tbl-wrap pv-wrap"><table class="t pvt">${head}${body || `<tr><td colspan="${cols.length + 1}">${none('Rien à afficher avec ces filtres.')}</td></tr>`}</table></div>`;
+    // ----- panneau latéral -----
+    const sel = S.ui.pv.sel && M.livs.find(x => x.liv === S.ui.pv.sel);
+    const drawer = sel ? (() => { const a = S.affret.rows[sel.liv], dk = M.P ? dockSim(M.P).rows.find(r => r.liv === sel.liv) : null;
+      const kv = (k, v) => `<div class="pv-kv"><span>${k}</span><b>${v}</b></div>`;
+      return `<aside class="pv-drawer glass"><div class="pv-dh"><div><div class="muted">Livraison ${esc(sel.circuit)}${sel.report ? ' · reliquat' : ''}</div><h2 style="margin:2px 0">${esc(sel.liv)}</h2><div>${esc(sel.nom)} · ${esc(sel.ville || '')}</div></div><button class="iconbtn" data-pvsel="" aria-label="Fermer">✕</button></div>
+        <div style="margin:10px 0">${pvBadge(sel.stk)} ${prepBadge(sel.prep)} ${badge(...OT_LABEL[sel.ot])}</div>
+        <div class="pv-kvs">${kv('Temps restant', sel.h > 1 / 120 ? dur(sel.h) : 'prête')}${kv('Reste', [sel.pal ? n0(sel.pal) + ' pal SILO' : '', sel.colis ? n0(sel.colis) + ' colis' : ''].filter(Boolean).join(' · ') || '—')}
+          ${kv('Créneau', esc(sel.slotLbl))}${kv('Échéance prépa', sel.dl ? esc(fdt(sel.dl)) : '—')}${kv('Fin estimée', sel.fin ? esc(fdt(sel.fin)) : '—')}${kv('Marge', sel.marge == null ? '—' : sel.marge < 0 ? `<span class="t-crit">retard ${dur(-sel.marge)}</span>` : dur(sel.marge))}
+          ${kv('Postes faits', `${sel.done} / ${sel.nPostes}`)}${kv('Transporteur', a ? `${esc(transpName(a.transp))} · ${n0(a.pal)} pal · ${n0(a.blocs)} blocs` : 'pas encore affrétée')}${kv('Quai expédition', dk ? `${n0(dk.pal)} blocs · départ ${esc(fdt(dk.dep))}` : '—')}</div>
+        <h3 class="mh">Postes (${sel.nPostes})</h3>
+        <div class="tbl-wrap" style="max-height:44vh"><table class="t"><tr><th>Poste</th><th>Article</th><th class="num">Reste</th><th>Statut</th></tr>${sel.lines.map(l => `<tr><td>${l.poste}</td><td style="white-space:normal">${esc(l.art)}<br><small class="muted">${esc(l.des)}</small></td><td class="num">${l.done ? '<span class="muted">—</span>' : [l.palSilo ? n0(l.palSilo) + ' pal' : '', l.colisPick ? n0(l.colisPick) + ' colis' : ''].filter(Boolean).join('<br>')}</td><td>${pvBadge(l.st === 'C' ? 'ready' : l.st === 'B' ? 'prog' : 'todo')}</td></tr>`).join('')}</table></div>
+        <div class="row" style="margin-top:10px"><button class="btn sm" data-detail="liv|${esc(sel.liv)}">Fiche complète</button></div></aside>`; })() : '';
+    if (isSynth) return `<section class="card glass pv-card">${band}${filters}${tools}<div style="padding:0 18px">${prepSynth(lines)}</div></section>`;
+    return `<section class="card glass pv-card">${band}${filters}${noSlotBar}${tools}<div class="pv-main">${table0}${drawer}</div>
+      <p class="meta" style="margin-top:10px">${pvBadge('late')} échéance dépassée à la fin estimée · ${pvBadge('risk')} marge sous 2 h · ${pvBadge('prog')} commencée · ${pvBadge('todo')} pas commencée · ${pvBadge('ready')} tous les postes terminés (statut WM C)</p></section>`;
+  } finally { PROJ_SCOPE = null; }
+}
+// ---------- interactions ----------
+document.addEventListener('click', e => {
+  const t = e.target;
+  const o = t.closest('[data-pvopen]'); if (o) { e.stopPropagation(); const k = o.dataset.pvopen, cur = o.getAttribute('aria-expanded'); S.ui.pv.open = Object.assign({}, S.ui.pv.open, { [k]: cur == null ? !pvOpen(k, false) : cur !== 'true' }); render(); return; }
+  const vw = t.closest('[data-pvview]'); if (vw) { S.ui.prepView = vw.dataset.pvview === 'synth' ? 'synth' : 'plan'; render(); return; }
+  if (t.closest('[data-pvreset]')) S.ui.pv.st = [];
+  const l = t.closest('[data-pvlvl]'); if (l) { S.ui.pv.level = l.dataset.pvlvl; S.ui.pv.open = {}; render(); return; }
+  const st = t.closest('[data-pvst]'); if (st) { const k = st.dataset.pvst, a = S.ui.pv.st || []; S.ui.pv.st = a.includes(k) ? a.filter(x => x !== k) : [...a, k]; if (k === 'ready' && S.ui.pv.st.includes('ready')) S.ui.pv.hideReady = false; render(); return; }
+  const x = t.closest('[data-pvx]'); if (x) { const [g, v] = x.dataset.pvx.split('|'); if (g === 'st') S.ui.pv.st = S.ui.pv.st.filter(s => s !== v); else if (g === 'q') S.ui.pf.q = ''; else S.ui.pf[g] = (S.ui.pf[g] || []).filter(s => s !== v); render(); return; }
+  const tg = t.closest('button[data-pvt]'); if (tg) { S.ui.pv[tg.dataset.pvt] = !S.ui.pv[tg.dataset.pvt]; render(); return; }
+  const j = t.closest('[data-pvjump]'); if (j) { const D = j.dataset.pvjump; S.ui.pv.open = Object.assign({}, S.ui.pv.open, { ['d|' + D]: true }); render(); document.getElementById('pvd-' + D)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  if (t.closest('[data-pvcolreset]')) { try { localStorage.removeItem('flux-pv-cols'); } catch (e2) {} render(); return; }
+  const s = t.closest('[data-pvsel]'); if (s && !t.closest('button.pv-caret') && !t.closest('[data-detail]')) { S.ui.pv.sel = s.dataset.pvsel === S.ui.pv.sel ? null : s.dataset.pvsel || null; render(); }
+});
+document.addEventListener('toggle', e => { if (e.target.matches && e.target.matches('details.pv-colmenu')) S.ui.pv.colOpen = e.target.open; }, true);   // le menu Colonnes reste ouvert pendant les choix
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.matches('input[data-pvt]')) { S.ui.pv[t.dataset.pvt] = t.checked; render(); }
+  if (t.matches('input[data-pvcol]')) { const c = new Set(pvCols()); t.checked ? c.add(t.dataset.pvcol) : c.delete(t.dataset.pvcol); const arr = PV_COLS.map(x => x[0]).filter(k => c.has(k)); try { localStorage.setItem('flux-pv-cols', JSON.stringify(arr)); } catch (e2) {} render(); }
+});
+
 const PREP_COLS = [
   { k: 'liv', label: 'Livraisons', num: true, fmt: n0 }, { k: 'codes', label: 'Codes', num: true, fmt: n0 },
   { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'hrSilo', label: 'Hr SILO', num: true, fmt: hr },
@@ -1865,57 +2038,7 @@ function circuitSplit(lines) {
   ${rows.map(r => `<tr><td>${esc(r.c)}</td><td class="num">${n0(r.liv)}</td><td class="num">${n0(r.palSilo)}</td><td class="num">${n0(r.colisPick)}</td><td class="num">${hr(r.hrSilo + r.hrPick)}</td><td class="num muted">${n0(cadencePick(r.c))} colis/h</td></tr>`).join('')}
   </tbody></table></div>`;
 }
-function prepByLiv(lines) {
-  const byLiv = new Map();
-  for (const l of lines) { const k = l.dc + '|' + l.liv; if (!byLiv.has(k)) byLiv.set(k, []); byLiv.get(k).push(l); }
-  const rows = [...byLiv.values()].map(ls => {
-    const af = S.affret.rows[ls[0].liv];
-    return Object.assign({ dc: ls[0].dc, livNo: ls[0].liv, nom: ls[0].nom, ville: ls[0].ville, circuit: ls[0].circuit, itin: ls[0].itin, af }, agg(ls), livStatus(ls));
-  });
-  const open = S.ui.openLiv;
-  const cols = [
-    { k: 'dc', label: 'Date chrgt', fmt: fdateL }, { k: 'livNo', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' },
-    { k: 'circuit', label: 'Circuit' }, { k: 'codes', label: 'Codes', num: true, fmt: n0 },
-    ...PREP_COLS.slice(2),
-    ...restCols(r => r.livNo),
-    { k: 'prep', label: 'Prépa', html: r => prepBadge(r.prep) }, { k: 'ot', label: 'OT', html: r => badge(...OT_LABEL[r.ot]) },
-    { k: 'lk', label: 'Créneau chargement', sv: r => likpOf(r.livNo) ? likpOf(r.livNo).d + (likpOf(r.livNo).t || '') : '', html: r => likpLbl(r.livNo) || '<span class="muted">—</span>' },
-    { k: 'enl', label: 'Enlèvement', sv: r => r.af ? r.af.date : '', html: r => r.af ? `${fdateL(r.af.date)} · T${esc(r.af.transp)}${r.af.rdv ? ' · ' + esc(r.af.rdv) : ''}` : '<span class="muted">—</span>' },
-  ];
-  const T = agg(lines);
-  return `<p class="hint">${n0(rows.length)} livraisons — cliquez une ligne pour voir les codes.</p>` + table('prepLiv', cols, rows, {
-    total: Object.assign({ codes: T.codes }, T), limit: 1500,
-    rowAttr: r => `class="clickable" data-openliv="${r.livNo}"`,
-    after: r => open === r.livNo ? `<tr class="detail"><td colspan="${cols.length}"><div style="padding:10px">${codesTable(r.livNo + 'd', lines.filter(l => l.liv === r.livNo), 400)}</div></td></tr>` : '',
-  });
-}
 document.addEventListener('click', e => { const b = e.target.closest('[data-act="proj-all"],[data-act="proj-scope"]'); if (b) { S.ui.projAll = b.dataset.act === 'proj-all'; render(); } });
-document.addEventListener('click', e => { const r = e.target.closest('[data-openliv]'); if (!r) return; S.ui.openLiv = S.ui.openLiv === r.dataset.openliv ? null : r.dataset.openliv; render(); });
-function codesTable(id, lines, limit) {
-  const cols = [
-    { k: 'art', label: 'Article' }, { k: 'des', label: 'Désignation' }, { k: 'format', label: 'Format' },
-    { k: 'sgp', label: 'SGP' }, { k: 'vp', label: 'VP' }, { k: 'swm', label: 'SWM' }, { k: 'picking', label: 'Picking' },
-    { k: 'uqpal', label: 'UQ/PAL', num: true, fmt: (v, r) => r.noRef ? '⚠ inconnu' : n0(v) },
-    { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'hrSilo', label: 'Hr SILO', num: true, fmt: hr },
-    { k: 'nbPick', label: 'Nb Pick', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis Picking', num: true, fmt: n0 },
-    { k: 'hrPick', label: 'Hr Pick', num: true, fmt: hr }, { k: 'pk', label: 'Total Colis', num: true, fmt: n0 },
-  ];
-  const T = agg(lines);
-  return table(id, cols, lines, { total: { palSilo: T.palSilo, hrSilo: T.hrSilo, nbPick: T.nbPick, colisPick: T.colisPick, hrPick: T.hrPick, pk: T.total }, limit });
-}
-function prepCodes(lines) {
-  const cols = [
-    { k: 'dc', label: 'Date chrgt', fmt: fdateL }, { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire' },
-    { k: 'art', label: 'Article' }, { k: 'des', label: 'Désignation' }, { k: 'sgp', label: 'SGP' }, { k: 'vp', label: 'VP' }, { k: 'swm', label: 'SWM' },
-    { k: 'picking', label: 'Picking' }, { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'hrSilo', label: 'Hr SILO', num: true, fmt: hr },
-    { k: 'nbPick', label: 'Nb Pick', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis Picking', num: true, fmt: n0 }, { k: 'hrPick', label: 'Hr Pick', num: true, fmt: hr },
-    { k: 'pk', label: 'Total Colis', num: true, fmt: n0 },
-  ];
-  const T = agg(lines);
-  return `<p class="hint">${n0(lines.length)} postes · SGP = statut global prélèvement, VP = validation prélèvement, SWM = statut activité WM.</p>` +
-    table('prepCodes', cols, lines, { total: { palSilo: T.palSilo, hrSilo: T.hrSilo, nbPick: T.nbPick, colisPick: T.colisPick, hrPick: T.hrPick, pk: T.total }, limit: 2500 });
-}
-
 // ============================================================
 //   VUE : EXPÉDITIONS (base affrètement)
 // ============================================================
@@ -3123,101 +3246,6 @@ function dayTimeline(D, xs, P) {
 // ============================================================
 //   PRÉPARATION : PLANNING DE CHARGEMENT (jour → créneau → livraisons)
 // ============================================================
-function prepPlanning(lines) {
-  const P = projection();
-  const itemBy = new Map((P ? P.items : []).map(i => [i.liv, i]));
-  const dayOf = l => (likpOf(l.liv) || {}).d || l.dc;
-  const slotOf = l => { const si = slotInfo(l.liv, l.nom); return si ? `${si.start}|${si.end}|${si.src === 'client' ? si.name : ''}` : ''; };
-  // livraisons (sur les postes filtrés)
-  const livs = new Map();
-  for (const l of lines) { if (!livs.has(l.liv)) livs.set(l.liv, []); livs.get(l.liv).push(l); }
-  const L = [...livs.values()].map(ls => {
-    const l0 = ls[0], a = agg(ls), it = itemBy.get(l0.liv), open = ls.filter(l => !l.done);
-    const st = !open.length ? 'ready' : !it ? 'nc' : (it.okP && it.okS ? 'ok' : 'late');
-    const rep = ls.find(l => l.report);
-    return Object.assign({}, a, { liv: l0.liv, nom: l0.nom, ville: l0.ville, circuit: l0.circuit, itin: l0.itin, D: livDay(ls), t: rep ? 'R' : slotOf(l0), report: !!rep, dcOrig: rep ? rep.dcOrig : null, it, st,
-      rS: sum(open, l => l.hrSilo), rP: sum(open, l => l.hrPick), rPal: sum(open, l => l.palSilo), rColis: sum(open, l => l.colisPick), prep: livStatus(ls).prep, ot: livStatus(ls).ot });
-  });
-  if (!L.length) return none('Aucune livraison pour ces filtres.');
-  const days = uniq(L.map(x => x.D)).filter(Boolean).sort();
-  const ST = { ready: ['✓ Prête', 'b-good'], ok: ['✓ Passe', 'b-good'], late: ['✗ En retard', 'b-crit'], nc: ['—', 'b-neutral'] };
-  const stBadge = x => {
-    if (x.st === 'late') { const r = Math.max(x.it.retP || 0, x.it.retS || 0); return badge(`✗ Retard ${r ? hr(r) : ''}`.trim(), 'b-crit'); }
-    return badge(...ST[x.st]);
-  };
-  const slotStatus = xs => {
-    const late = xs.filter(x => x.st === 'late');
-    if (late.length) return badge(`✗ ${late.length} en retard · jusqu’à ${hr(Math.max(...late.map(x => Math.max(x.it.retP || 0, x.it.retS || 0))))}`, 'b-crit');
-    if (xs.every(x => x.st === 'ready')) return badge('✓ Tout est prêt', 'b-good');
-    const m = Math.min(...xs.filter(x => x.it).map(x => Math.min(x.it.okP && x.it.rP ? x.it.capP - x.it.cumP : Infinity, x.it.okS && x.it.rS ? x.it.capS - x.it.cumS : Infinity)));
-    return badge(`✓ Passe${isFinite(m) ? ` · marge ${n1(m)} h` : ''}`, 'b-good');
-  };
-  const open = S.ui.openSlot;
-  const pr = (v, t) => t ? `<div class="bar" style="margin-top:4px;height:5px"><span style="width:${Math.round(v / t * 100)}%"></span></div>` : '';
-  const dayCards = days.map(D => {
-    const xs = L.filter(x => x.D === D), row = P ? P.rows.find(r => r.D === D) : null;
-    const hrsT = sum(xs, x => x.hrSilo + x.hrPick), hrsR = sum(xs, x => x.rS + x.rP);
-    const slots = uniq(xs.map(x => x.t)).sort((a, b) => (b === 'R') - (a === 'R') || (a === '') - (b === '') || a.localeCompare(b));   // reliquat en tête
-    const lateN = xs.filter(x => x.st === 'late').length;
-    const dockV = P ? dockVerdict(dockSim(P), D) : null;
-    const vd = (ok, m, lbl) => !row ? '' : `<div class="pv ${ok ? 'ok' : 'ko'}"><span>${lbl}</span><b>${ok ? '✓ passe' : '✗ ne passe pas'}</b><small>${ok ? `marge ${n1(m)} h` : `manque ${n1(-m)} h`}</small></div>`;
-    const isOpenDay = planOpen(D);
-    const head = `<div class="plan-head">
-      <div><h3><button class="plan-tg" data-planfold="${D}" aria-expanded="${isOpenDay}">${isOpenDay ? '▾' : '▸'}</button> ${DAYS[dayIdx(D)]} ${fdate(D)}</h3><div class="meta">${xs.length} livraisons · ${n0(sum(xs, x => x.palSilo))} pal SILO · ${n0(sum(xs, x => x.colisPick))} colis picking · ${n1(hrsT)} h de prépa</div>
-        <div class="plan-prog"><span>Avancement ${pct(hrsT ? 1 - hrsR / hrsT : NaN)}</span>${pr(hrsT - hrsR, hrsT)}<span class="meta">reste ${n1(hrsR)} h (SILO ${n1(sum(xs, x => x.rS))} h · picking ${n1(sum(xs, x => x.rP))} h)${row?.rPalB ? ` · SILO : ${n0(row.rPalB)} pal sur postes commencés, à confirmer` : ''}</span></div></div>
-      <div class="pvs">${vd(row?.okP, row?.mP, 'Picking')}${vd(row?.okS, row?.mS, 'SILO')}${dockV ? `<div class="pv ${dockV.ok ? 'ok' : 'ko'}"><span>Quai exp.</span><b>${dockV.ok ? '✓ fluide' : '✗ saturé'}</b><small>${esc(dockV.lbl)}</small></div>` : ''}${lateN ? `<div class="pv ko"><span>Livraisons</span><b>${lateN} en retard</b><small>sur ${xs.length}</small></div>` : `<div class="pv ok"><span>Livraisons</span><b>${xs.filter(x => x.st === 'ready').length} prêtes</b><small>sur ${xs.length}</small></div>`}</div>
-    </div>`;
-    const rows = slots.map(t => {
-      const ss = xs.filter(x => x.t === t), key = D + '|' + t.replace(/\|/g, '_'), isOpen = open === key;
-      const done = ss.filter(x => x.st === 'ready').length;
-      const finP = Math.max(0, ...ss.map(x => x.it?.finP || 0)), finS = Math.max(0, ...ss.map(x => x.it?.finS || 0));
-      const dl = ss.some(x => x.it && x.st !== 'ready') ? Math.min(...ss.filter(x => x.it && x.st !== 'ready').map(x => x.it.dl)) : null;
-      const sub = isOpen ? `<tr class="detail"><td colspan="9"><div style="padding:8px 10px">${table('plan' + key.replace(/\W/g, ''), [
-        { k: 'liv', label: 'Livraison', html: x => `${esc(x.liv)}${x.report ? `<br><span class="badge b-warn b-nodot">reliquat du ${fdate(x.dcOrig)}</span>` : ''}` }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' }, { k: 'itin', label: 'Itinéraire' }, { k: 'circuit', label: 'Circuit' },
-        { k: 'heure', label: 'Heure chargement', html: x => { const si = slotInfo(x.liv, x.nom); return si && si.src === 'client' ? `<span class="muted">${siLbl(si)}</span>` : `<input class="inp" type="time" style="padding:4px 8px" data-likpset="${esc(x.liv)}|${esc(x.D)}" value="${esc(likpOf(x.liv)?.t || '')}">`; } },
-        { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis picking', num: true, fmt: n0 },
-        ...restCols(x => x.liv),
-        { k: 'fin', label: 'Fin estimée', sv: x => Math.max(x.it?.finP || 0, x.it?.finS || 0), html: x => x.it && (x.it.finP || x.it.finS) ? esc(fdt(Math.max(x.it.finP || 0, x.it.finS || 0))) : '<span class="muted">—</span>' },
-        { k: 'prep', label: 'Prépa', html: x => prepBadge(x.prep) }, { k: 'ot', label: 'OT', html: x => badge(...OT_LABEL[x.ot]) },
-        { k: 'st', label: 'Statut', html: stBadge },
-      ], ss)}</div></td></tr>` : '';
-      return `<tr class="clickable ${ss.some(x => x.st === 'late') ? 'row-late' : ''}" data-openslot="${esc(key)}">
-        <td><span class="caret">${isOpen ? '▾' : '▸'}</span> <b>${t === 'R' ? 'Reliquat des jours précédents' : t ? (() => { const [a1, b1, n1] = t.split('|'); return siLbl({ start: a1, end: b1, src: n1 ? 'client' : 'likp', name: n1 }); })() : 'Sans créneau'}</b>${t === 'R' ? `<br><span class="muted" style="font-size:11.5px">à finir aujourd’hui · commandes du ${esc(uniq(ss.map(x => fdate(x.dcOrig))).join(', '))}</span>` : t ? (t.split('|')[2] ? '<br><span class="muted" style="font-size:11.5px">créneau fixe client</span>' : '') : `<br><span class="muted" style="font-size:11.5px">échéance estimée : ${[`avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'fin de journée'][+S.settings.prepDelai || 0]}</span>`}</td>
-        <td class="num">${done}/${ss.length}${pr(done, ss.length)}</td>
-        <td class="num">${n0(sum(ss, x => x.palSilo))}${sum(ss, x => x.rPal) ? `<br><span class="muted">reste ${n0(sum(ss, x => x.rPal))}</span>` : ''}</td>
-        <td class="num">${n0(sum(ss, x => x.colisPick))}${sum(ss, x => x.rColis) ? `<br><span class="muted">reste ${n0(sum(ss, x => x.rColis))}</span>` : ''}</td>
-        <td class="num">${hr(sum(ss, x => x.rS))}</td><td class="num">${hr(sum(ss, x => x.rP))}</td>
-        <td>${dl ? esc(fdt(dl)) : '<span class="muted">—</span>'}</td>
-        <td>${finP || finS ? esc(fdt(Math.max(finP, finS))) : '<span class="muted">—</span>'}</td>
-        <td>${slotStatus(ss)}</td></tr>${sub}`;
-    }).join('');
-    const noSlot = xs.filter(x => !x.t && x.st !== 'ready');
-    const dayOpen = S.ui.openDay === D;
-    const sortKey = x => (x.t ? x.t.split('|')[0] : '99:99') + x.liv;
-    const dayTable = dayOpen ? `<div style="margin-top:12px">${table('pday' + D.replace(/\W/g, ''), [
-      { k: 'slot', label: 'Créneau', sv: sortKey, html: x => { const si = slotInfo(x.liv, x.nom); return si ? `<b>${siLbl(si)}</b>${si.src === 'likp' && likpOf(x.liv)?.manual ? ' <span class="muted">(saisi)</span>' : ''}` : '<span class="muted">sans créneau</span>'; } },
-      { k: 'heure', label: 'Heure de chargement', html: x => { const si = slotInfo(x.liv, x.nom); return si && si.src === 'client' ? '<span class="muted">créneau fixe client</span>' : `<input class="inp" type="time" style="padding:4px 8px" data-likpset="${esc(x.liv)}|${esc(D)}" value="${esc(likpOf(x.liv)?.t || '')}" title="Début du créneau de chargement">`; } },
-      { k: 'liv', label: 'Livraison' }, { k: 'nom', label: 'Réceptionnaire', cls: 'wrap' }, { k: 'itin', label: 'Itinéraire' }, { k: 'circuit', label: 'Circuit' },
-      { k: 'palSilo', label: 'Pal SILO', num: true, fmt: n0 }, { k: 'colisPick', label: 'Colis picking', num: true, fmt: n0 },
-      ...restCols(x => x.liv),
-      { k: 'dl', label: 'Échéance', sv: x => x.it?.dl || 0, html: x => x.it ? esc(fdt(x.it.dl)) : '<span class="muted">—</span>' },
-      { k: 'fin', label: 'Fin estimée', sv: x => Math.max(x.it?.finP || 0, x.it?.finS || 0), html: x => x.it && (x.it.finP || x.it.finS) ? esc(fdt(Math.max(x.it.finP || 0, x.it.finS || 0))) : '<span class="muted">—</span>' },
-      { k: 'prep', label: 'Prépa', html: x => prepBadge(x.prep) }, { k: 'st', label: 'Statut', html: stBadge },
-    ], [...xs].sort((a, b) => sortKey(a).localeCompare(sortKey(b))), { limit: 500 })}
-      ${noSlot.length ? `<div class="alert warn" style="margin-top:10px">${icon('warn')}<div><b>${noSlot.length} livraison(s) à préparer sans créneau</b> — saisissez l’heure ci-dessus, ou extrayez-les de la LIKP (n° à copier) :<textarea class="inp" readonly style="min-height:60px;margin-top:6px" onclick="this.select()">${noSlot.map(x => x.liv).join('\n')}</textarea></div></div>` : ''}</div>` : '';
-    const dayBtn = `<div class="row" style="margin-top:10px"><button class="btn sm" data-openday="${D}">${dayOpen ? '▾ Masquer' : '▸ Détail des'} ${xs.length} livraisons du jour</button>${noSlot.length ? `<span class="badge b-warn">${noSlot.length} à préparer sans créneau</span>` : ''}</div>`;
-    if (!isOpenDay) return `<div class="plan-day folded ${lateN ? 'late' : ''}">${head}</div>`;
-    return `<div class="plan-day ${lateN ? 'late' : ''}">${head}${dayTimeline(D, xs, P)}
-      <div class="tbl-wrap" style="max-height:none"><table class="t"><thead><tr><th>Créneau de chargement</th><th class="num">Livr. prêtes</th><th class="num">Pal SILO</th><th class="num">Colis picking</th><th class="num">Reste SILO</th><th class="num">Reste picking</th><th>Échéance prépa</th><th>Fin estimée</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table></div>${dayBtn}${dayTable}</div>`;
-  }).join('');
-  const missing = L.filter(x => !x.t && x.st !== 'ready');
-  const miss = missing.length ? `<div class="alert warn" style="margin-bottom:14px">${icon('warn')}<div style="flex:1"><b>${missing.length} livraison(s) sans créneau de chargement</b> (${uniq(missing.map(x => fdateL(x.D))).join(', ')}) : échéance estimée.</div>${actBtn({ lbl: 'Compléter les heures', detail: 'noslot' })}</div>` : '';
-  const info = P ? `<h3 class="mh" style="margin-top:0">Planning de chargement</h3><p class="hint">chaque jour de chargement est découpé par créneau LIKP (${num(S.settings.likpSlot)} h). « Reste » = postes pas encore au statut C, en heures (cadences). La fin estimée enchaîne le travail restant dans l’ordre des créneaux avec les équipes (${esc(teamsLbl())} ; SILO : ${esc(siloLbl())})${P.effP !== 1 || P.effS !== 1 ? `, au rendement réel appliqué (picking ${pct(P.effP)}, SILO ${pct(P.effS)})` : ''}, à partir de la VL06O extraite le <b>${esc(fdt(P.at))}</b>. « En retard » = la fin estimée dépasse l’échéance (début du créneau − ${num(S.settings.likpMarge)} min ; créneaux fixes : ${(S.settings.creneauxClients || []).map(r => `${esc(r.key)} ${hLbl(r.debut)}–${hLbl(r.fin)}`).join(', ')} ; sans heure LIKP, échéance estimée ${[`le jour même avant ${esc(S.settings.likpDefaut || '12:00')}`, 'la veille au soir', 'le jour même en fin de journée'][+S.settings.prepDelai || 0]}). Cliquez un créneau pour voir ses livraisons.${S.likp ? '' : ' <b>Collez la LIKP ci-dessus pour obtenir les créneaux.</b>'}</p>` : '';
-  return info + miss + `<div class="plan">${dayCards}</div>`;
-}
-document.addEventListener('click', e => { const f = e.target.closest('[data-planfold]'); if (f) { S.ui.planFold = S.ui.planFold || {}; S.ui.planFold[f.dataset.planfold] = !planOpen(f.dataset.planfold); render(); } });
-document.addEventListener('click', e => { const d = e.target.closest('[data-openday]'); if (d) { S.ui.openDay = S.ui.openDay === d.dataset.openday ? null : d.dataset.openday; render(); } });
-document.addEventListener('click', e => { if (e.target.closest('input,select')) return; const r = e.target.closest('[data-openslot]'); if (!r || e.target.closest('th')) return; S.ui.openSlot = S.ui.openSlot === r.dataset.openslot ? null : r.dataset.openslot; render(); });
 
 // ============================================================
 //   SATURATION DU QUAI D'EXPÉDITION
@@ -4011,7 +4039,6 @@ document.addEventListener('click', e => {
 //   feu tricolore de la semaine, overlay journée (imprimable), comparaison S-1
 // ============================================================
 const nextWork = iso => { let d = addDays(iso, 1); for (let i = 0; i < 7 && !workDay(d); i++) d = addDays(d, 1); return d; };
-const planOpen = D => { const f = (S.ui.planFold || {})[D]; return f != null ? f : D <= nextWork(today()); };
 function dayData(D) {
   return {
     aff: Object.values(S.affret.rows).filter(r => r.date === D && !isExtShip(r)),
