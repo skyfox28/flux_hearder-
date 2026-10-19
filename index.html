@@ -1157,9 +1157,10 @@ const SPLASH = (() => {
    ============================================================ */
 
 // ---------- Version (à incrémenter à chaque modification de l'app) ----------
-const APP_VERSION = '1.42.1';
+const APP_VERSION = '1.42.2';
 const APP_AUTHOR = 'Galaad Poivey';
 const CHANGELOG = [
+  ['1.42.2', '19/10/2026', 'Picking affiché en colis : jauge de la vue jour, carte du jour du tableau de bord et détail Picking donnent d’abord les colis à faire, les heures en détail (la couleur de la jauge reste la charge face à la capacité des préparateurs).'],
   ['1.42.1', '19/10/2026', 'Correction du fait / à faire : un poste est fait seulement si son activité WM est à C. Le statut global de prélèvement (même valeur pour toute la livraison) pouvait être à C alors que des postes restaient en B : ces livraisons étaient annoncées prêtes à tort (ex. 472664431). Une livraison est terminée quand tous ses postes sont faits.'],
   ['1.42.0', '15/10/2026', 'Nouvel écran atelier : équipe en cours et temps restant, colis picking et palettes SILO à faire sur le total du jour, quai d’expédition, camions attendus ; créneau de chargement en cours et suivant avec ce qu’il reste dedans, frise des créneaux ; tableaux Départs (une ligne par client et créneau, reste, préparation, état ; export WTS regroupé) et Arrivées ; alertes en une ligne.'],
   ['1.41.0', '15/10/2026', 'Réceptions SST sans pointage manuel : l’état de chaque RDV vient du planning (« Arrivé » si l’heure d’arrivée est saisie, « Créneau passé », « Planifié »). Un camion qui ne vient pas est déplacé dans le fichier ; l’actualisation suffit. Plus de pastille « non pointés » dans le menu.'],
@@ -2025,7 +2026,7 @@ function dzDay(D, lbl, stale) {
   const hT = sum(x.dd.prep, l => l.hrSilo + l.hrPick), hF = sum(x.dd.prep.filter(l => l.done), l => l.hrSilo + l.hrPick), av = hT ? hF / hT : NaN;
   const line = (lab, val, sub, tone, key) => `<div class="dz-l${key ? ' clk' : ''}"${key ? ` data-detail="${key}" role="button" tabindex="0"` : ''}><span class="dz-ll">${lab}</span><b class="${tone ? 't-' + tone : ''}">${val}</b><small>${sub || ''}</small>${key ? '<span class="dz-chev">›</span>' : ''}</div>`;
   const grey = v => `<span class="dz-na">${v}</span>`;
-  const pick = r ? (r.rP > 0 ? line('Picking', `${dur(r.rP)} à faire`, `${n0(r.rColis)} colis · ${finLbl(r.finP, D)}`, r.okP ? '' : 'crit', 'pick|' + D) : line('Picking', '✓ fait', '', 'good', 'pick|' + D)) : line('Picking', grey('—'), x.dd.prep.length ? 'terminé' : 'pas de VL06O');
+  const pick = r ? (r.rP > 0 ? line('Picking', `${n0(r.rColis)} colis à faire`, `${dur(r.rP)} · ${finLbl(r.finP, D)}`, r.okP ? '' : 'crit', 'pick|' + D) : line('Picking', '✓ fait', '', 'good', 'pick|' + D)) : line('Picking', grey('—'), x.dd.prep.length ? 'terminé' : 'pas de VL06O');
   const silo = r ? (r.rS > 0 ? line('Sortie SILO', `${n0(r.rPal)} pal à sortir`, `${dur(r.rS)} cariste · ${finLbl(r.finS, D)}`, r.okS ? '' : 'crit', 'siloOut|' + D) : line('Sortie SILO', '✓ fait', '', 'good', 'siloOut|' + D)) : line('Sortie SILO', grey('—'), '');
   const dock = x.dock ? line('Quai expédition', x.dock.lbl.replace(/^[✓✗] /, ''), esc(x.dock.det), x.dock.st === 'ko' ? 'crit' : x.dock.st === 'warn' ? 'warn' : '', 'quai') : line('Quai expédition', grey('pas de simulation'), x.outN ? `${n0(x.outN)} livr. · ${n0(x.outPal)} pal` : '');
   const rec = x.rec ? line('Réception', `${n0(x.inCam)} camion${x.inCam > 1 ? 's' : ''} · ${n0(x.inPal)} pal`, esc(x.rec.lbl.replace(/^[✓✗] /, '')), x.rec.st === 'ko' ? 'crit' : '', 'inx|' + D) : line('Réception', grey('aucun camion prévu'), '');
@@ -3444,7 +3445,7 @@ function projectionRaw(scope) {
     const mS = fx.length ? Math.min(...fx.filter(i => i.rS > 0).map(i => i.capS - i.cumS).concat([capS - cumS])) : capS;
     const mP = fx.length ? Math.min(...fx.filter(i => i.rP > 0).map(i => i.capP - i.cumP).concat([capP - cumP])) : capP;
     return { D, dl: last ? last.dl : deadlineTs(D), rS, rP, rPal: sum(its, i => i.rPal), rPalB: sum(its, i => i.rPalB), rColis: sum(its, i => i.rColis),
-      fS: sum(all, l => l.hrSilo) - rS, fP: sum(all, l => l.hrPick) - rP, fPal: sum(all, l => l.palSilo) - sum(its, i => i.rPal),
+      fS: sum(all, l => l.hrSilo) - rS, fP: sum(all, l => l.hrPick) - rP, fColis: sum(all, l => l.colisPick) - sum(its, i => i.rColis), fPal: sum(all, l => l.palSilo) - sum(its, i => i.rPal),
       cumS, cumP, capS, capP, availS: Math.max(0, capS - (cumS - rS)), availP: Math.max(0, capP - (cumP - rP)),
       okS: its.every(i => i.okS), okP: its.every(i => i.okP), mS, mP, nLateS: its.filter(i => !i.okS).length, nLateP: its.filter(i => !i.okP).length, nLiv: its.length,
       withT: its.filter(i => i.hasT).length, nFlex: its.filter(i => i.flex).length, nFlexLate: its.filter(i => i.flexLate).length,
@@ -4455,11 +4456,11 @@ function donutsOf(prep, aff) {
 function pilotDay(x) {
   const D = x.D, dd = x.dd, row = x.row, P = projection(), g = [];
   if (row) {
-    g.push(gauge(row.tP, n1(row.cumP), `h / ${n1(row.capP)} h`, 'Picking', row.rP > 0 ? finLbl(row.finP, D) : 'tout est fait', 'pick|' + D));
+    g.push(gauge(row.tP, n0(row.rColis), `colis à faire · ${n1(row.rP)} h`, 'Picking', row.rP > 0 ? finLbl(row.finP, D) : 'tout est fait', 'pick|' + D));
     g.push(gauge(row.tS, n0(row.rPal), `pal · ${n1(row.cumS)} h`, 'Sortie SILO', row.rS > 0 ? finLbl(row.finS, D) : 'tout est fait', 'siloOut|' + D));
   } else {
     const hp = sum(dd.prep, l => l.hrPick), hs = sum(dd.prep, l => l.hrSilo);
-    g.push(gauge(capaOf(D) ? hp / capaOf(D) : null, n1(hp), `h / ${n1(capaOf(D))} h`, 'Picking', 'charge du jour', 'prepxl'));
+    g.push(gauge(capaOf(D) ? hp / capaOf(D) : null, n0(sum(dd.prep, l => l.colisPick)), `colis · ${n1(hp)} h`, 'Picking', 'charge du jour', 'prepxl'));
     g.push(gauge(capaSiloOf(D) ? hs / capaSiloOf(D) : null, n0(sum(dd.prep, l => l.palSilo)), `pal · ${n1(hs)} h`, 'Sortie SILO', 'charge du jour', 'prepxl'));
   }
   if (P && P.rows.some(r => r.D === D)) { const dk = dockSim(P), v = dockVerdict(dk, D); g.push(gauge(v.peak / dk.cap, n0(v.peak), `/ ${n0(dk.cap)} blocs`, 'Quai expédition', `pic à ${hhmm(v.at)}`, 'quai')); }
@@ -4576,7 +4577,7 @@ function teamDetail(k, D0) {
   const all = prepLines().filter(l => ((likpOf(l.liv) || {}).d || l.dc) === D);
   const mk = isP ? row.mP : row.mS, ok = isP ? row.okP : row.okS, t = isP ? row.tP : row.tS;
   const head = mini([
-    [isP ? 'Picking à faire' : 'Palettes à sortir', isP ? n1(row.rP) : n0(row.rPal), isP ? 'h' : 'pal', isP ? `${n0(row.rColis)} colis · fait ${n1(row.fP)} h` : `${n1(row.rS)} h · déjà sorties ${n0(row.fPal)} pal${row.rPalB ? ` · ${n0(row.rPalB)} sur postes commencés` : ''}`],
+    [isP ? 'Colis picking à faire' : 'Palettes à sortir', isP ? n0(row.rColis) : n0(row.rPal), isP ? 'colis' : 'pal', isP ? `${n1(row.rP)} h de travail · déjà faits ${n0(row.fColis)} colis` : `${n1(row.rS)} h · déjà sorties ${n0(row.fPal)} pal${row.rPalB ? ` · ${n0(row.rPalB)} sur postes commencés` : ''}`],
     ['Verdict', ok ? '✓ passe' : '✗ ne passe pas', '', ok ? `marge ${n1(mk)} h` : `manque ${n1(-mk)} h · ${isP ? row.nLateP : row.nLateS} livr. en retard`],
     ['Fin estimée', B && B.fin ? hhmm(B.fin) : '—', '', B && B.fin ? esc(fdt(B.fin)) : 'tout est fait'],
     ['Taux réel', isFinite(t) ? pct(t) : '∞', '', `${n1(isP ? row.cumP : row.cumS)} h à faire (retard compris) / ${n1(isP ? row.capP : row.capS)} h dispo`],
