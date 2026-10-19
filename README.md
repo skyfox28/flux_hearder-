@@ -30,7 +30,7 @@ Elle reprend la requête Power Query et les formules du classeur *Analyse_Activi
 - **Circuit** selon la priorité de livraison : 1 Entrepôt, 2 GMS, 3 Export, 4 Allotie, 6 MDD, 9 Interco ;
 - **Hr SILO** = Pal SILO ÷ 18 ; **Hr Pick** = colis picking ÷ cadence (Export 750, MDD 1300, autres circuits 400). Les cadences se modifient dans Paramètres ;
 - **Nb Pick** = 1 si le poste a du picking ; l'emplacement picking vient de MLGT ;
-- **Fait / à faire, poste par poste.** Le « Statut global prélèv » de la VL06O est celui de la **livraison entière** (identique sur tous ses postes) : B veut dire « livraison commencée ». Un poste est donc compté **fait** si la livraison est en C **ou** si son « Statut activité WM » est C. « Validat. prélèvement » = C ne suffit pas : on trouve des postes validés dont l'activité WM est encore en B, voire en A. Un poste « commencé » est un poste dont l'activité WM est en B (partielle).
+- **Fait / à faire, poste par poste.** C'est le « Statut activité WM » du poste qui compte : C = fait, B = commencé (partiel), A = à faire. Le « Statut global prélèv » de la VL06O est celui de la **livraison entière** (identique sur tous ses postes) et peut être à C alors que des postes sont encore en B (exemple : livraison 472664431 du 19/10, statut global C, ses 10 postes en WM B, 34 colis picking restants) : il ne sert que si l'activité WM est vide. « Validat. prélèvement » = C ne suffit pas non plus. Une livraison est terminée quand tous ses postes sont faits.
 
 Sur l'extraction VL06O fournie, les totaux ont été vérifiés contre un recalcul indépendant : 1 994 postes, 145 livraisons, 1 060 pal SILO, 58,89 h SILO, 64 419 colis picking et 140,51 h picking.
 
